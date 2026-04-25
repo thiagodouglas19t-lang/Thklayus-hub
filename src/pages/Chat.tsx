@@ -36,6 +36,8 @@ export default function Chat() {
   const [userId, setUserId] = useState("");
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [setupError, setSetupError] = useState("");
+  const [sending, setSending] = useState(false);
 
   const internal = canAccessInternalPanel(userEmail);
 
@@ -47,8 +49,13 @@ export default function Chat() {
     if (selectedThread) loadMessages(selectedThread.id);
   }, [selectedThread]);
 
+  function isSetupError(message: string) {
+    return message.includes("chat_threads") || message.includes("chat_messages") || message.includes("schema cache") || message.includes("chat-files");
+  }
+
   async function loadInitialData() {
     setLoading(true);
+    setSetupError("");
     const { data } = await supabase.auth.getUser();
 
     if (!data.user) {
@@ -71,7 +78,7 @@ export default function Chat() {
     const { data, error } = await query;
 
     if (error) {
-      alert("Erro ao carregar chats: " + error.message);
+      setSetupError(isSetupError(error.message) ? "Falta criar as tabelas chat_threads/chat_messages no Supabase ou atualizar o cache do schema." : error.message);
       return;
     }
 
@@ -86,7 +93,7 @@ export default function Chat() {
       .order("created_at", { ascending: true });
 
     if (error) {
-      alert("Erro ao carregar mensagens: " + error.message);
+      setSetupError(isSetupError(error.message) ? "Falta criar a tabela chat_messages no Supabase." : error.message);
       return;
     }
 
@@ -96,6 +103,7 @@ export default function Chat() {
   async function sendMessage() {
     if (!selectedThread) return;
     if (!text.trim() && !file) return;
+    setSending(true);
 
     let fileUrl = "";
 
@@ -104,7 +112,8 @@ export default function Chat() {
       const { error } = await supabase.storage.from("chat-files").upload(path, file);
 
       if (error) {
-        alert("Erro ao enviar arquivo: " + error.message);
+        setSetupError("Erro ao enviar arquivo. Crie o bucket público chat-files no Supabase Storage.");
+        setSending(false);
         return;
       }
 
@@ -120,13 +129,15 @@ export default function Chat() {
     });
 
     if (error) {
-      alert("Erro ao enviar mensagem: " + error.message);
+      setSetupError("Erro ao enviar mensagem: " + error.message);
+      setSending(false);
       return;
     }
 
     setText("");
     setFile(null);
     await loadMessages(selectedThread.id);
+    setSending(false);
   }
 
   async function updateThreadStatus(status: string) {
@@ -135,7 +146,7 @@ export default function Chat() {
     const { error } = await supabase.from("chat_threads").update({ status }).eq("id", selectedThread.id);
 
     if (error) {
-      alert("Erro ao atualizar status: " + error.message);
+      setSetupError("Erro ao atualizar status: " + error.message);
       return;
     }
 
@@ -154,7 +165,7 @@ export default function Chat() {
     const { error } = await supabase.from("chat_threads").delete().eq("id", selectedThread.id);
 
     if (error) {
-      alert("Erro ao apagar ticket: " + error.message);
+      setSetupError("Erro ao apagar ticket: " + error.message);
       return;
     }
 
@@ -163,44 +174,75 @@ export default function Chat() {
     setThreads(threads.filter((thread) => thread.id !== selectedThread.id));
   }
 
-  if (loading) return <p className="text-zinc-500">Carregando chats...</p>;
+  if (loading) {
+    return (
+      <div className="pro-card rounded-[2rem] p-6">
+        <p className="text-zinc-500">Carregando chats...</p>
+      </div>
+    );
+  }
+
+  if (setupError) {
+    return (
+      <div className="space-y-5">
+        <div className="glass-card rounded-[2rem] p-6">
+          <h2 className="text-3xl font-black">Chat interno</h2>
+          <p className="mt-2 text-zinc-400">Falta configurar uma parte do Supabase.</p>
+        </div>
+
+        <div className="rounded-3xl border border-red-900 bg-red-950/30 p-6">
+          <h3 className="text-xl font-black text-red-200">Configuração necessária</h3>
+          <p className="mt-3 text-sm text-red-100">{setupError}</p>
+          <p className="mt-4 text-sm text-zinc-300">Crie as tabelas chat_threads e chat_messages no SQL Editor e o bucket público chat-files no Storage.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h2 className="text-3xl font-black">Chat interno</h2>
-      <p className="mt-2 text-zinc-400">Compras, comprovantes e tickets ficam organizados dentro do app.</p>
+    <div className="space-y-6">
+      <div className="glass-card rounded-[2rem] p-6">
+        <span className="rounded-full border border-zinc-800 px-4 py-2 text-xs font-black uppercase text-zinc-500">Atendimento interno</span>
+        <h2 className="mt-5 text-4xl font-black">Chat interno</h2>
+        <p className="mt-2 text-zinc-400">Compras, comprovantes, pedidos e tickets ficam organizados dentro do THKLAYUS.</p>
+      </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[360px_1fr]">
-        <section className="rounded-3xl border border-zinc-800 bg-zinc-950 p-4">
-          <h3 className="px-2 text-xl font-black">Conversas</h3>
+      <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+        <section className="pro-card rounded-3xl p-4">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="text-xl font-black">Conversas</h3>
+            <span className="rounded-full border border-zinc-800 px-3 py-1 text-xs font-bold text-zinc-500">{threads.length}</span>
+          </div>
 
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 max-h-[620px] space-y-2 overflow-y-auto pr-1">
             {threads.length === 0 ? (
-              <p className="px-2 text-sm text-zinc-500">Nenhuma conversa ainda.</p>
+              <div className="rounded-2xl border border-zinc-800 bg-black p-4 text-sm text-zinc-500">Nenhuma conversa ainda.</div>
             ) : (
               threads.map((thread) => (
                 <button
                   key={thread.id}
                   onClick={() => setSelectedThread(thread)}
-                  className={`w-full rounded-2xl border p-4 text-left ${
-                    selectedThread?.id === thread.id ? "border-white bg-white text-black" : "border-zinc-800 bg-black text-white"
+                  className={`w-full rounded-2xl border p-4 text-left transition ${
+                    selectedThread?.id === thread.id ? "border-white bg-white text-black" : "border-zinc-800 bg-black text-white hover:border-zinc-600"
                   }`}
                 >
                   <p className="text-xs font-black uppercase opacity-70">{thread.type === "purchase" ? "Compra" : "Ticket"}</p>
                   <p className="mt-1 font-black">{thread.title}</p>
-                  {thread.type === "purchase" && (
-                    <p className="mt-1 text-xs opacity-70">{thread.course_title} • Total {thread.total_price || thread.price}</p>
-                  )}
-                  <p className="mt-1 text-xs opacity-70">Status: {thread.status}</p>
+                  {thread.type === "purchase" && <p className="mt-1 text-xs opacity-70">{thread.course_title} • Total {thread.total_price || thread.price}</p>}
+                  <p className="mt-2 inline-flex rounded-full border border-current px-3 py-1 text-xs font-black opacity-70">{thread.status}</p>
                 </button>
               ))
             )}
           </div>
         </section>
 
-        <section className="rounded-3xl border border-zinc-800 bg-zinc-950 p-4">
+        <section className="pro-card rounded-3xl p-4">
           {!selectedThread ? (
-            <div className="flex min-h-96 items-center justify-center text-zinc-500">Selecione uma conversa.</div>
+            <div className="flex min-h-96 flex-col items-center justify-center text-center text-zinc-500">
+              <p className="text-4xl">💬</p>
+              <p className="mt-3 font-bold">Selecione uma conversa</p>
+              <p className="mt-1 text-sm">Aqui você acompanha compras, comprovantes e suporte.</p>
+            </div>
           ) : (
             <div>
               <div className="flex flex-wrap items-start justify-between gap-3 border-b border-zinc-800 pb-4">
@@ -211,11 +253,7 @@ export default function Chat() {
                     <div className="mt-3 rounded-2xl border border-zinc-800 bg-black p-4 text-sm">
                       <p><strong>Curso comprado:</strong> {selectedThread.course_title}</p>
                       <p><strong>Valor total:</strong> {selectedThread.total_price || selectedThread.price}</p>
-                      {selectedThread.comprovante_url && (
-                        <a href={selectedThread.comprovante_url} target="_blank" rel="noreferrer" className="mt-2 block font-black underline">
-                          Abrir comprovante
-                        </a>
-                      )}
+                      {selectedThread.comprovante_url && <a href={selectedThread.comprovante_url} target="_blank" rel="noreferrer" className="mt-2 block font-black underline">Abrir comprovante</a>}
                     </div>
                   )}
                   <p className="mt-2 text-sm text-zinc-400">Status: {selectedThread.status}</p>
@@ -225,20 +263,11 @@ export default function Chat() {
                   <div className="flex flex-wrap gap-2">
                     {selectedThread.type === "purchase" && (
                       <>
-                        <button onClick={() => updateThreadStatus("compra aprovada")} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black">
-                          Aprovar compra
-                        </button>
-                        <button onClick={() => updateThreadStatus("compra recusada")} className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-black">
-                          Recusar
-                        </button>
+                        <button onClick={() => updateThreadStatus("compra aprovada")} className="pro-button rounded-xl px-4 py-2 text-sm font-black">Aprovar</button>
+                        <button onClick={() => updateThreadStatus("compra recusada")} className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-black">Recusar</button>
                       </>
                     )}
-
-                    {selectedThread.type === "ticket" && (
-                      <button onClick={closeAndDeleteTicket} className="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-black text-red-200">
-                        Fechar e apagar
-                      </button>
-                    )}
+                    {selectedThread.type === "ticket" && <button onClick={closeAndDeleteTicket} className="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-black text-red-200">Fechar e apagar</button>}
                   </div>
                 )}
               </div>
@@ -247,13 +276,9 @@ export default function Chat() {
                 {messages.map((message) => {
                   const mine = message.user_id === userId;
                   return (
-                    <div key={message.id} className={`rounded-2xl border border-zinc-800 p-4 ${mine ? "ml-auto max-w-[85%] bg-white text-black" : "mr-auto max-w-[85%] bg-black text-white"}`}>
-                      {message.content && <p className="text-sm whitespace-pre-wrap">{message.content}</p>}
-                      {message.file_url && (
-                        <a href={message.file_url} target="_blank" rel="noreferrer" className="mt-2 block text-sm font-black underline">
-                          Abrir arquivo
-                        </a>
-                      )}
+                    <div key={message.id} className={`rounded-2xl border p-4 ${mine ? "ml-auto max-w-[85%] border-white bg-white text-black" : "mr-auto max-w-[85%] border-zinc-800 bg-black text-white"}`}>
+                      {message.content && <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p>}
+                      {message.file_url && <a href={message.file_url} target="_blank" rel="noreferrer" className="mt-2 block text-sm font-black underline">Abrir arquivo</a>}
                     </div>
                   );
                 })}
@@ -262,7 +287,7 @@ export default function Chat() {
               <div className="mt-4 grid gap-3">
                 <textarea value={text} onChange={(event) => setText(event.target.value)} placeholder="Digite uma mensagem..." className="min-h-24 rounded-2xl border border-zinc-800 bg-black px-4 py-3 outline-none" />
                 <input type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="rounded-2xl border border-zinc-800 bg-black px-4 py-3 text-sm" />
-                <button onClick={sendMessage} className="rounded-2xl bg-white py-3 font-black text-black">Enviar mensagem</button>
+                <button onClick={sendMessage} disabled={sending} className="pro-button rounded-2xl py-3 font-black disabled:opacity-60">{sending ? "Enviando..." : "Enviar mensagem"}</button>
               </div>
             </div>
           )}
