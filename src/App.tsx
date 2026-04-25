@@ -1,157 +1,90 @@
 import { useState } from "react";
-import { services } from "./data/services";
 
 export default function App() {
-  const [name, setName] = useState("");
+  const [page, setPage] = useState("home");
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
 
-  const phone = "5585992686478";
-
-  const handleBuy = (service: { title: string; price: string }) => {
-    const message = `Olá! Me chamo ${
-      name || "cliente"
-    } e quero comprar: ${service.title} - ${service.price}`;
-
-    window.open(
-      `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
-      "_blank"
-    );
-  };
-
-  const handleContact = () => {
-    const message = `Olá! Me chamo ${
-      name || "cliente"
-    } e quero falar com o dev sobre um projeto.`;
-
-    window.open(
-      `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
-      "_blank"
-    );
-  };
-
-  const getStatusText = (status: string) => {
-    if (status === "popular") return "Popular";
-    if (status === "novo") return "Novo";
-    return "Disponível";
-  };
+  const courses = [
+    {
+      id: 1,
+      title: "Curso de Slides",
+      price: "R$ 9,90",
+      pix: "COLE_SEU_PIX_AQUI",
+    },
+    {
+      id: 2,
+      title: "Curso de Trabalhos",
+      price: "R$ 14,90",
+      pix: "COLE_SEU_PIX_AQUI",
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-black px-6 py-10 text-white">
-      <header className="mb-10">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-zinc-500">
-          Kairós Platform
-        </p>
+    <div style={{ background: "#000", color: "#fff", minHeight: "100vh", padding: 20 }}>
+      <h1>THKLAYUS</h1>
 
-        <h1 className="mb-3 text-4xl font-black md:text-5xl">
-          Cursos, serviços e suporte dev em um só lugar.
-        </h1>
+      <div style={{ marginBottom: 20 }}>
+        <button onClick={() => setPage("home")}>Home</button>
+        <button onClick={() => setPage("cursos")}>Cursos</button>
+      </div>
 
-        <p className="max-w-2xl text-zinc-400">
-          Compre cursos, peça serviços digitais e fale direto com o dev quando
-          precisar de algo personalizado.
-        </p>
-      </header>
+      {page === "home" && (
+        <div>
+          <h2>Bem-vindo</h2>
+          <p>Serviços baratos e cursos simples</p>
+        </div>
+      )}
 
-      <section className="mb-10 flex flex-col gap-3 rounded-3xl border border-zinc-800 bg-zinc-950 p-5 md:flex-row">
-        <input
-          type="text"
-          placeholder="Seu nome..."
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          className="w-full rounded-2xl border border-zinc-800 bg-black px-4 py-3 text-sm text-white outline-none transition focus:border-white"
-        />
+      {page === "cursos" && (
+        <div>
+          <h2>Cursos</h2>
 
-        <button
-          onClick={handleContact}
-          className="rounded-2xl bg-white px-6 py-3 text-sm font-bold text-black transition hover:scale-[1.02] hover:opacity-90"
+          {courses.map((c) => (
+            <div key={c.id} style={{ border: "1px solid #333", padding: 10, marginTop: 10 }}>
+              <h3>{c.title}</h3>
+              <p>{c.price}</p>
+              <button onClick={() => setSelectedCourse(c)}>Comprar</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selectedCourse && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "#000000cc",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
-          Falar com o dev
-        </button>
-      </section>
+          <div style={{ background: "#111", padding: 20 }}>
+            <h2>{selectedCourse.title}</h2>
+            <p>{selectedCourse.price}</p>
 
-      <section className="grid gap-6 md:grid-cols-2">
-        {services.map((service) => (
-          <article
-            key={service.id}
-            className={`rounded-3xl border p-6 transition hover:scale-[1.02] ${
-              service.highlight
-                ? "border-white bg-zinc-900"
-                : "border-zinc-800 bg-zinc-950"
-            }`}
-          >
-            <div className="mb-4 flex flex-wrap gap-2">
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-black">
-                {getStatusText(service.status)}
-              </span>
+            <p>PIX:</p>
+            <textarea value={selectedCourse.pix} readOnly style={{ width: "100%" }} />
 
-              <span className="rounded-full border border-zinc-700 px-3 py-1 text-xs text-zinc-300">
-                {service.category}
-              </span>
-            </div>
+            <br /><br />
 
-            <h2 className="mb-2 text-2xl font-bold">{service.title}</h2>
+            <button
+              onClick={() => {
+                alert("Comprovante enviado!");
+                setSelectedCourse(null);
+              }}
+            >
+              Já paguei
+            </button>
 
-            <p className="mb-4 text-sm text-zinc-400">
-              {service.description}
-            </p>
-
-            <p className="mb-4 text-sm text-zinc-300">
-              Entrega:{" "}
-              <span className="font-semibold text-white">
-                {service.delivery}
-              </span>
-            </p>
-
-            <ul className="mb-6 space-y-2">
-              {service.features.map((feature) => (
-                <li key={feature} className="text-sm text-zinc-400">
-                  ✓ {feature}
-                </li>
-              ))}
-            </ul>
-
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-xl font-black">{service.price}</span>
-
-              <button
-                onClick={() => handleBuy(service)}
-                className="rounded-2xl bg-white px-5 py-3 text-sm font-bold text-black transition hover:opacity-80"
-              >
-                Comprar
-              </button>
-            </div>
-          </article>
-        ))}
-      </section>
-
-      <section className="mt-16 grid gap-6 md:grid-cols-3">
-        <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
-          <h3 className="mb-2 text-lg font-bold">🎓 Cursos</h3>
-          <p className="text-sm text-zinc-400">
-            Conteúdos digitais para o usuário estudar dentro do app.
-          </p>
+            <button onClick={() => setSelectedCourse(null)}>Fechar</button>
+          </div>
         </div>
-
-        <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
-          <h3 className="mb-2 text-lg font-bold">🛒 Pedidos</h3>
-          <p className="text-sm text-zinc-400">
-            Clientes podem pedir artes, sites, apps e serviços personalizados.
-          </p>
-        </div>
-
-        <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
-          <h3 className="mb-2 text-lg font-bold">⚡ Dev/Admin</h3>
-          <p className="text-sm text-zinc-400">
-            Depois vamos criar painel interno para acompanhar pedidos e entregas.
-          </p>
-        </div>
-      </section>
-
-      <button
-        onClick={handleContact}
-        className="fixed bottom-5 right-5 rounded-full bg-white px-5 py-3 text-sm font-bold text-black shadow-lg transition hover:scale-105"
-      >
-        Suporte Dev
-      </button>
+      )}
     </div>
   );
 }
