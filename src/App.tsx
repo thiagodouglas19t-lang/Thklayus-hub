@@ -1,209 +1,166 @@
-import { useEffect, useState } from "react";
-import { Ticket, UserRole } from "./types";
-import { addTicket, getTickets, saveTickets } from "./utils/storage";
+import { useState } from "react";
+import {
+  LayoutDashboard,
+  Ticket,
+  ShieldCheck,
+  Package,
+  Plus,
+  MessageCircle,
+  CheckCircle2,
+  Clock
+} from "lucide-react";
+
+type Page = "dashboard" | "services" | "tickets" | "admin";
 
 export default function App() {
-  const [role, setRole] = useState<UserRole>("user");
-  const [userName, setUserName] = useState("Cliente");
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-
-  const [title, setTitle] = useState("");
-  const [message, setMessage] = useState("");
-  const [replyText, setReplyText] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    setTickets(getTickets());
-  }, []);
-
-  function refreshTickets() {
-    setTickets(getTickets());
-  }
-
-  function handleCreateTicket() {
-    if (!title.trim() || !message.trim()) return;
-
-    const newTicket: Ticket = {
-      id: crypto.randomUUID(),
-      title,
-      message,
-      status: "aberto",
-      createdAt: new Date().toISOString(),
-      userName
-    };
-
-    addTicket(newTicket);
-    refreshTickets();
-    setTitle("");
-    setMessage("");
-  }
-
-  function replyTicket(id: string) {
-    const text = replyText[id]?.trim();
-    if (!text) return;
-
-    const updated = tickets.map(ticket =>
-      ticket.id === id
-        ? { ...ticket, adminReply: text, status: "respondido" as const }
-        : ticket
-    );
-
-    saveTickets(updated);
-    setTickets(updated);
-    setReplyText({ ...replyText, [id]: "" });
-  }
-
-  function closeTicket(id: string) {
-    const updated = tickets.map(ticket =>
-      ticket.id === id ? { ...ticket, status: "fechado" as const } : ticket
-    );
-
-    saveTickets(updated);
-    setTickets(updated);
-  }
-
-  const visibleTickets =
-    role === "admin"
-      ? tickets
-      : tickets.filter(ticket => ticket.userName === userName);
+  const [page, setPage] = useState<Page>("dashboard");
 
   return (
-    <div className="min-h-screen bg-black text-white p-4">
-      <div className="mx-auto max-w-3xl">
-        <header className="mb-6 flex flex-col gap-4 rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+    <div className="min-h-screen bg-black text-white">
+      <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-widest">THKLAYUS</h1>
-            <p className="text-zinc-400">Serviços • Suporte • Tickets</p>
+            <h1 className="text-xl font-bold tracking-[0.25em]">THKLAYUS</h1>
+            <p className="text-sm text-zinc-500">Hub de serviços e suporte</p>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <input
-              value={userName}
-              onChange={e => setUserName(e.target.value)}
-              placeholder="Seu nome"
-              className="flex-1 rounded-lg border border-zinc-700 bg-black p-3 outline-none focus:border-blue-500"
-            />
-
-            <button
-              onClick={() => setRole("user")}
-              className={`rounded-lg px-4 py-3 ${
-                role === "user" ? "bg-blue-600" : "bg-zinc-800"
-              }`}
-            >
-              Cliente
-            </button>
-
-            <button
-              onClick={() => setRole("admin")}
-              className={`rounded-lg px-4 py-3 ${
-                role === "admin" ? "bg-purple-600" : "bg-zinc-800"
-              }`}
-            >
-              ADM
-            </button>
+          <div className="rounded-full border border-zinc-800 bg-black px-4 py-2 text-sm text-zinc-300">
+            Premium Support
           </div>
-        </header>
+        </div>
+      </header>
 
-        {role === "user" && (
-          <section className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-            <h2 className="mb-4 text-xl font-semibold">Abrir ticket</h2>
+      <main className="mx-auto grid max-w-6xl gap-6 px-4 py-6 md:grid-cols-[240px_1fr]">
+        <aside className="rounded-2xl border border-zinc-800 bg-zinc-950 p-3">
+          <NavButton icon={<LayoutDashboard size={18} />} label="Dashboard" active={page === "dashboard"} onClick={() => setPage("dashboard")} />
+          <NavButton icon={<Package size={18} />} label="Serviços" active={page === "services"} onClick={() => setPage("services")} />
+          <NavButton icon={<Ticket size={18} />} label="Tickets" active={page === "tickets"} onClick={() => setPage("tickets")} />
+          <NavButton icon={<ShieldCheck size={18} />} label="ADM" active={page === "admin"} onClick={() => setPage("admin")} />
+        </aside>
 
-            <div className="flex flex-col gap-3">
-              <input
-                placeholder="Título do problema"
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                className="rounded-lg border border-zinc-700 bg-black p-3 outline-none focus:border-blue-500"
-              />
-
-              <textarea
-                placeholder="Explique o que aconteceu"
-                value={message}
-                onChange={e => setMessage(e.target.value)}
-                className="min-h-28 rounded-lg border border-zinc-700 bg-black p-3 outline-none focus:border-blue-500"
-              />
-
-              <button
-                onClick={handleCreateTicket}
-                className="rounded-lg bg-blue-600 p-3 font-semibold hover:bg-blue-700"
-              >
-                Criar ticket
-              </button>
-            </div>
-          </section>
-        )}
-
-        <section className="flex flex-col gap-4">
-          <h2 className="text-xl font-semibold">
-            {role === "admin" ? "Painel ADM" : "Meus tickets"}
-          </h2>
-
-          {visibleTickets.length === 0 && (
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 text-zinc-400">
-              Nenhum ticket encontrado.
-            </div>
-          )}
-
-          {visibleTickets.map(ticket => (
-            <div
-              key={ticket.id}
-              className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4"
-            >
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-bold">{ticket.title}</h3>
-                  <p className="text-sm text-zinc-500">
-                    Cliente: {ticket.userName}
-                  </p>
-                </div>
-
-                <span className="rounded-full bg-zinc-800 px-3 py-1 text-sm">
-                  {ticket.status}
-                </span>
-              </div>
-
-              <p className="text-zinc-300">{ticket.message}</p>
-
-              {ticket.adminReply && (
-                <div className="mt-4 rounded-xl border border-purple-800 bg-purple-950/40 p-3">
-                  <p className="text-sm text-purple-300">Resposta do ADM:</p>
-                  <p>{ticket.adminReply}</p>
-                </div>
-              )}
-
-              {role === "admin" && ticket.status !== "fechado" && (
-                <div className="mt-4 flex flex-col gap-3">
-                  <textarea
-                    placeholder="Responder ticket"
-                    value={replyText[ticket.id] || ""}
-                    onChange={e =>
-                      setReplyText({
-                        ...replyText,
-                        [ticket.id]: e.target.value
-                      })
-                    }
-                    className="min-h-20 rounded-lg border border-zinc-700 bg-black p-3 outline-none focus:border-purple-500"
-                  />
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => replyTicket(ticket.id)}
-                      className="rounded-lg bg-purple-600 px-4 py-2 font-semibold"
-                    >
-                      Responder
-                    </button>
-
-                    <button
-                      onClick={() => closeTicket(ticket.id)}
-                      className="rounded-lg bg-red-600 px-4 py-2 font-semibold"
-                    >
-                      Fechar
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+        <section>
+          {page === "dashboard" && <Dashboard />}
+          {page === "services" && <Services />}
+          {page === "tickets" && <Tickets />}
+          {page === "admin" && <Admin />}
         </section>
+      </main>
+    </div>
+  );
+}
+
+function NavButton({ icon, label, active, onClick }: any) {
+  return (
+    <button
+      onClick={onClick}
+      className={`mb-2 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition ${
+        active
+          ? "bg-white text-black"
+          : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+function Dashboard() {
+  return (
+    <div className="space-y-6">
+      <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
+        <p className="text-sm text-zinc-500">Bem-vindo ao</p>
+        <h2 className="mt-1 text-3xl font-bold">Thklayus Hub</h2>
+        <p className="mt-3 max-w-xl text-zinc-400">
+          Uma central profissional para serviços, suporte, tickets e administração.
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Stat title="Tickets abertos" value="0" icon={<Clock />} />
+        <Stat title="Serviços ativos" value="3" icon={<Package />} />
+        <Stat title="Respostas ADM" value="0" icon={<MessageCircle />} />
+      </div>
+    </div>
+  );
+}
+
+function Stat({ title, value, icon }: any) {
+  return (
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
+      <div className="mb-4 text-zinc-500">{icon}</div>
+      <p className="text-sm text-zinc-500">{title}</p>
+      <h3 className="mt-1 text-3xl font-bold">{value}</h3>
+    </div>
+  );
+}
+
+function Services() {
+  const services = [
+    "Suporte básico",
+    "Criação de site simples",
+    "Arte ou identidade visual"
+  ];
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold">Serviços</h2>
+
+      {services.map(service => (
+        <div key={service} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
+          <h3 className="font-semibold">{service}</h3>
+          <p className="mt-2 text-sm text-zinc-500">
+            Serviço disponível para solicitação via ticket.
+          </p>
+          <button className="mt-4 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black">
+            Solicitar
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Tickets() {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-2xl font-bold">Tickets</h2>
+        <button className="flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black">
+          <Plus size={16} />
+          Novo ticket
+        </button>
+      </div>
+
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
+        <h3 className="font-semibold">Nenhum ticket ainda</h3>
+        <p className="mt-2 text-sm text-zinc-500">
+          Quando alguém abrir um ticket, ele aparecerá aqui.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Admin() {
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold">Painel ADM</h2>
+
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
+        <div className="mb-3 text-zinc-500">
+          <ShieldCheck />
+        </div>
+
+        <h3 className="font-semibold">Área administrativa</h3>
+        <p className="mt-2 text-sm text-zinc-500">
+          Aqui o ADM vai responder tickets, organizar suporte e controlar serviços.
+        </p>
+
+        <div className="mt-4 flex items-center gap-2 text-sm text-green-400">
+          <CheckCircle2 size={16} />
+          Visual pronto para conectar ao login ADM
+        </div>
       </div>
     </div>
   );
