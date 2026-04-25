@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 * {
   box-sizing: border-box;
@@ -8,6 +6,7 @@
 
 html {
   background: #000;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -15,7 +14,9 @@ body {
   min-height: 100vh;
   background: #000;
   color: white;
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 button,
@@ -38,7 +39,7 @@ button {
 }
 
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: #000;
 }
 
 ::-webkit-scrollbar-thumb {
