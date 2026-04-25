@@ -1,3 +1,7 @@
+import { useState } from "react";
+import CourseCard from "../components/CourseCard";
+import ModalPix from "../components/ModalPix";
+
 type Curso = {
   id: number;
   titulo: string;
@@ -5,65 +9,77 @@ type Curso = {
   preco: string;
   aulas: number;
   nivel: string;
+  pixCode: string;
 };
 
 const cursos: Curso[] = [
   {
     id: 1,
     titulo: "Curso de Slides Escolares",
-    descricao: "Aprenda a criar apresentações bonitas e organizadas.",
+    descricao: "Aprenda a criar apresentações bonitas, organizadas e rápidas para trabalhos escolares.",
     preco: "R$ 9,90",
     aulas: 8,
     nivel: "Iniciante",
+    pixCode: "COLE_AQUI_O_PIX_COPIA_E_COLA_DO_CURSO_DE_SLIDES",
   },
   {
     id: 2,
     titulo: "Curso de Trabalhos Escolares",
-    descricao: "Aprenda a montar trabalhos escolares do jeito certo.",
+    descricao: "Monte trabalhos com capa, organização, texto limpo e estrutura fácil de entender.",
     preco: "R$ 14,90",
     aulas: 10,
     nivel: "Básico",
+    pixCode: "COLE_AQUI_O_PIX_COPIA_E_COLA_DO_CURSO_DE_TRABALHOS",
   },
   {
     id: 3,
     titulo: "Curso de Design Simples",
-    descricao: "Crie artes simples para posts, capas e banners.",
+    descricao: "Crie artes simples para posts, capas, banners e entregas rápidas sem complicação.",
     preco: "R$ 7,90",
     aulas: 6,
     nivel: "Rápido",
+    pixCode: "COLE_AQUI_O_PIX_COPIA_E_COLA_DO_CURSO_DE_DESIGN",
   },
 ];
 
 export default function Cursos() {
+  const [cursoSelecionado, setCursoSelecionado] = useState<Curso | null>(null);
+
   return (
     <div>
-      <h2 className="text-3xl font-black">Cursos</h2>
-      <p className="mt-2 text-zinc-400">
-        Cursos baratos com pagamento por Pix.
-      </p>
+      <div className="rounded-[2rem] border border-zinc-800 bg-gradient-to-br from-zinc-950 to-black p-6 md:p-8">
+        <span className="rounded-full border border-zinc-800 px-4 py-2 text-xs font-black uppercase text-zinc-500">
+          Cursos baratos
+        </span>
+
+        <h2 className="mt-5 text-4xl font-black md:text-5xl">Cursos do THKLAYUS</h2>
+
+        <p className="mt-3 max-w-2xl text-zinc-400">
+          Escolha um curso, pague pelo Pix com valor fixo, envie o comprovante e aguarde a liberação.
+        </p>
+      </div>
 
       <div className="mt-6 grid gap-5 md:grid-cols-3">
         {cursos.map((curso) => (
-          <div
+          <CourseCard
             key={curso.id}
-            className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6"
-          >
-            <p className="text-xs font-black uppercase text-zinc-500">
-              {curso.nivel} • {curso.aulas} aulas
-            </p>
-
-            <h3 className="mt-3 text-2xl font-black">{curso.titulo}</h3>
-
-            <p className="mt-3 text-sm text-zinc-400">{curso.descricao}</p>
-
-            <p className="mt-6 text-3xl font-black">{curso.preco}</p>
-
-            <button className="mt-5 w-full rounded-2xl bg-white py-3 font-black text-black">
-              Comprar curso
-            </button>
-          </div>
+            titulo={curso.titulo}
+            descricao={curso.descricao}
+            preco={curso.preco}
+            nivel={curso.nivel}
+            aulas={curso.aulas}
+            onComprar={() => setCursoSelecionado(curso)}
+          />
         ))}
       </div>
+
+      <ModalPix
+        open={Boolean(cursoSelecionado)}
+        onClose={() => setCursoSelecionado(null)}
+        titulo={cursoSelecionado?.titulo ?? ""}
+        preco={cursoSelecionado?.preco ?? ""}
+        pixCode={cursoSelecionado?.pixCode ?? ""}
+      />
     </div>
   );
 }
