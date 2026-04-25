@@ -8,24 +8,39 @@
 
 html {
   background: #000;
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: #000;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.05), transparent 35%),
+    #000;
   color: white;
   font-family: Inter, Arial, Helvetica, sans-serif;
 }
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 
 button {
   cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  color: white;
+}
+
+textarea {
+  resize: vertical;
 }
 
 ::selection {
