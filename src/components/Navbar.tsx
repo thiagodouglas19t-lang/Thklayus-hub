@@ -4,6 +4,7 @@ type Page =
   | "estudo"
   | "pedidos"
   | "suporte"
+  | "chat"
   | "admin";
 
 type NavbarProps = {
@@ -39,9 +40,7 @@ export default function Navbar({
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
         <button onClick={() => setPage("home")} className="text-left">
           <h1 className="text-xl font-black tracking-[0.25em]">THKLAYUS</h1>
-          <p className="text-xs text-zinc-500">
-            Cursos • Pedidos • Suporte
-          </p>
+          <p className="text-xs text-zinc-500">Cursos • Pedidos • Suporte</p>
         </button>
 
         <nav className="flex gap-2 overflow-x-auto">
@@ -50,6 +49,7 @@ export default function Navbar({
           {Item("Estudo", "estudo")}
           {Item("Pedidos", "pedidos")}
           {Item("Tickets", "suporte")}
+          {Item("Chat", "chat")}
           {Item("Admin", "admin")}
         </nav>
 
