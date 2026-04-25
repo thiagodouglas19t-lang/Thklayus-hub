@@ -5,17 +5,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
-    "react": "latest",
-    "react-dom": "latest",
     "@supabase/supabase-js": "latest",
-    "lucide-react": "latest"
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest"
   },
   "devDependencies": {
-    "tailwindcss": "latest",
+    "@vitejs/plugin-react": "latest",
+    "autoprefixer": "latest",
     "postcss": "latest",
-    "autoprefixer": "latest"
+    "tailwindcss": "latest",
+    "typescript": "latest",
+    "vite": "latest"
   }
 }
