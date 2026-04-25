@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "./lib/supabase";
+import { canAccessInternalPanel } from "./lib/roles";
 
 import Home from "./pages/Home";
 import Cursos from "./pages/Cursos";
@@ -8,10 +9,11 @@ import Estudo from "./pages/Estudo";
 import Pedidos from "./pages/Pedidos";
 import Suporte from "./pages/Suporte";
 import Admin from "./pages/Admin";
+import Chat from "./pages/Chat";
 import Login from "./pages/Login";
 import Navbar from "./components/Navbar";
 
-type Page = "home" | "cursos" | "estudo" | "pedidos" | "suporte" | "admin";
+type Page = "home" | "cursos" | "estudo" | "pedidos" | "suporte" | "chat" | "admin";
 
 export default function App() {
   const [page, setPage] = useState<Page>("home");
@@ -37,23 +39,19 @@ export default function App() {
       setUser(session?.user ?? null);
     });
 
-    return () => {
-      data.subscription.unsubscribe();
-    };
+    return () => data.subscription.unsubscribe();
   }, []);
 
   function renderPage() {
-    if (!user && page !== "home" && page !== "cursos") {
-      return <Login onLoginSuccess={loadUser} />;
-    }
-
+    if (!user && page !== "home" && page !== "cursos") return <Login onLoginSuccess={loadUser} />;
+    if (page === "admin" && !canAccessInternalPanel(user?.email)) return <Home />;
     if (page === "home") return <Home />;
     if (page === "cursos") return <Cursos />;
     if (page === "estudo") return <Estudo />;
     if (page === "pedidos") return <Pedidos />;
     if (page === "suporte") return <Suporte />;
+    if (page === "chat") return <Chat />;
     if (page === "admin") return <Admin />;
-
     return <Home />;
   }
 
@@ -79,18 +77,6 @@ export default function App() {
       )}
 
       <section className="mx-auto max-w-6xl px-4 py-8">{renderPage()}</section>
-
-      <button
-        onClick={() =>
-          window.open(
-            "https://wa.me/5585992686478?text=Olá! Quero falar com o dev do THKLAYUS.",
-            "_blank"
-          )
-        }
-        className="fixed bottom-5 right-5 rounded-full bg-white px-5 py-3 text-sm font-black text-black shadow-2xl transition hover:scale-105"
-      >
-        WhatsApp
-      </button>
     </main>
   );
 }
