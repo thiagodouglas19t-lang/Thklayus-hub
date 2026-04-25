@@ -1,71 +1,95 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Ticket } from "./types";
+import { addTicket, getTickets, saveTickets } from "./utils/storage";
 
 export default function App() {
-  const [user, setUser] = useState<any>(null);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [title, setTitle] = useState("");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setTickets(getTickets());
+  }, []);
+
+  function handleCreateTicket() {
+    if (!title || !message) return;
+
+    const newTicket: Ticket = {
+      id: Date.now().toString(),
+      title,
+      message,
+      status: "aberto",
+      createdAt: new Date().toISOString()
+    };
+
+    addTicket(newTicket);
+    setTickets(getTickets());
+    setTitle("");
+    setMessage("");
+  }
+
+  function closeTicket(id: string) {
+    const updated = tickets.map(t =>
+      t.id === id ? { ...t, status: "fechado" } : t
+    );
+    setTickets(updated);
+    saveTickets(updated);
+  }
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+    <div className="min-h-screen bg-black text-white p-4">
 
-      <div className="w-full max-w-md">
+      <h1 className="text-3xl mb-6">THKLAYUS 🎫</h1>
 
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold tracking-widest">THKLAYUS</h1>
-          <p className="text-gray-500 mt-2">Serviços • Suporte • Tickets</p>
-        </div>
+      {/* Criar ticket */}
+      <div className="bg-zinc-900 p-4 rounded-xl mb-6 flex flex-col gap-3">
+        <input
+          placeholder="Título"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          className="p-2 bg-black border border-zinc-700 rounded"
+        />
 
-        {/* Card */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-lg">
+        <textarea
+          placeholder="Mensagem"
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+          className="p-2 bg-black border border-zinc-700 rounded"
+        />
 
-          {!user ? (
-            <div className="flex flex-col gap-4">
-
-              <input
-                type="email"
-                placeholder="Seu email"
-                className="p-3 rounded-lg bg-black border border-zinc-700 focus:outline-none focus:border-blue-500"
-              />
-
-              <input
-                type="password"
-                placeholder="Sua senha"
-                className="p-3 rounded-lg bg-black border border-zinc-700 focus:outline-none focus:border-blue-500"
-              />
-
-              <button className="bg-blue-600 p-3 rounded-lg font-semibold hover:bg-blue-700 transition">
-                Entrar
-              </button>
-
-              <button className="text-sm text-gray-400 hover:text-white transition">
-                Criar conta
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4 text-center">
-
-              <h2 className="text-xl font-semibold">Bem-vindo 👋</h2>
-
-              <button className="bg-green-600 p-3 rounded-lg hover:bg-green-700">
-                Abrir Ticket
-              </button>
-
-              <button className="bg-zinc-800 p-3 rounded-lg hover:bg-zinc-700">
-                Meus Tickets
-              </button>
-
-              <button
-                onClick={() => setUser(null)}
-                className="text-red-400 text-sm mt-2"
-              >
-                Sair
-              </button>
-
-            </div>
-          )}
-
-        </div>
-
+        <button
+          onClick={handleCreateTicket}
+          className="bg-blue-600 p-2 rounded"
+        >
+          Criar Ticket
+        </button>
       </div>
+
+      {/* Lista */}
+      <div className="flex flex-col gap-4">
+        {tickets.map(ticket => (
+          <div
+            key={ticket.id}
+            className="bg-zinc-900 p-4 rounded-xl border border-zinc-800"
+          >
+            <h2 className="text-lg font-bold">{ticket.title}</h2>
+            <p className="text-gray-400">{ticket.message}</p>
+            <p className="text-sm mt-2">
+              Status: {ticket.status}
+            </p>
+
+            {ticket.status !== "fechado" && (
+              <button
+                onClick={() => closeTicket(ticket.id)}
+                className="mt-2 text-red-400"
+              >
+                Fechar
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 }
