@@ -2,7 +2,7 @@ import { services } from "./data/services";
 
 export default function App() {
   const handleBuy = (service: { title: string; price: string }) => {
-    const phone = "5585992686478"; // seu número corrigido
+    const phone = "5585992686478";
 
     const message = `Olá! Quero comprar o serviço: ${service.title} - ${service.price}`;
 
@@ -54,6 +54,15 @@ export default function App() {
           </div>
         ))}
       </div>
+
+      <a
+        href="https://wa.me/5585992686478?text=Olá! Quero falar sobre um serviço."
+        target="_blank"
+        rel="noreferrer"
+        className="fixed bottom-5 right-5 rounded-full bg-white px-5 py-3 text-sm font-bold text-black shadow-lg transition hover:scale-105"
+      >
+        Falar no WhatsApp
+      </a>
     </div>
   );
 }
