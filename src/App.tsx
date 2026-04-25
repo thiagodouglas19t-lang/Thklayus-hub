@@ -13,17 +13,19 @@ export default function App() {
 
   return (
     <div className="min-h-screen px-6 py-10">
+      {/* Header */}
       <h1 className="mb-2 text-3xl font-bold">Kairós Studio</h1>
 
       <p className="mb-10 text-zinc-400">
         Criação de sites, apps e soluções digitais
       </p>
 
+      {/* Serviços */}
       <div className="grid gap-6 md:grid-cols-2">
         {services.map((service) => (
           <div
             key={service.id}
-            className={`rounded-2xl border p-6 ${
+            className={`rounded-2xl border p-6 transition hover:scale-[1.02] ${
               service.highlight
                 ? "border-white bg-zinc-900"
                 : "border-zinc-800 bg-zinc-950"
@@ -55,6 +57,31 @@ export default function App() {
         ))}
       </div>
 
+      {/* Seção confiança */}
+      <div className="mt-16 grid gap-6 md:grid-cols-3">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
+          <h3 className="mb-2 font-semibold">🚀 Rápido</h3>
+          <p className="text-sm text-zinc-400">
+            Entrega rápida e suporte direto com você.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
+          <h3 className="mb-2 font-semibold">💎 Premium</h3>
+          <p className="text-sm text-zinc-400">
+            Design moderno estilo app profissional.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
+          <h3 className="mb-2 font-semibold">🔥 Suporte</h3>
+          <p className="text-sm text-zinc-400">
+            Atendimento direto no WhatsApp sem enrolação.
+          </p>
+        </div>
+      </div>
+
+      {/* Botão fixo */}
       <a
         href="https://wa.me/5585992686478?text=Olá! Quero falar sobre um serviço."
         target="_blank"
