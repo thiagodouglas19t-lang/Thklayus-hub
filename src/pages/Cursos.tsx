@@ -12,6 +12,8 @@ type Curso = {
   pixCode: string;
 };
 
+const chavePixAleatoria = "5e5e7367-37bb-4f7b-9de2-eaeb0d3712a2";
+
 const cursos: Curso[] = [
   {
     id: 1,
@@ -20,7 +22,7 @@ const cursos: Curso[] = [
     preco: "R$ 9,90",
     aulas: 8,
     nivel: "Iniciante",
-    pixCode: "COLE_AQUI_O_PIX_COPIA_E_COLA_DO_CURSO_DE_SLIDES",
+    pixCode: chavePixAleatoria,
   },
   {
     id: 2,
@@ -29,7 +31,7 @@ const cursos: Curso[] = [
     preco: "R$ 14,90",
     aulas: 10,
     nivel: "Básico",
-    pixCode: "COLE_AQUI_O_PIX_COPIA_E_COLA_DO_CURSO_DE_TRABALHOS",
+    pixCode: chavePixAleatoria,
   },
   {
     id: 3,
@@ -38,7 +40,7 @@ const cursos: Curso[] = [
     preco: "R$ 7,90",
     aulas: 6,
     nivel: "Rápido",
-    pixCode: "COLE_AQUI_O_PIX_COPIA_E_COLA_DO_CURSO_DE_DESIGN",
+    pixCode: chavePixAleatoria,
   },
 ];
 
@@ -55,7 +57,7 @@ export default function Cursos() {
         <h2 className="mt-5 text-4xl font-black md:text-5xl">Cursos do THKLAYUS</h2>
 
         <p className="mt-3 max-w-2xl text-zinc-400">
-          Escolha um curso, pague pelo Pix com valor fixo, envie o comprovante e aguarde a liberação.
+          Escolha um curso, pague pelo Pix usando a chave do app, envie o comprovante e aguarde a liberação.
         </p>
       </div>
 
