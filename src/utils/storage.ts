@@ -4,7 +4,12 @@ const KEY = "thklayus_tickets";
 
 export function getTickets(): Ticket[] {
   const data = localStorage.getItem(KEY);
-  return data ? JSON.parse(data) : [];
+
+  try {
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
 }
 
 export function saveTickets(tickets: Ticket[]) {
@@ -13,6 +18,5 @@ export function saveTickets(tickets: Ticket[]) {
 
 export function addTicket(ticket: Ticket) {
   const tickets = getTickets();
-  tickets.push(ticket);
-  saveTickets(tickets);
+  saveTickets([ticket, ...tickets]);
 }
