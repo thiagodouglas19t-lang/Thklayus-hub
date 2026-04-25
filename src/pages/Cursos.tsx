@@ -17,29 +17,83 @@ const chavePixAleatoria = "5e5e7367-37bb-4f7b-9de2-eaeb0d3712a2";
 const cursos: Curso[] = [
   {
     id: 1,
-    titulo: "Curso de Slides Escolares",
-    descricao: "Aprenda a criar apresentações bonitas, organizadas e rápidas para trabalhos escolares.",
-    preco: "R$ 9,90",
-    aulas: 8,
+    titulo: "Informática Essencial",
+    descricao: "Aprenda a usar computador, arquivos, pastas, navegador, downloads, e-mail e ferramentas básicas do dia a dia.",
+    preco: "R$ 14,90",
+    aulas: 12,
     nivel: "Iniciante",
     pixCode: chavePixAleatoria,
   },
   {
     id: 2,
-    titulo: "Curso de Trabalhos Escolares",
-    descricao: "Monte trabalhos com capa, organização, texto limpo e estrutura fácil de entender.",
-    preco: "R$ 14,90",
+    titulo: "Pacote Office na Prática",
+    descricao: "Word, PowerPoint e Excel para escola, trabalho, currículo, apresentações e organização pessoal.",
+    preco: "R$ 19,90",
+    aulas: 15,
+    nivel: "Profissional",
+    pixCode: chavePixAleatoria,
+  },
+  {
+    id: 3,
+    titulo: "Excel para Vida Real",
+    descricao: "Controle gastos, monte tabelas, calcule valores, organize tarefas e crie planilhas úteis sem complicação.",
+    preco: "R$ 17,90",
     aulas: 10,
     nivel: "Básico",
     pixCode: chavePixAleatoria,
   },
   {
-    id: 3,
-    titulo: "Curso de Design Simples",
-    descricao: "Crie artes simples para posts, capas, banners e entregas rápidas sem complicação.",
-    preco: "R$ 7,90",
+    id: 4,
+    titulo: "PowerPoint Profissional",
+    descricao: "Crie slides bonitos para escola, reuniões, trabalhos, vendas e apresentações com aparência profissional.",
+    preco: "R$ 12,90",
+    aulas: 9,
+    nivel: "Prático",
+    pixCode: chavePixAleatoria,
+  },
+  {
+    id: 5,
+    titulo: "Currículo e Primeiro Emprego",
+    descricao: "Aprenda a montar currículo, se apresentar melhor, organizar documentos e se preparar para oportunidades.",
+    preco: "R$ 9,90",
+    aulas: 8,
+    nivel: "Essencial",
+    pixCode: chavePixAleatoria,
+  },
+  {
+    id: 6,
+    titulo: "Segurança Digital Básica",
+    descricao: "Proteja contas, senhas, celular, e-mail e redes sociais contra golpes comuns e erros perigosos.",
+    preco: "R$ 9,90",
+    aulas: 7,
+    nivel: "Importante",
+    pixCode: chavePixAleatoria,
+  },
+  {
+    id: 7,
+    titulo: "Canva e Design Rápido",
+    descricao: "Crie artes simples, posts, capas, banners e materiais bonitos para escola, venda ou divulgação.",
+    preco: "R$ 11,90",
+    aulas: 8,
+    nivel: "Criativo",
+    pixCode: chavePixAleatoria,
+  },
+  {
+    id: 8,
+    titulo: "Organização Financeira Simples",
+    descricao: "Aprenda a controlar dinheiro, gastos, metas, compras e organizar uma planilha financeira fácil.",
+    preco: "R$ 9,90",
     aulas: 6,
-    nivel: "Rápido",
+    nivel: "Dia a dia",
+    pixCode: chavePixAleatoria,
+  },
+  {
+    id: 9,
+    titulo: "Google Drive e Ferramentas Online",
+    descricao: "Use Drive, Docs, Planilhas, Forms e compartilhamento para estudar, trabalhar e organizar arquivos.",
+    preco: "R$ 12,90",
+    aulas: 9,
+    nivel: "Online",
     pixCode: chavePixAleatoria,
   },
 ];
@@ -51,13 +105,13 @@ export default function Cursos() {
     <div>
       <div className="rounded-[2rem] border border-zinc-800 bg-gradient-to-br from-zinc-950 to-black p-6 md:p-8">
         <span className="rounded-full border border-zinc-800 px-4 py-2 text-xs font-black uppercase text-zinc-500">
-          Cursos baratos
+          Cursos profissionais e baratos
         </span>
 
         <h2 className="mt-5 text-4xl font-black md:text-5xl">Cursos do THKLAYUS</h2>
 
         <p className="mt-3 max-w-2xl text-zinc-400">
-          Escolha um curso, pague pelo Pix usando a chave do app, envie o comprovante e aguarde a liberação.
+          Cursos úteis para escola, trabalho, informática, organização e vida digital. Escolha um curso, pague pelo Pix, envie o comprovante e aguarde a liberação.
         </p>
       </div>
 
@@ -78,6 +132,7 @@ export default function Cursos() {
       <ModalPix
         open={Boolean(cursoSelecionado)}
         onClose={() => setCursoSelecionado(null)}
+        cursoId={String(cursoSelecionado?.id ?? "")}
         titulo={cursoSelecionado?.titulo ?? ""}
         preco={cursoSelecionado?.preco ?? ""}
         pixCode={cursoSelecionado?.pixCode ?? ""}
