@@ -1,39 +1,53 @@
 import { services } from "./data/services";
 
 export default function App() {
+  const handleBuy = (service: { title: string; price: string }) => {
+    const phone = "5585992686478"; // seu número corrigido
+
+    const message = `Olá! Quero comprar o serviço: ${service.title} - ${service.price}`;
+
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+    window.open(url, "_blank");
+  };
+
   return (
     <div className="min-h-screen px-6 py-10">
-      {/* Header */}
-      <h1 className="text-3xl font-bold mb-2">Kairós Studio</h1>
-      <p className="text-zinc-400 mb-10">
+      <h1 className="mb-2 text-3xl font-bold">Kairós Studio</h1>
+
+      <p className="mb-10 text-zinc-400">
         Criação de sites, apps e soluções digitais
       </p>
 
-      {/* Grid */}
       <div className="grid gap-6 md:grid-cols-2">
         {services.map((service) => (
           <div
             key={service.id}
-            className={`p-6 rounded-2xl border ${
+            className={`rounded-2xl border p-6 ${
               service.highlight
                 ? "border-white bg-zinc-900"
                 : "border-zinc-800 bg-zinc-950"
             }`}
           >
-            <h2 className="text-xl font-semibold mb-2">
-              {service.title}
-            </h2>
+            {service.highlight && (
+              <span className="mb-4 inline-block rounded-full bg-white px-3 py-1 text-xs font-bold text-black">
+                Mais vendido
+              </span>
+            )}
 
-            <p className="text-zinc-400 text-sm mb-4">
+            <h2 className="mb-2 text-xl font-semibold">{service.title}</h2>
+
+            <p className="mb-4 text-sm text-zinc-400">
               {service.description}
             </p>
 
-            <div className="flex items-center justify-between">
-              <span className="text-lg font-bold">
-                {service.price}
-              </span>
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-lg font-bold">{service.price}</span>
 
-              <button className="bg-white text-black px-4 py-2 rounded-xl text-sm font-medium hover:opacity-80 transition">
+              <button
+                onClick={() => handleBuy(service)}
+                className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-80"
+              >
                 Comprar
               </button>
             </div>
