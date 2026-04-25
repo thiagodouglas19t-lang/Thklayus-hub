@@ -1,3 +1,5 @@
+export type UserRole = "user" | "admin";
+
 export type TicketStatus = "aberto" | "respondido" | "fechado";
 
 export interface Ticket {
@@ -6,4 +8,6 @@ export interface Ticket {
   message: string;
   status: TicketStatus;
   createdAt: string;
+  userName: string;
+  adminReply?: string;
 }
