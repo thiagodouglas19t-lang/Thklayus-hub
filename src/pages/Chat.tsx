@@ -45,6 +45,7 @@ export default function Chat() {
   const [setupError, setSetupError] = useState("");
   const [sending, setSending] = useState(false);
   const [showClosed, setShowClosed] = useState(false);
+  const [notificationsOn, setNotificationsOn] = useState(false);
 
   const internal = canAccessInternalPanel(userEmail);
 
@@ -60,6 +61,48 @@ export default function Chat() {
   useEffect(() => {
     if (selectedThread) loadMessages(selectedThread.id);
   }, [selectedThread]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel("thklayus-chat-realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, (payload) => {
+        const msg = payload.new as Message;
+        if (msg.thread_id === selectedThread?.id) loadMessages(msg.thread_id);
+        if (msg.user_id !== userId) notifyUser("Nova mensagem no THKLAYUS", msg.content || "Você recebeu uma nova mensagem.");
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_threads" }, () => {
+        loadThreads(userId, userEmail);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, userEmail, selectedThread?.id]);
+
+  function notifyUser(title: string, body: string) {
+    if (!notificationsOn) return;
+    if (!("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+    new Notification(title, { body: body.slice(0, 90) });
+  }
+
+  async function enableNotifications() {
+    if (!("Notification" in window)) {
+      alert("Seu navegador não suporta notificação.");
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      setNotificationsOn(true);
+      new Notification("THKLAYUS ativado", { body: "Você receberá alertas de novas mensagens." });
+    } else {
+      alert("Notificação não foi permitida.");
+    }
+  }
 
   function isSetupError(message: string) {
     return message.includes("chat_threads") || message.includes("chat_messages") || message.includes("schema cache") || message.includes("chat-files");
@@ -173,6 +216,36 @@ export default function Chat() {
     setThreads((current) => current.map((thread) => (thread.id === updated.id ? updated : thread)));
   }
 
+  async function approvePurchaseSafely() {
+    if (!selectedThread || selectedThread.type !== "purchase") return;
+
+    const ok = confirm(
+      "ANTI-GOLPE: aprove somente se o dinheiro caiu na sua conta/banco. Não confie só no print do comprovante. Confirmar liberação do curso?"
+    );
+    if (!ok) return;
+
+    await updateThreadStatus("compra aprovada");
+    await supabase.from("chat_messages").insert({
+      thread_id: selectedThread.id,
+      user_id: userId,
+      content: "✅ Pagamento aprovado pelo ADM. Curso liberado na Área de Estudo.",
+    });
+  }
+
+  async function rejectPurchase() {
+    if (!selectedThread || selectedThread.type !== "purchase") return;
+
+    const ok = confirm("Recusar compra? Use isso se o Pix não caiu, comprovante parece falso ou pagamento está incorreto.");
+    if (!ok) return;
+
+    await updateThreadStatus("compra recusada");
+    await supabase.from("chat_messages").insert({
+      thread_id: selectedThread.id,
+      user_id: userId,
+      content: "❌ Compra recusada. O pagamento não foi confirmado. Envie um comprovante válido ou fale com o suporte.",
+    });
+  }
+
   async function closeTicket() {
     if (!selectedThread || selectedThread.type !== "ticket") return;
 
@@ -227,9 +300,20 @@ export default function Chat() {
   return (
     <div className="space-y-6">
       <div className="glass-card rounded-[2rem] p-6">
-        <span className="rounded-full border border-zinc-800 px-4 py-2 text-xs font-black uppercase text-zinc-500">Atendimento interno</span>
-        <h2 className="mt-5 text-4xl font-black">Chat interno</h2>
-        <p className="mt-2 text-zinc-400">Compras, comprovantes, pedidos e tickets ficam organizados dentro do THKLAYUS.</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <span className="rounded-full border border-zinc-800 px-4 py-2 text-xs font-black uppercase text-zinc-500">Atendimento seguro</span>
+            <h2 className="mt-5 text-4xl font-black">Chat interno</h2>
+            <p className="mt-2 text-zinc-400">Compras, comprovantes, pedidos e tickets ficam organizados dentro do THKLAYUS.</p>
+          </div>
+          <button onClick={enableNotifications} className="rounded-2xl border border-zinc-700 px-4 py-3 text-sm font-black text-zinc-300">
+            🔔 {notificationsOn ? "Notificações ativas" : "Ativar notificações"}
+          </button>
+        </div>
+      </div>
+
+      <div className="rounded-3xl border border-amber-900 bg-amber-950/20 p-5 text-sm text-amber-100">
+        <strong>🛡️ Anti-golpe:</strong> curso profissional só deve ser liberado depois que o Pix aparecer na sua conta/banco. Print de comprovante sozinho não confirma pagamento.
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
@@ -240,10 +324,7 @@ export default function Chat() {
           </div>
 
           {internal && (
-            <button
-              onClick={() => setShowClosed((value) => !value)}
-              className="mt-3 w-full rounded-2xl border border-zinc-800 bg-black px-4 py-2 text-xs font-black text-zinc-400 hover:border-zinc-600"
-            >
+            <button onClick={() => setShowClosed((value) => !value)} className="mt-3 w-full rounded-2xl border border-zinc-800 bg-black px-4 py-2 text-xs font-black text-zinc-400 hover:border-zinc-600">
               {showClosed ? "Ocultar fechados" : "Mostrar fechados"}
             </button>
           )}
@@ -256,9 +337,7 @@ export default function Chat() {
                 <button
                   key={thread.id}
                   onClick={() => setSelectedThread(thread)}
-                  className={`w-full rounded-2xl border p-4 text-left transition ${
-                    selectedThread?.id === thread.id ? "border-white bg-white text-black" : "border-zinc-800 bg-black text-white hover:border-zinc-600"
-                  } ${isClosedThread(thread) ? "opacity-55" : ""}`}
+                  className={`w-full rounded-2xl border p-4 text-left transition ${selectedThread?.id === thread.id ? "border-white bg-white text-black" : "border-zinc-800 bg-black text-white hover:border-zinc-600"} ${isClosedThread(thread) ? "opacity-55" : ""}`}
                 >
                   <p className="text-xs font-black uppercase opacity-70">{thread.type === "purchase" ? "Compra" : "Ticket"}</p>
                   <p className="mt-1 font-black">{thread.title}</p>
@@ -287,6 +366,7 @@ export default function Chat() {
                     <div className="mt-3 rounded-2xl border border-zinc-800 bg-black p-4 text-sm">
                       <p><strong>Curso comprado:</strong> {selectedThread.course_title}</p>
                       <p><strong>Valor total:</strong> {selectedThread.total_price || selectedThread.price}</p>
+                      <p className="mt-2 rounded-xl border border-amber-900 bg-amber-950/30 p-3 text-amber-100"><strong>Antes de aprovar:</strong> confira se o Pix caiu na conta. Não aprove só olhando print.</p>
                       {selectedThread.comprovante_url && <a href={selectedThread.comprovante_url} target="_blank" rel="noreferrer" className="mt-2 block font-black underline">Abrir comprovante</a>}
                     </div>
                   )}
@@ -297,8 +377,8 @@ export default function Chat() {
                   <div className="flex flex-wrap gap-2">
                     {selectedThread.type === "purchase" && (
                       <>
-                        <button onClick={() => updateThreadStatus("compra aprovada")} className="pro-button rounded-xl px-4 py-2 text-sm font-black">Aprovar</button>
-                        <button onClick={() => updateThreadStatus("compra recusada")} className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-black">Recusar</button>
+                        <button onClick={approvePurchaseSafely} className="pro-button rounded-xl px-4 py-2 text-sm font-black">Aprovar com segurança</button>
+                        <button onClick={rejectPurchase} className="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-black text-red-200">Recusar</button>
                       </>
                     )}
                     {selectedThread.type === "ticket" && !isClosedThread(selectedThread) && (
@@ -321,9 +401,7 @@ export default function Chat() {
               </div>
 
               {isClosedThread(selectedThread) ? (
-                <div className="mt-4 rounded-2xl border border-zinc-800 bg-black p-4 text-center text-sm font-bold text-zinc-400">
-                  Esse ticket foi fechado. Para continuar, abra um novo ticket no suporte.
-                </div>
+                <div className="mt-4 rounded-2xl border border-zinc-800 bg-black p-4 text-center text-sm font-bold text-zinc-400">Esse ticket foi fechado. Para continuar, abra um novo ticket no suporte.</div>
               ) : (
                 <div className="mt-4 grid gap-3">
                   <textarea value={text} onChange={(event) => setText(event.target.value)} placeholder="Digite uma mensagem..." className="min-h-24 rounded-2xl border border-zinc-800 bg-black px-4 py-3 outline-none" />
