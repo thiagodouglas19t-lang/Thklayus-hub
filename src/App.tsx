@@ -15,9 +15,10 @@ import Login from "./pages/Login";
 import Resolver from "./pages/Resolver";
 import Perfil from "./pages/Perfil";
 import Sobre from "./pages/Sobre";
+import Pagamento from "./pages/Pagamento";
 import Navbar from "./components/Navbar";
 
-export type Page = "home" | "cursos" | "gratis" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver" | "perfil" | "sobre";
+export type Page = "home" | "cursos" | "gratis" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver" | "perfil" | "sobre" | "pagamento";
 
 export default function App() {
   const [page, setPage] = useState<Page>("home");
@@ -47,7 +48,7 @@ export default function App() {
   }, []);
 
   function renderPage() {
-    const publicPages: Page[] = ["home", "cursos", "gratis", "resolver", "sobre"];
+    const publicPages: Page[] = ["home", "cursos", "gratis", "resolver", "sobre", "pagamento"];
 
     if (!user && !publicPages.includes(page)) return <Login onLoginSuccess={loadUser} />;
     if (page === "admin" && !canAccessInternalPanel(user?.email)) return <Home setPage={setPage} />;
@@ -57,6 +58,7 @@ export default function App() {
     if (page === "resolver") return <Resolver />;
     if (page === "perfil") return <Perfil />;
     if (page === "sobre") return <Sobre />;
+    if (page === "pagamento") return <Pagamento />;
     if (page === "estudo") return <Estudo />;
     if (page === "pedidos") return <Pedidos />;
     if (page === "suporte") return <Suporte />;
