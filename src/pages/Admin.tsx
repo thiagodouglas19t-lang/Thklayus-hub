@@ -14,7 +14,7 @@ type Thread = {
   created_at?: string;
 };
 
-const tabs = ["todos", "compras", "pedidos", "tickets", "urgentes", "pendentes", "finalizados"];
+const tabs = ["todos", "compras", "pedidos", "tickets", "críticos", "urgentes", "pendentes", "finalizados"];
 const pendingStatuses = ["em análise", "aberto", "pendente", "em produção"];
 const finalizados = ["compra finalizada", "pedido finalizado", "fechado", "entregue", "compra recusada", "resolvido", "encerrado"];
 const CLOSED_STATUSES = ["fechado", "closed", "encerrado", "resolvido", "deleted", "oculto"];
@@ -33,6 +33,52 @@ function isPendingStatus(status: string) {
 
 function isFinishedStatus(status: string) {
   return finalizados.includes(normalize(status));
+}
+
+function parseMoney(value?: string | null) {
+  if (!value) return 0;
+  const clean = String(value).replace(/[^0-9,.-]/g, "").replace(".", "").replace(",", ".");
+  const parsed = Number(clean);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function money(value: number) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+}
+
+function ageHours(value?: string) {
+  if (!value) return 0;
+  const created = new Date(value).getTime();
+  if (Number.isNaN(created)) return 0;
+  return Math.max(0, Math.floor((Date.now() - created) / 36e5));
+}
+
+function priorityScore(item: Thread) {
+  let score = 0;
+  const status = normalize(item.status);
+  const hours = ageHours(item.created_at);
+  if (item.type === "purchase" && status === "em análise") score += 55;
+  if (item.type === "ticket" && status === "aberto") score += 35;
+  if (item.type === "order" && ["pendente", "em produção"].includes(status)) score += 30;
+  if (item.comprovante_url && status === "em análise") score += 15;
+  if (hours >= 24) score += 20;
+  if (hours >= 72) score += 25;
+  if (isFinishedStatus(item.status)) score -= 100;
+  return Math.max(0, score);
+}
+
+function priorityLabel(score: number) {
+  if (score >= 80) return "Crítico";
+  if (score >= 50) return "Alto";
+  if (score >= 25) return "Médio";
+  return "Normal";
+}
+
+function priorityStyle(score: number) {
+  if (score >= 80) return "border-red-400/30 bg-red-500/10 text-red-200";
+  if (score >= 50) return "border-amber-400/30 bg-amber-500/10 text-amber-100";
+  if (score >= 25) return "border-blue-400/30 bg-blue-500/10 text-blue-200";
+  return "border-zinc-500/30 bg-zinc-500/10 text-zinc-300";
 }
 
 function statusStyle(status: string) {
@@ -93,6 +139,15 @@ export default function Admin() {
     setLoading(false);
   }
 
+  async function copiar(texto: string) {
+    try {
+      await navigator.clipboard.writeText(texto);
+      alert("Copiado!");
+    } catch {
+      alert("Não foi possível copiar nesse navegador.");
+    }
+  }
+
   async function registrarMensagem(id: string, status: string) {
     const mensagens: Record<string, string> = {
       "compra aprovada": "✅ Compra aprovada. Acesso liberado na Área de Estudo.",
@@ -143,49 +198,63 @@ export default function Admin() {
     setUpdatingId(null);
   }
 
+  const enrichedThreads = useMemo(() => {
+    return threads.map((item) => ({ ...item, priority: priorityScore(item), value: parseMoney(item.total_price || item.price) }));
+  }, [threads]);
+
   const filtrados = useMemo(() => {
     const termo = normalize(busca);
 
-    return threads.filter((item) => {
-      const matchTab = (() => {
-        if (tab === "compras") return item.type === "purchase";
-        if (tab === "pedidos") return item.type === "order";
-        if (tab === "tickets") return item.type === "ticket";
-        if (tab === "urgentes") return item.type === "purchase" && normalize(item.status) === "em análise";
-        if (tab === "pendentes") return isPendingStatus(item.status);
-        if (tab === "finalizados") return isFinishedStatus(item.status);
-        return true;
-      })();
+    return enrichedThreads
+      .filter((item) => {
+        const matchTab = (() => {
+          if (tab === "compras") return item.type === "purchase";
+          if (tab === "pedidos") return item.type === "order";
+          if (tab === "tickets") return item.type === "ticket";
+          if (tab === "críticos") return item.priority >= 80;
+          if (tab === "urgentes") return item.priority >= 50;
+          if (tab === "pendentes") return isPendingStatus(item.status);
+          if (tab === "finalizados") return isFinishedStatus(item.status);
+          return true;
+        })();
 
-      if (!matchTab) return false;
-      if (!termo) return true;
+        if (!matchTab) return false;
+        if (!termo) return true;
 
-      const texto = `${item.title} ${item.status} ${item.type} ${item.course_title ?? ""} ${item.total_price ?? ""} ${item.price ?? ""} ${item.id}`.toLowerCase();
-      return texto.includes(termo);
-    });
-  }, [threads, tab, busca]);
+        const texto = `${item.title} ${item.status} ${item.type} ${item.course_title ?? ""} ${item.total_price ?? ""} ${item.price ?? ""} ${item.id}`.toLowerCase();
+        return texto.includes(termo);
+      })
+      .sort((a, b) => b.priority - a.priority);
+  }, [enrichedThreads, tab, busca]);
+
+  const receitaAprovada = enrichedThreads.filter((item) => ["compra aprovada", "compra finalizada"].includes(normalize(item.status))).reduce((sum, item) => sum + item.value, 0);
+  const receitaPendente = enrichedThreads.filter((item) => item.type === "purchase" && ["em análise", "pendente"].includes(normalize(item.status))).reduce((sum, item) => sum + item.value, 0);
+  const criticos = enrichedThreads.filter((item) => item.priority >= 80).length;
 
   const metricas = [
-    { label: "Total", value: threads.length, icon: "♛", tone: "from-white/15 to-zinc-500/5" },
-    { label: "Compras", value: threads.filter((item) => item.type === "purchase").length, icon: "◈", tone: "from-blue-500/20 to-sky-500/5" },
-    { label: "Tickets", value: threads.filter((item) => item.type === "ticket" && !isClosedStatus(item.status)).length, icon: "◇", tone: "from-cyan-500/20 to-blue-500/5" },
-    { label: "Pendentes", value: threads.filter((item) => isPendingStatus(item.status)).length, icon: "!", tone: "from-amber-500/20 to-orange-500/5" },
-    { label: "Finalizados", value: threads.filter((item) => isFinishedStatus(item.status)).length, icon: "✓", tone: "from-emerald-500/20 to-green-500/5" },
+    { label: "Receita confirmada", value: money(receitaAprovada), icon: "R$", tone: "from-emerald-500/20 to-green-500/5", small: true },
+    { label: "Aguardando Pix", value: money(receitaPendente), icon: "◈", tone: "from-amber-500/20 to-orange-500/5", small: true },
+    { label: "Críticos", value: criticos, icon: "!", tone: "from-red-500/20 to-orange-500/5" },
+    { label: "Tickets abertos", value: enrichedThreads.filter((item) => item.type === "ticket" && !isClosedStatus(item.status)).length, icon: "◇", tone: "from-cyan-500/20 to-blue-500/5" },
+    { label: "Finalizados", value: enrichedThreads.filter((item) => isFinishedStatus(item.status)).length, icon: "✓", tone: "from-emerald-500/20 to-green-500/5" },
   ];
 
-  const filaRapida = threads.filter((item) => isPendingStatus(item.status)).slice(0, 3);
+  const filaRapida = enrichedThreads.filter((item) => item.priority >= 25).sort((a, b) => b.priority - a.priority).slice(0, 3);
 
   return (
     <div className="space-y-6">
       <section className="relative overflow-hidden rounded-[2.4rem] border border-white/10 bg-white/[0.035] p-6 shadow-2xl shadow-black/30 backdrop-blur-xl md:p-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.20),transparent_34%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.18),transparent_34%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.24),transparent_34%),radial-gradient(circle_at_top_right,rgba(239,68,68,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.16),transparent_34%)]" />
         <div className="relative flex flex-wrap items-end justify-between gap-5">
           <div>
-            <span className="rounded-full border border-amber-400/25 bg-amber-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-amber-100">Central do dono</span>
-            <h2 className="mt-5 text-4xl font-black tracking-[-0.04em] md:text-6xl">Painel ADM</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400 md:text-base">Controle compras, pedidos, tickets, comprovantes e status do atendimento em um só lugar.</p>
+            <span className="rounded-full border border-amber-400/25 bg-amber-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-amber-100">Modo absurdo • Dono</span>
+            <h2 className="mt-5 text-4xl font-black tracking-[-0.04em] md:text-6xl">Central de comando</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400 md:text-base">Prioridade automática, receita estimada, fila crítica, comprovantes e ações rápidas do AprendaJá.</p>
           </div>
-          <button onClick={carregar} className="rounded-2xl bg-white px-5 py-3 font-black text-black shadow-lg shadow-amber-500/20 transition hover:scale-[1.03] active:scale-95">Atualizar painel</button>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => setTab("críticos")} className="rounded-2xl border border-red-400/25 bg-red-500/10 px-5 py-3 font-black text-red-100 transition hover:bg-red-500/15 active:scale-95">Ver críticos</button>
+            <button onClick={carregar} className="rounded-2xl bg-white px-5 py-3 font-black text-black shadow-lg shadow-amber-500/20 transition hover:scale-[1.03] active:scale-95">Atualizar</button>
+          </div>
         </div>
       </section>
 
@@ -194,31 +263,34 @@ export default function Admin() {
           <div key={item.label} className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] p-5 shadow-xl shadow-black/25 backdrop-blur-xl">
             <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${item.tone}`} />
             <div className="relative flex items-start justify-between gap-3">
-              <div>
-                <p className="text-4xl font-black tracking-[-0.04em]">{item.value}</p>
+              <div className="min-w-0">
+                <p className={`${item.small ? "text-2xl" : "text-4xl"} truncate font-black tracking-[-0.04em]`}>{item.value}</p>
                 <p className="mt-1 text-sm font-bold text-zinc-400">{item.label}</p>
               </div>
-              <span className="grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-black/35 text-lg font-black text-amber-100">{item.icon}</span>
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-black/35 text-sm font-black text-amber-100">{item.icon}</span>
             </div>
           </div>
         ))}
       </section>
 
       {filaRapida.length > 0 && (
-        <section className="rounded-[2rem] border border-amber-400/20 bg-amber-500/10 p-5">
+        <section className="rounded-[2rem] border border-red-400/20 bg-red-500/10 p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-xl font-black text-amber-100">Fila rápida</h3>
-              <p className="text-sm text-amber-100/70">Coisas que precisam de atenção primeiro.</p>
+              <h3 className="text-xl font-black text-red-100">Fila de prioridade</h3>
+              <p className="text-sm text-red-100/70">O sistema colocou os atendimentos mais importantes no topo.</p>
             </div>
-            <button onClick={() => setTab("pendentes")} className="rounded-2xl border border-amber-300/20 bg-black/30 px-4 py-2 text-sm font-black text-amber-100">Ver pendentes</button>
+            <button onClick={() => setTab("urgentes")} className="rounded-2xl border border-red-300/20 bg-black/30 px-4 py-2 text-sm font-black text-red-100">Ver urgentes</button>
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             {filaRapida.map((item) => (
-              <button key={item.id} onClick={() => setBusca(item.title)} className="rounded-2xl border border-amber-300/15 bg-black/30 p-4 text-left transition hover:bg-black/45 active:scale-[0.99]">
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-100/60">{typeLabel(item.type)} • {formatDate(item.created_at)}</p>
+              <button key={item.id} onClick={() => setBusca(item.title)} className="rounded-2xl border border-red-300/15 bg-black/30 p-4 text-left transition hover:bg-black/45 active:scale-[0.99]">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-red-100/60">{typeLabel(item.type)} • {formatDate(item.created_at)} • {ageHours(item.created_at)}h</p>
                 <p className="mt-2 truncate font-black text-white">{item.title}</p>
-                <p className={`mt-3 inline-flex rounded-full border px-3 py-1 text-[11px] font-black ${statusStyle(item.status)}`}>{item.status}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <p className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-black ${priorityStyle(item.priority)}`}>{priorityLabel(item.priority)}</p>
+                  <p className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-black ${statusStyle(item.status)}`}>{item.status}</p>
+                </div>
               </button>
             ))}
           </div>
@@ -255,17 +327,18 @@ export default function Admin() {
             const isClosedTicket = item.type === "ticket" && isClosedStatus(item.status);
 
             return (
-              <div key={item.id} className="group rounded-[2rem] border border-white/10 bg-white/[0.035] p-5 shadow-xl shadow-black/25 backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-amber-300/30">
+              <div key={item.id} className={`group rounded-[2rem] border p-5 shadow-xl shadow-black/25 backdrop-blur-xl transition hover:-translate-y-0.5 ${item.priority >= 80 ? "border-red-400/25 bg-red-500/[0.06] hover:border-red-300/40" : item.priority >= 50 ? "border-amber-400/25 bg-amber-500/[0.05] hover:border-amber-300/40" : "border-white/10 bg-white/[0.035] hover:border-amber-300/30"}`}>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex min-w-0 gap-4">
                     <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-white/10 bg-black/35 text-xl font-black text-amber-100">{typeIcon(item.type)}</div>
                     <div className="min-w-0">
-                      <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">{typeLabel(item.type)} • {formatDate(item.created_at)}</p>
+                      <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">{typeLabel(item.type)} • {formatDate(item.created_at)} • {ageHours(item.created_at)}h aberto</p>
                       <h3 className="mt-1 truncate text-xl font-black tracking-[-0.02em]">{item.title}</h3>
-                      <p className="mt-1 text-xs text-zinc-600">ID: {item.id}</p>
+                      <button onClick={() => copiar(item.id)} className="mt-1 text-left text-xs text-zinc-600 underline decoration-zinc-800 underline-offset-4 hover:text-zinc-300">ID: {item.id}</button>
                       {item.course_title && <p className="mt-2 text-sm text-zinc-400">Curso: <span className="text-zinc-200">{item.course_title}</span></p>}
                       {(item.total_price || item.price) && <p className="mt-1 text-sm text-zinc-400">Valor: <span className="text-zinc-200">{item.total_price || item.price}</span></p>}
                       <div className="mt-3 flex flex-wrap gap-2">
+                        <p className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${priorityStyle(item.priority)}`}>{priorityLabel(item.priority)} • {item.priority}</p>
                         <p className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${statusStyle(item.status)}`}>{item.status}</p>
                         {isPendingStatus(item.status) && <p className="inline-flex rounded-full border border-amber-400/20 bg-amber-500/10 px-3 py-1 text-xs font-black text-amber-100">Precisa atenção</p>}
                       </div>
@@ -280,6 +353,7 @@ export default function Admin() {
                     {item.type === "order" && <button disabled={isUpdating || item.status === "em produção"} onClick={() => atualizarStatus(item.id, "em produção")} className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-4 py-2 text-sm font-black text-violet-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Em produção</button>}
                     {item.type === "order" && <button disabled={isUpdating || item.status === "pedido finalizado"} onClick={() => atualizarStatus(item.id, "pedido finalizado")} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Finalizar pedido</button>}
                     {item.type === "ticket" && <button disabled={isUpdating || isClosedTicket} onClick={() => atualizarStatus(item.id, "fechado")} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-black text-zinc-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">{isClosedTicket ? "Ticket fechado" : isUpdating ? "Fechando..." : "Fechar ticket"}</button>}
+                    <button onClick={() => copiar(`${typeLabel(item.type)}: ${item.title}\nStatus: ${item.status}\nID: ${item.id}`)} className="rounded-xl border border-white/10 bg-black/35 px-4 py-2 text-sm font-black text-zinc-300 transition hover:border-amber-300/30 hover:text-white active:scale-95">Copiar resumo</button>
                   </div>
                 </div>
               </div>
