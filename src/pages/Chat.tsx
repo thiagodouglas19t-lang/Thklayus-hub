@@ -27,7 +27,21 @@ type Message = {
   created_at?: string;
 };
 
-const CLOSED_STATUSES = ["fechado", "closed", "encerrado", "resolvido"];
+const CLOSED_STATUSES = ["fechado", "closed", "encerrado", "resolvido", "deleted", "oculto"];
+const HIDDEN_KEY = "thklayus_hidden_threads";
+
+function getHiddenThreadIds() {
+  try {
+    return JSON.parse(localStorage.getItem(HIDDEN_KEY) || "[]") as string[];
+  } catch {
+    return [];
+  }
+}
+
+function saveHiddenThreadId(id: string) {
+  const ids = Array.from(new Set([...getHiddenThreadIds(), id]));
+  localStorage.setItem(HIDDEN_KEY, JSON.stringify(ids));
+}
 
 function isClosedThread(thread: Thread) {
   return CLOSED_STATUSES.includes(String(thread.status).toLowerCase().trim());
@@ -46,13 +60,18 @@ export default function Chat() {
   const [sending, setSending] = useState(false);
   const [showClosed, setShowClosed] = useState(false);
   const [notificationsOn, setNotificationsOn] = useState(false);
+  const [hiddenIds, setHiddenIds] = useState<string[]>(getHiddenThreadIds());
 
   const internal = canAccessInternalPanel(userEmail);
 
   const visibleThreads = useMemo(() => {
-    if (showClosed && internal) return threads;
-    return threads.filter((thread) => !isClosedThread(thread));
-  }, [threads, showClosed, internal]);
+    return threads.filter((thread) => {
+      if (!internal && hiddenIds.includes(thread.id)) return false;
+      if (!internal && isClosedThread(thread)) return false;
+      if (internal && showClosed) return true;
+      return !isClosedThread(thread) && !hiddenIds.includes(thread.id);
+    });
+  }, [threads, showClosed, internal, hiddenIds]);
 
   useEffect(() => {
     loadInitialData();
@@ -128,9 +147,7 @@ export default function Chat() {
     const isInternal = canAccessInternalPanel(currentEmail);
     let query = supabase.from("chat_threads").select("*").order("created_at", { ascending: false });
 
-    if (!isInternal) {
-      query = query.eq("user_id", currentUserId).not("status", "in", "(fechado,closed,encerrado,resolvido)");
-    }
+    if (!isInternal) query = query.eq("user_id", currentUserId);
 
     const { data, error } = await query;
 
@@ -219,9 +236,7 @@ export default function Chat() {
   async function approvePurchaseSafely() {
     if (!selectedThread || selectedThread.type !== "purchase") return;
 
-    const ok = confirm(
-      "ANTI-GOLPE: aprove somente se o dinheiro caiu na sua conta/banco. Não confie só no print do comprovante. Confirmar liberação do curso?"
-    );
+    const ok = confirm("ANTI-GOLPE: aprove somente se o dinheiro caiu na sua conta/banco. Não confie só no print do comprovante. Confirmar liberação do curso?");
     if (!ok) return;
 
     await updateThreadStatus("compra aprovada");
@@ -252,32 +267,29 @@ export default function Chat() {
     const ok = confirm("Fechar esse ticket? Ele vai sumir da lista do usuário e o chat ficará bloqueado.");
     if (!ok) return;
 
-    const closedStatus = "fechado";
-    const { error } = await supabase.from("chat_threads").update({ status: closedStatus }).eq("id", selectedThread.id);
+    const ticketId = selectedThread.id;
+    saveHiddenThreadId(ticketId);
+    setHiddenIds(getHiddenThreadIds());
+    setThreads((current) => current.filter((thread) => thread.id !== ticketId));
+    setSelectedThread(null);
+    setMessages([]);
+
+    const { error } = await supabase.from("chat_threads").update({ status: "fechado" }).eq("id", ticketId);
 
     if (error) {
-      setSetupError("Erro ao fechar ticket: " + error.message);
+      alert("Ticket ocultado neste aparelho, mas o banco recusou atualizar status: " + error.message);
       return;
     }
 
     await supabase.from("chat_messages").insert({
-      thread_id: selectedThread.id,
+      thread_id: ticketId,
       user_id: userId,
       content: "✅ Ticket fechado pelo suporte. Se precisar de mais ajuda, abra um novo ticket.",
     });
-
-    const closedThread = { ...selectedThread, status: closedStatus };
-    setThreads((current) => current.map((thread) => (thread.id === closedThread.id ? closedThread : thread)));
-    setSelectedThread(null);
-    setMessages([]);
   }
 
   if (loading) {
-    return (
-      <div className="pro-card rounded-[2rem] p-6">
-        <p className="text-zinc-500">Carregando chats...</p>
-      </div>
-    );
+    return <div className="pro-card rounded-[2rem] p-6"><p className="text-zinc-500">Carregando chats...</p></div>;
   }
 
   if (setupError) {
@@ -287,7 +299,6 @@ export default function Chat() {
           <h2 className="text-3xl font-black">Chat interno</h2>
           <p className="mt-2 text-zinc-400">Falta configurar uma parte do Supabase.</p>
         </div>
-
         <div className="rounded-3xl border border-red-900 bg-red-950/30 p-6">
           <h3 className="text-xl font-black text-red-200">Configuração necessária</h3>
           <p className="mt-3 text-sm text-red-100">{setupError}</p>
@@ -298,60 +309,50 @@ export default function Chat() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="glass-card rounded-[2rem] p-6">
+    <div className="space-y-5">
+      <div className="rounded-[2rem] border border-zinc-800 bg-gradient-to-br from-zinc-950 to-black p-5 md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <span className="rounded-full border border-zinc-800 px-4 py-2 text-xs font-black uppercase text-zinc-500">Atendimento seguro</span>
-            <h2 className="mt-5 text-4xl font-black">Chat interno</h2>
-            <p className="mt-2 text-zinc-400">Compras, comprovantes, pedidos e tickets ficam organizados dentro do THKLAYUS.</p>
+            <span className="rounded-full border border-zinc-800 px-4 py-2 text-[11px] font-black uppercase text-zinc-500">Atendimento seguro</span>
+            <h2 className="mt-5 text-3xl font-black leading-tight md:text-5xl">Chat interno</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-400 md:text-base">Compras, comprovantes, pedidos e tickets organizados dentro do THKLAYUS.</p>
           </div>
-          <button onClick={enableNotifications} className="rounded-2xl border border-zinc-700 px-4 py-3 text-sm font-black text-zinc-300">
-            🔔 {notificationsOn ? "Notificações ativas" : "Ativar notificações"}
-          </button>
+          <button onClick={enableNotifications} className="rounded-2xl border border-zinc-700 px-4 py-3 text-xs font-black text-zinc-300 md:text-sm">🔔 {notificationsOn ? "Ativas" : "Ativar"}</button>
         </div>
       </div>
 
-      <div className="rounded-3xl border border-amber-900 bg-amber-950/20 p-5 text-sm text-amber-100">
-        <strong>🛡️ Anti-golpe:</strong> curso profissional só deve ser liberado depois que o Pix aparecer na sua conta/banco. Print de comprovante sozinho não confirma pagamento.
+      <div className="rounded-3xl border border-amber-900 bg-amber-950/20 p-4 text-xs leading-6 text-amber-100 md:text-sm">
+        <strong>🛡️ Anti-golpe:</strong> libere curso só depois que o Pix aparecer na sua conta. Print sozinho não confirma pagamento.
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
-        <section className="pro-card rounded-3xl p-4">
-          <div className="flex items-center justify-between gap-3 px-2">
+      <div className="grid gap-5 lg:grid-cols-[360px_1fr]">
+        <section className="rounded-[2rem] border border-zinc-800 bg-zinc-950/60 p-4">
+          <div className="flex items-center justify-between gap-3 px-1">
             <h3 className="text-xl font-black">Conversas</h3>
             <span className="rounded-full border border-zinc-800 px-3 py-1 text-xs font-bold text-zinc-500">{visibleThreads.length}</span>
           </div>
 
-          {internal && (
-            <button onClick={() => setShowClosed((value) => !value)} className="mt-3 w-full rounded-2xl border border-zinc-800 bg-black px-4 py-2 text-xs font-black text-zinc-400 hover:border-zinc-600">
-              {showClosed ? "Ocultar fechados" : "Mostrar fechados"}
-            </button>
-          )}
+          {internal && <button onClick={() => setShowClosed((value) => !value)} className="mt-3 w-full rounded-2xl border border-zinc-800 bg-black px-4 py-2 text-xs font-black text-zinc-400">{showClosed ? "Ocultar fechados" : "Mostrar fechados"}</button>}
 
-          <div className="mt-4 max-h-[620px] space-y-2 overflow-y-auto pr-1">
+          <div className="mt-4 max-h-[520px] space-y-3 overflow-y-auto pr-1">
             {visibleThreads.length === 0 ? (
               <div className="rounded-2xl border border-zinc-800 bg-black p-4 text-sm text-zinc-500">Nenhuma conversa aberta.</div>
             ) : (
               visibleThreads.map((thread) => (
-                <button
-                  key={thread.id}
-                  onClick={() => setSelectedThread(thread)}
-                  className={`w-full rounded-2xl border p-4 text-left transition ${selectedThread?.id === thread.id ? "border-white bg-white text-black" : "border-zinc-800 bg-black text-white hover:border-zinc-600"} ${isClosedThread(thread) ? "opacity-55" : ""}`}
-                >
-                  <p className="text-xs font-black uppercase opacity-70">{thread.type === "purchase" ? "Compra" : "Ticket"}</p>
-                  <p className="mt-1 font-black">{thread.title}</p>
+                <button key={thread.id} onClick={() => setSelectedThread(thread)} className={`w-full rounded-[1.5rem] border p-4 text-left transition ${selectedThread?.id === thread.id ? "border-white bg-white text-black" : "border-zinc-800 bg-black text-white"}`}>
+                  <p className="text-[11px] font-black uppercase opacity-70">{thread.type === "purchase" ? "Compra" : "Ticket"}</p>
+                  <p className="mt-2 text-lg font-black">{thread.title}</p>
                   {thread.type === "purchase" && <p className="mt-1 text-xs opacity-70">{thread.course_title} • Total {thread.total_price || thread.price}</p>}
-                  <p className="mt-2 inline-flex rounded-full border border-current px-3 py-1 text-xs font-black opacity-70">{thread.status}</p>
+                  <p className="mt-3 inline-flex rounded-full border border-current px-3 py-1 text-xs font-black opacity-70">{thread.status}</p>
                 </button>
               ))
             )}
           </div>
         </section>
 
-        <section className="pro-card rounded-3xl p-4">
+        <section className="rounded-[2rem] border border-zinc-800 bg-zinc-950/60 p-4">
           {!selectedThread ? (
-            <div className="flex min-h-96 flex-col items-center justify-center text-center text-zinc-500">
+            <div className="flex min-h-80 flex-col items-center justify-center text-center text-zinc-500">
               <p className="text-4xl">💬</p>
               <p className="mt-3 font-bold">Selecione uma conversa</p>
               <p className="mt-1 text-sm">Aqui você acompanha compras, comprovantes e suporte.</p>
@@ -366,7 +367,7 @@ export default function Chat() {
                     <div className="mt-3 rounded-2xl border border-zinc-800 bg-black p-4 text-sm">
                       <p><strong>Curso comprado:</strong> {selectedThread.course_title}</p>
                       <p><strong>Valor total:</strong> {selectedThread.total_price || selectedThread.price}</p>
-                      <p className="mt-2 rounded-xl border border-amber-900 bg-amber-950/30 p-3 text-amber-100"><strong>Antes de aprovar:</strong> confira se o Pix caiu na conta. Não aprove só olhando print.</p>
+                      <p className="mt-2 rounded-xl border border-amber-900 bg-amber-950/30 p-3 text-amber-100"><strong>Antes de aprovar:</strong> confira se o Pix caiu na conta.</p>
                       {selectedThread.comprovante_url && <a href={selectedThread.comprovante_url} target="_blank" rel="noreferrer" className="mt-2 block font-black underline">Abrir comprovante</a>}
                     </div>
                   )}
@@ -375,15 +376,8 @@ export default function Chat() {
 
                 {internal && (
                   <div className="flex flex-wrap gap-2">
-                    {selectedThread.type === "purchase" && (
-                      <>
-                        <button onClick={approvePurchaseSafely} className="pro-button rounded-xl px-4 py-2 text-sm font-black">Aprovar com segurança</button>
-                        <button onClick={rejectPurchase} className="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-black text-red-200">Recusar</button>
-                      </>
-                    )}
-                    {selectedThread.type === "ticket" && !isClosedThread(selectedThread) && (
-                      <button onClick={closeTicket} className="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-black text-red-200">Fechar ticket</button>
-                    )}
+                    {selectedThread.type === "purchase" && <><button onClick={approvePurchaseSafely} className="pro-button rounded-xl px-4 py-2 text-sm font-black">Aprovar seguro</button><button onClick={rejectPurchase} className="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-black text-red-200">Recusar</button></>}
+                    {selectedThread.type === "ticket" && !isClosedThread(selectedThread) && <button onClick={closeTicket} className="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-black text-red-200">Fechar ticket</button>}
                   </div>
                 )}
               </div>
@@ -400,9 +394,7 @@ export default function Chat() {
                 })}
               </div>
 
-              {isClosedThread(selectedThread) ? (
-                <div className="mt-4 rounded-2xl border border-zinc-800 bg-black p-4 text-center text-sm font-bold text-zinc-400">Esse ticket foi fechado. Para continuar, abra um novo ticket no suporte.</div>
-              ) : (
+              {isClosedThread(selectedThread) ? <div className="mt-4 rounded-2xl border border-zinc-800 bg-black p-4 text-center text-sm font-bold text-zinc-400">Esse ticket foi fechado.</div> : (
                 <div className="mt-4 grid gap-3">
                   <textarea value={text} onChange={(event) => setText(event.target.value)} placeholder="Digite uma mensagem..." className="min-h-24 rounded-2xl border border-zinc-800 bg-black px-4 py-3 outline-none" />
                   <input type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="rounded-2xl border border-zinc-800 bg-black px-4 py-3 text-sm" />
