@@ -102,7 +102,8 @@ function typeIcon(type: Thread["type"]) {
   if (type === "purchase") return "◈";
   if (type === "order") return "✦";
   return "◇";
-}\n
+}
+
 function formatDate(value?: string) {
   if (!value) return "Sem data";
   try {
@@ -230,10 +231,7 @@ export default function Admin() {
 
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/liberar-curso-chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ thread_id: item.id }),
       });
 
@@ -285,13 +283,10 @@ export default function Admin() {
     setUpdatingId(null);
   }
 
-  const enrichedThreads = useMemo(() => {
-    return threads.map((item) => ({ ...item, priority: priorityScore(item), value: parseMoney(item.total_price || item.price) }));
-  }, [threads]);
+  const enrichedThreads = useMemo(() => threads.map((item) => ({ ...item, priority: priorityScore(item), value: parseMoney(item.total_price || item.price) })), [threads]);
 
   const filtrados = useMemo(() => {
     const termo = normalize(busca);
-
     return enrichedThreads
       .filter((item) => {
         const matchTab = (() => {
@@ -307,7 +302,6 @@ export default function Admin() {
 
         if (!matchTab) return false;
         if (!termo) return true;
-
         const texto = `${item.title} ${item.status} ${item.type} ${item.course_title ?? ""} ${item.total_price ?? ""} ${item.price ?? ""} ${item.id} ${item.user_id}`.toLowerCase();
         return texto.includes(termo);
       })
@@ -331,7 +325,6 @@ export default function Admin() {
   return (
     <div className="space-y-6">
       <section className="relative overflow-hidden rounded-[2.4rem] border border-white/10 bg-white/[0.035] p-6 shadow-2xl shadow-black/30 backdrop-blur-xl md:p-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.24),transparent_34%),radial-gradient(circle_at_top_right,rgba(239,68,68,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.16),transparent_34%)]" />
         <div className="relative flex flex-wrap items-end justify-between gap-5">
           <div>
             <span className="rounded-full border border-amber-400/25 bg-amber-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-amber-100">Modo absurdo • Dono</span>
@@ -339,8 +332,8 @@ export default function Admin() {
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400 md:text-base">Prioridade automática, receita estimada, fila crítica, comprovantes e ações rápidas do AprendaJá.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => setTab("críticos")} className="rounded-2xl border border-red-400/25 bg-red-500/10 px-5 py-3 font-black text-red-100 transition hover:bg-red-500/15 active:scale-95">Ver críticos</button>
-            <button onClick={carregar} className="rounded-2xl bg-white px-5 py-3 font-black text-black shadow-lg shadow-amber-500/20 transition hover:scale-[1.03] active:scale-95">Atualizar</button>
+            <button onClick={() => setTab("críticos")} className="rounded-2xl border border-red-400/25 bg-red-500/10 px-5 py-3 font-black text-red-100 transition active:scale-95">Ver críticos</button>
+            <button onClick={carregar} className="rounded-2xl bg-white px-5 py-3 font-black text-black shadow-lg shadow-amber-500/20 transition active:scale-95">Atualizar</button>
           </div>
         </div>
       </section>
@@ -361,34 +354,22 @@ export default function Admin() {
       </section>
 
       <section className="rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h3 className="text-2xl font-black text-emerald-100">Liberar curso manualmente</h3>
-            <p className="mt-1 max-w-2xl text-sm text-emerald-100/75">Use para brinde, teste, cortesia, parceria ou quando precisar liberar um curso pago de graça para um usuário específico.</p>
-          </div>
-          <span className="rounded-full border border-emerald-300/20 bg-black/25 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-emerald-100">ADM</span>
-        </div>
+        <h3 className="text-2xl font-black text-emerald-100">Liberar curso manualmente</h3>
+        <p className="mt-1 max-w-2xl text-sm text-emerald-100/75">Use para brinde, teste, cortesia, parceria ou quando precisar liberar um curso pago de graça.</p>
         <div className="mt-5 grid gap-3 lg:grid-cols-[1.2fr_0.8fr_1fr_auto]">
           <input value={manualUserId} onChange={(e) => setManualUserId(e.target.value)} placeholder="ID do usuário" className="min-h-12 rounded-2xl border border-emerald-300/20 bg-black/35 px-4 text-sm font-bold text-white outline-none placeholder:text-emerald-100/35" />
-          <input value={manualCourseId} onChange={(e) => setManualCourseId(e.target.value)} placeholder="ID do curso ex: 7 ou curso-basico" className="min-h-12 rounded-2xl border border-emerald-300/20 bg-black/35 px-4 text-sm font-bold text-white outline-none placeholder:text-emerald-100/35" />
+          <input value={manualCourseId} onChange={(e) => setManualCourseId(e.target.value)} placeholder="ID do curso ex: 7" className="min-h-12 rounded-2xl border border-emerald-300/20 bg-black/35 px-4 text-sm font-bold text-white outline-none placeholder:text-emerald-100/35" />
           <input value={manualCourseTitle} onChange={(e) => setManualCourseTitle(e.target.value)} placeholder="Nome do curso opcional" className="min-h-12 rounded-2xl border border-emerald-300/20 bg-black/35 px-4 text-sm font-bold text-white outline-none placeholder:text-emerald-100/35" />
           <button onClick={liberarCursoManual} disabled={manualLoading} className="rounded-2xl bg-white px-5 py-3 font-black text-black transition active:scale-95 disabled:opacity-60">{manualLoading ? "Liberando..." : "Liberar"}</button>
         </div>
-        <p className="mt-3 text-xs text-emerald-100/60">Dica: o ID do usuário aparece para o cliente na tela de pagamento. O ID do curso aparece no catálogo/detalhes.</p>
       </section>
 
       {filaRapida.length > 0 && (
         <section className="rounded-[2rem] border border-red-400/20 bg-red-500/10 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h3 className="text-xl font-black text-red-100">Fila de prioridade</h3>
-              <p className="text-sm text-red-100/70">O sistema colocou os atendimentos mais importantes no topo.</p>
-            </div>
-            <button onClick={() => setTab("urgentes")} className="rounded-2xl border border-red-300/20 bg-black/30 px-4 py-2 text-sm font-black text-red-100">Ver urgentes</button>
-          </div>
+          <h3 className="text-xl font-black text-red-100">Fila de prioridade</h3>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             {filaRapida.map((item) => (
-              <button key={item.id} onClick={() => setBusca(item.title)} className="rounded-2xl border border-red-300/15 bg-black/30 p-4 text-left transition hover:bg-black/45 active:scale-[0.99]">
+              <button key={item.id} onClick={() => setBusca(item.title)} className="rounded-2xl border border-red-300/15 bg-black/30 p-4 text-left transition active:scale-[0.99]">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-red-100/60">{typeLabel(item.type)} • {formatDate(item.created_at)} • {ageHours(item.created_at)}h</p>
                 <p className="mt-2 truncate font-black text-white">{item.title}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -414,7 +395,7 @@ export default function Admin() {
           const isUpdating = updatingId === item.id;
           const isClosedTicket = item.type === "ticket" && isClosedStatus(item.status);
           return (
-            <div key={item.id} className={`group rounded-[2rem] border p-5 shadow-xl shadow-black/25 backdrop-blur-xl transition hover:-translate-y-0.5 ${item.priority >= 80 ? "border-red-400/25 bg-red-500/[0.06] hover:border-red-300/40" : item.priority >= 50 ? "border-amber-400/25 bg-amber-500/[0.05] hover:border-amber-300/40" : "border-white/10 bg-white/[0.035] hover:border-amber-300/30"}`}>
+            <div key={item.id} className={`group rounded-[2rem] border p-5 shadow-xl shadow-black/25 backdrop-blur-xl transition ${item.priority >= 80 ? "border-red-400/25 bg-red-500/[0.06]" : item.priority >= 50 ? "border-amber-400/25 bg-amber-500/[0.05]" : "border-white/10 bg-white/[0.035]"}`}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex min-w-0 gap-4">
                   <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-white/10 bg-black/35 text-xl font-black text-amber-100">{typeIcon(item.type)}</div>
@@ -435,13 +416,13 @@ export default function Admin() {
                   </div>
                 </div>
                 <div className="grid min-w-52 gap-2">
-                  {item.type === "purchase" && <button disabled={isUpdating || normalize(item.status) === "compra aprovada"} onClick={() => aprovarCompraSegura(item)} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black shadow-lg shadow-amber-500/10 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">{isUpdating ? "Aprovando..." : "Aprovar e liberar"}</button>}
+                  {item.type === "purchase" && <button disabled={isUpdating || normalize(item.status) === "compra aprovada"} onClick={() => aprovarCompraSegura(item)} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">{isUpdating ? "Aprovando..." : "Aprovar e liberar"}</button>}
                   {item.type === "purchase" && <button disabled={isUpdating || item.status === "compra finalizada"} onClick={() => atualizarStatus(item.id, "compra finalizada")} className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Fechar compra</button>}
                   {item.type === "purchase" && <button disabled={isUpdating || item.status === "compra recusada"} onClick={() => atualizarStatus(item.id, "compra recusada")} className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Recusar compra</button>}
                   {item.type === "order" && <button disabled={isUpdating || item.status === "em produção"} onClick={() => atualizarStatus(item.id, "em produção")} className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-4 py-2 text-sm font-black text-violet-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Em produção</button>}
                   {item.type === "order" && <button disabled={isUpdating || item.status === "pedido finalizado"} onClick={() => atualizarStatus(item.id, "pedido finalizado")} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Finalizar pedido</button>}
                   {item.type === "ticket" && <button disabled={isUpdating || isClosedTicket} onClick={() => atualizarStatus(item.id, "fechado")} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-black text-zinc-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">{isClosedTicket ? "Ticket fechado" : isUpdating ? "Fechando..." : "Fechar ticket"}</button>}
-                  <button onClick={() => copiar(`${typeLabel(item.type)}: ${item.title}\nStatus: ${item.status}\nID: ${item.id}\nUsuário: ${item.user_id}\nCurso: ${item.course_title ?? "-"}\nID curso: ${item.course_id ?? "-"}`)} className="rounded-xl border border-white/10 bg-black/35 px-4 py-2 text-sm font-black text-zinc-300 transition hover:border-amber-300/30 hover:text-white active:scale-95">Copiar resumo</button>
+                  <button onClick={() => copiar(`${typeLabel(item.type)}: ${item.title}\nStatus: ${item.status}\nID: ${item.id}\nUsuário: ${item.user_id}\nCurso: ${item.course_title ?? "-"}\nID curso: ${item.course_id ?? "-"}`)} className="rounded-xl border border-white/10 bg-black/35 px-4 py-2 text-sm font-black text-zinc-300 transition active:scale-95">Copiar resumo</button>
                 </div>
               </div>
             </div>
