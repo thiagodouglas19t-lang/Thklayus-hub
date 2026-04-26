@@ -72,7 +72,7 @@ export default function App() {
       <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_10%,rgba(124,58,237,0.28),transparent_35%),radial-gradient(circle_at_70%_80%,rgba(56,189,248,0.18),transparent_35%)]" />
         <div className="relative rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl shadow-blue-500/10 backdrop-blur-2xl">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br from-violet-600 via-blue-500 to-sky-300 text-2xl font-black shadow-lg shadow-blue-500/30">A</div>
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br from-violet-600 via-blue-500 to-sky-300 text-sm font-black tracking-[-0.08em] shadow-lg shadow-blue-500/30">THK</div>
           <h1 className="mt-5 bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-3xl font-black tracking-[0.16em] text-transparent">AprendaJá</h1>
           <p className="mt-2 text-sm font-bold uppercase tracking-[0.18em] text-zinc-500">THKLAYUS • Carregando app...</p>
         </div>
