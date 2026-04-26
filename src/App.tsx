@@ -65,26 +65,33 @@ export default function App() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-black text-white">
-        <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-center shadow-2xl">
-          <h1 className="text-2xl font-black tracking-[0.25em]">THKLAYUS</h1>
-          <p className="mt-2 text-sm text-zinc-500">Carregando app...</p>
+      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_10%,rgba(124,58,237,0.28),transparent_35%),radial-gradient(circle_at_70%_80%,rgba(56,189,248,0.18),transparent_35%)]" />
+        <div className="relative rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl shadow-blue-500/10 backdrop-blur-2xl">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br from-violet-600 via-blue-500 to-sky-300 text-2xl font-black shadow-lg shadow-blue-500/30">T</div>
+          <h1 className="mt-5 bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-3xl font-black tracking-[0.25em] text-transparent">THKLAYUS</h1>
+          <p className="mt-2 text-sm font-bold uppercase tracking-[0.18em] text-zinc-500">Carregando app...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      <Navbar page={page} setPage={setPage} userEmail={user?.email} onLogout={logout} />
+    <main className="relative min-h-screen overflow-hidden bg-black text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(124,58,237,0.20),transparent_32%),radial-gradient(circle_at_90%_15%,rgba(56,189,248,0.16),transparent_28%),linear-gradient(to_bottom,rgba(255,255,255,0.04),transparent_18%)]" />
+      <div className="pointer-events-none fixed inset-0 opacity-[0.035] [background-image:linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] [background-size:42px_42px]" />
 
-      {user && (
-        <div className="border-b border-zinc-900 bg-zinc-950 px-4 py-2 text-center text-xs text-zinc-500">
-          Logado como: {user.email}
-        </div>
-      )}
+      <div className="relative z-10">
+        <Navbar page={page} setPage={setPage} userEmail={user?.email} onLogout={logout} />
 
-      <section className="mx-auto max-w-6xl px-4 py-8">{renderPage()}</section>
+        {user && (
+          <div className="border-b border-white/10 bg-black/45 px-4 py-2 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 backdrop-blur-xl">
+            Logado como: <span className="normal-case tracking-normal text-zinc-300">{user.email}</span>
+          </div>
+        )}
+
+        <section className="mx-auto max-w-7xl px-4 pb-28 pt-6 md:px-6 md:pb-10 md:pt-8">{renderPage()}</section>
+      </div>
     </main>
   );
 }
