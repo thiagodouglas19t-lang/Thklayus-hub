@@ -19,22 +19,14 @@ export default function Home({ setPage }: any) {
               <span className="inline-flex rounded-full border border-blue-400/20 bg-blue-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-blue-200">THKLAYUS HUB</span>
               <span className="inline-flex rounded-full border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-200">Aprenda pelo celular</span>
             </div>
-
-            <h2 className="mt-5 max-w-4xl text-4xl font-black leading-[1.01] tracking-[-0.06em] md:text-7xl">
-              Cursos práticos, suporte e serviços digitais em um só lugar.
-            </h2>
-
-            <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-400 md:text-lg">
-              Aprenda com aulas diretas, acompanhe compras por ID, peça serviços e fale no chat sem bagunça. Simples igual plataforma grande, com cara THKLAYUS.
-            </p>
-
+            <h2 className="mt-5 max-w-4xl text-4xl font-black leading-[1.01] tracking-[-0.06em] md:text-7xl">Cursos práticos, suporte e serviços digitais em um só lugar.</h2>
+            <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-400 md:text-lg">Aprenda com aulas diretas, acompanhe compras por ID, peça serviços e fale no chat sem bagunça. Simples igual plataforma grande, com cara THKLAYUS.</p>
             <div className="mt-7 grid gap-3 sm:flex sm:flex-wrap">
               <button onClick={() => setPage("cursos")} className="rounded-2xl bg-white px-6 py-4 font-black text-black shadow-lg shadow-blue-500/20 transition hover:scale-[1.03] active:scale-95">Ver cursos</button>
               <button onClick={() => setPage("estudo")} className="rounded-2xl border border-white/10 bg-white/[0.05] px-6 py-4 font-black text-white transition hover:border-blue-400/40 hover:bg-blue-500/10 active:scale-95">Meus cursos</button>
               <button onClick={() => setPage("pedidos")} className="rounded-2xl border border-violet-400/30 bg-violet-500/10 px-6 py-4 font-black text-violet-100 transition hover:bg-violet-500/20 active:scale-95">Pedir serviço</button>
             </div>
           </div>
-
           <div className="grid gap-3">
             {[[`${professionalCourses.length}+`, "cursos completos"], ["ID", "controle de acesso"], ["ADM", "liberação manual"], ["Chat", "suporte interno"]].map(([valor, label]) => (
               <div key={label} className="rounded-3xl border border-white/10 bg-black/45 p-5 shadow-xl shadow-black/30 backdrop-blur-xl">
