@@ -1,6 +1,7 @@
 type Page =
   | "home"
   | "cursos"
+  | "gratis"
   | "estudo"
   | "pedidos"
   | "suporte"
@@ -14,20 +15,15 @@ type NavbarProps = {
   onLogout?: () => void;
 };
 
-export default function Navbar({
-  page,
-  setPage,
-  userEmail,
-  onLogout,
-}: NavbarProps) {
+export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarProps) {
   function Item(label: string, value: Page) {
     return (
       <button
         onClick={() => setPage(value)}
-        className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-bold ${
+        className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-bold transition ${
           page === value
             ? "bg-white text-black"
-            : "border border-zinc-800 bg-zinc-950 text-zinc-300"
+            : "border border-zinc-800 bg-zinc-950 text-zinc-300 hover:border-zinc-600"
         }`}
       >
         {label}
@@ -40,11 +36,12 @@ export default function Navbar({
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
         <button onClick={() => setPage("home")} className="text-left">
           <h1 className="text-xl font-black tracking-[0.25em]">THKLAYUS</h1>
-          <p className="text-xs text-zinc-500">Cursos • Pedidos • Suporte</p>
+          <p className="text-xs text-zinc-500">Cursos • Grátis • Suporte</p>
         </button>
 
         <nav className="flex gap-2 overflow-x-auto">
           {Item("Home", "home")}
+          {Item("Grátis", "gratis")}
           {Item("Cursos", "cursos")}
           {Item("Estudo", "estudo")}
           {Item("Pedidos", "pedidos")}
@@ -57,19 +54,16 @@ export default function Navbar({
           {userEmail ? (
             <>
               <span className="text-xs text-zinc-500">{userEmail}</span>
-              <button
-                onClick={onLogout}
-                className="rounded-full border border-zinc-800 px-4 py-2 text-sm font-bold text-zinc-300"
-              >
+              <button onClick={onLogout} className="rounded-full border border-zinc-800 px-4 py-2 text-sm font-bold text-zinc-300">
                 Sair
               </button>
             </>
           ) : (
             <button
-              onClick={() => setPage("pedidos")}
+              onClick={() => setPage("gratis")}
               className="rounded-full bg-white px-4 py-2 text-sm font-black text-black"
             >
-              Entrar
+              Explorar grátis
             </button>
           )}
         </div>
