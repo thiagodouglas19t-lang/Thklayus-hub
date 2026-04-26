@@ -1,4 +1,6 @@
-type Page =
+import { canAccessInternalPanel, getUserRole } from "../lib/roles";
+
+export type Page =
   | "home"
   | "cursos"
   | "gratis"
@@ -9,7 +11,8 @@ type Page =
   | "admin"
   | "resolver"
   | "perfil"
-  | "sobre";
+  | "sobre"
+  | "pagamento";
 
 type NavbarProps = {
   page: Page;
@@ -18,23 +21,47 @@ type NavbarProps = {
   onLogout?: () => void;
 };
 
-const menu: { label: string; short: string; value: Page; icon: string }[] = [
+type MenuItem = {
+  label: string;
+  short: string;
+  value: Page;
+  icon: string;
+  internal?: boolean;
+};
+
+const menu: MenuItem[] = [
   { label: "Início", short: "Início", value: "home", icon: "⌂" },
   { label: "Cursos", short: "Cursos", value: "cursos", icon: "◈" },
   { label: "Estudo", short: "Estudo", value: "estudo", icon: "▣" },
   { label: "Pedidos", short: "Pedidos", value: "pedidos", icon: "✦" },
   { label: "Tickets", short: "Tickets", value: "suporte", icon: "◇" },
   { label: "Chat", short: "Chat", value: "chat", icon: "●" },
-  { label: "Perfil", short: "Perfil", value: "perfil", icon: "◌" },
-  { label: "Sobre", short: "Sobre", value: "sobre", icon: "ℹ" },
   { label: "Grátis", short: "Grátis", value: "gratis", icon: "✧" },
   { label: "Resolver", short: "Resolver", value: "resolver", icon: "⚡" },
-  { label: "Admin", short: "Admin", value: "admin", icon: "♛" },
+  { label: "Perfil", short: "Perfil", value: "perfil", icon: "◌" },
+  { label: "Sobre", short: "Sobre", value: "sobre", icon: "ℹ" },
+  { label: "Painel ADM", short: "ADM", value: "admin", icon: "♛", internal: true },
+];
+
+const mobileBase: MenuItem[] = [
+  { label: "Início", short: "Início", value: "home", icon: "⌂" },
+  { label: "Cursos", short: "Cursos", value: "cursos", icon: "◈" },
+  { label: "Chat", short: "Chat", value: "chat", icon: "●" },
+  { label: "Tickets", short: "Tickets", value: "suporte", icon: "◇" },
+  { label: "Perfil", short: "Perfil", value: "perfil", icon: "◌" },
 ];
 
 export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarProps) {
-  function Item(item: (typeof menu)[number], mobile = false) {
+  const internal = canAccessInternalPanel(userEmail);
+  const role = getUserRole(userEmail);
+  const visibleMenu = menu.filter((item) => !item.internal || internal);
+  const mobileMenu = internal
+    ? [...mobileBase.slice(0, 4), { label: "Painel ADM", short: "ADM", value: "admin" as Page, icon: "♛", internal: true }]
+    : mobileBase;
+
+  function Item(item: MenuItem, mobile = false) {
     const active = page === item.value;
+    const isAdmin = Boolean(item.internal);
 
     return (
       <button
@@ -42,13 +69,15 @@ export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarPro
         onClick={() => setPage(item.value)}
         className={
           mobile
-            ? `flex min-w-[64px] flex-col items-center justify-center rounded-2xl px-2 py-2 text-[11px] font-black transition active:scale-95 ${
-                active ? "bg-white text-black shadow-lg shadow-blue-500/20" : "text-zinc-500"
+            ? `flex flex-1 flex-col items-center justify-center rounded-2xl px-2 py-2 text-[11px] font-black transition active:scale-95 ${
+                active ? "bg-white text-black shadow-lg shadow-blue-500/20" : isAdmin ? "text-amber-200" : "text-zinc-500"
               }`
             : `group whitespace-nowrap rounded-2xl px-4 py-2.5 text-sm font-black transition active:scale-95 ${
                 active
                   ? "bg-white text-black shadow-[0_0_28px_rgba(59,130,246,0.28)]"
-                  : "border border-white/10 bg-white/[0.04] text-zinc-300 hover:border-blue-400/50 hover:bg-blue-500/10 hover:text-white"
+                  : isAdmin
+                    ? "border border-amber-400/25 bg-amber-500/10 text-amber-100 hover:border-amber-300/50 hover:bg-amber-500/15"
+                    : "border border-white/10 bg-white/[0.04] text-zinc-300 hover:border-blue-400/50 hover:bg-blue-500/10 hover:text-white"
               }`
         }
       >
@@ -59,7 +88,7 @@ export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarPro
           </>
         ) : (
           <span className="flex items-center gap-2">
-            <span className={active ? "text-black" : "text-blue-300 group-hover:text-blue-200"}>{item.icon}</span>
+            <span className={active ? "text-black" : isAdmin ? "text-amber-200" : "text-blue-300 group-hover:text-blue-200"}>{item.icon}</span>
             {item.label}
           </span>
         )}
@@ -83,15 +112,15 @@ export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarPro
             </div>
           </button>
 
-          <nav className="hidden max-w-[720px] gap-2 overflow-x-auto rounded-3xl border border-white/10 bg-white/[0.03] p-1.5 shadow-2xl shadow-black/50 lg:flex">
-            {menu.map((item) => Item(item))}
+          <nav className="hidden max-w-[820px] gap-2 overflow-x-auto rounded-3xl border border-white/10 bg-white/[0.03] p-1.5 shadow-2xl shadow-black/50 lg:flex">
+            {visibleMenu.map((item) => Item(item))}
           </nav>
 
           <div className="flex items-center gap-2">
             {userEmail ? (
               <>
-                <button onClick={() => setPage("perfil")} className="hidden max-w-44 truncate rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-bold text-zinc-400 md:block">
-                  {userEmail}
+                <button onClick={() => setPage(internal ? "admin" : "perfil")} className={`hidden max-w-48 truncate rounded-2xl border px-4 py-2 text-xs font-bold md:block ${internal ? "border-amber-400/20 bg-amber-500/10 text-amber-100" : "border-white/10 bg-white/[0.04] text-zinc-400"}`}>
+                  {internal ? `${role === "dev" ? "Dono" : "ADM"} • ${userEmail}` : userEmail}
                 </button>
                 <button onClick={onLogout} className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 transition hover:bg-red-500/20 active:scale-95">
                   Sair
@@ -106,8 +135,8 @@ export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarPro
         </div>
       </header>
 
-      <nav className="fixed bottom-3 left-1/2 z-50 flex w-[calc(100%-24px)] max-w-xl -translate-x-1/2 gap-1 overflow-x-auto rounded-[1.7rem] border border-white/10 bg-black/85 p-1.5 shadow-2xl shadow-black/80 backdrop-blur-2xl lg:hidden">
-        {menu.slice(0, 8).map((item) => Item(item, true))}
+      <nav className="fixed bottom-3 left-1/2 z-50 flex w-[calc(100%-24px)] max-w-xl -translate-x-1/2 gap-1 rounded-[1.7rem] border border-white/10 bg-black/85 p-1.5 shadow-2xl shadow-black/80 backdrop-blur-2xl lg:hidden">
+        {mobileMenu.map((item) => Item(item, true))}
       </nav>
     </>
   );
