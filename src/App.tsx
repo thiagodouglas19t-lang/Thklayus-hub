@@ -12,9 +12,10 @@ import Suporte from "./pages/Suporte";
 import Admin from "./pages/Admin";
 import Chat from "./pages/Chat";
 import Login from "./pages/Login";
+import Resolver from "./pages/Resolver";
 import Navbar from "./components/Navbar";
 
-export type Page = "home" | "cursos" | "gratis" | "estudo" | "pedidos" | "suporte" | "chat" | "admin";
+export type Page = "home" | "cursos" | "gratis" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver";
 
 export default function App() {
   const [page, setPage] = useState<Page>("home");
@@ -44,13 +45,14 @@ export default function App() {
   }, []);
 
   function renderPage() {
-    const publicPages: Page[] = ["home", "cursos", "gratis"];
+    const publicPages: Page[] = ["home", "cursos", "gratis", "resolver"];
 
     if (!user && !publicPages.includes(page)) return <Login onLoginSuccess={loadUser} />;
     if (page === "admin" && !canAccessInternalPanel(user?.email)) return <Home setPage={setPage} />;
     if (page === "home") return <Home setPage={setPage} />;
     if (page === "cursos") return <Cursos />;
     if (page === "gratis") return <Gratis />;
+    if (page === "resolver") return <Resolver />;
     if (page === "estudo") return <Estudo />;
     if (page === "pedidos") return <Pedidos />;
     if (page === "suporte") return <Suporte />;
