@@ -6,7 +6,7 @@ import { canAccessInternalPanel } from "./lib/roles";
 import Home from "./pages/Home";
 import Cursos from "./pages/Cursos";
 import Gratis from "./pages/Gratis";
-import Estudo from "./pages/Estudo";
+import Estudo from "./pages/EstudoComAcesso";
 import Pedidos from "./pages/Pedidos";
 import Suporte from "./pages/Suporte";
 import Admin from "./pages/Admin";
