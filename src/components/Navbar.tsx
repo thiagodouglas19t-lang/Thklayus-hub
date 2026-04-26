@@ -6,7 +6,9 @@ type Page =
   | "pedidos"
   | "suporte"
   | "chat"
-  | "admin";
+  | "admin"
+  | "resolver"
+  | "perfil";
 
 type NavbarProps = {
   page: Page;
@@ -36,15 +38,17 @@ export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarPro
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
         <button onClick={() => setPage("home")} className="text-left">
           <h1 className="bg-gradient-to-r from-white via-emerald-200 to-cyan-300 bg-clip-text text-xl font-black tracking-[0.25em] text-transparent">THKLAYUS</h1>
-          <p className="text-xs text-zinc-500">Cursos • Grátis • Suporte</p>
+          <p className="text-xs text-zinc-500">Hub digital completo</p>
         </button>
 
         <nav className="flex gap-2 overflow-x-auto rounded-full border border-white/5 bg-white/[0.03] p-1">
           {Item("Home", "home")}
+          {Item("Resolver", "resolver")}
           {Item("Grátis", "gratis")}
           {Item("Cursos", "cursos")}
           {Item("Estudo", "estudo")}
           {Item("Pedidos", "pedidos")}
+          {Item("Perfil", "perfil")}
           {Item("Tickets", "suporte")}
           {Item("Chat", "chat")}
           {Item("Admin", "admin")}
