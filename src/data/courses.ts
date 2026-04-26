@@ -84,6 +84,37 @@ const logica: CourseContent = {
   finalProject: "Criar um fluxo lógico para resolver um problema real, como compra, estudo ou atendimento.",
 };
 
+const tecnicoEletronica: CourseContent = {
+  id: "tecnico-eletronica",
+  title: "Técnico em Eletrônica • Fundamentos",
+  subtitle: "Aprenda a base da eletrônica: tensão, corrente, resistência, componentes, leitura de circuito e montagem segura em baixa tensão.",
+  category: "Eletrônica",
+  level: "intermediario",
+  price: "R$ 10,00",
+  duration: "2h 30min",
+  outcome: "Entender circuitos simples, identificar componentes básicos e montar pequenos projetos de baixa tensão com organização e segurança.",
+  hero: "⚡",
+  modules: [
+    { title: "Módulo 1 • Base da eletricidade", lessons: [
+      { title: "Tensão, corrente e resistência", summary: "Tensão é a diferença de potencial que empurra a corrente. Corrente é o fluxo de elétrons no circuito. Resistência limita esse fluxo. Esses três conceitos são a base para entender qualquer circuito simples.", practice: "Anote a diferença entre tensão, corrente e resistência usando um exemplo do dia a dia, como bateria, lâmpada e resistor." },
+      { title: "Lei de Ohm sem complicação", summary: "A Lei de Ohm mostra a relação entre tensão, corrente e resistência: quando você conhece dois valores, consegue calcular o terceiro. Isso ajuda a escolher resistores e entender consumo.", practice: "Calcule a corrente de um circuito de 5V com resistor de 1000 ohms. Use I = V / R." },
+      { title: "Cuidados básicos de segurança", summary: "Comece sempre com baixa tensão, como pilhas, baterias pequenas ou fontes adequadas. Nunca mexa em tomada, rede elétrica ou fonte aberta sem formação, supervisão e equipamento correto.", practice: "Monte uma lista de 5 regras de segurança para estudar eletrônica em casa." },
+    ]},
+    { title: "Módulo 2 • Componentes essenciais", lessons: [
+      { title: "Resistor, LED e botão", summary: "O resistor limita corrente, o LED emite luz quando ligado corretamente e o botão abre ou fecha o caminho da corrente. Com esses três componentes já dá para montar circuitos úteis.", practice: "Desenhe um circuito simples com bateria, resistor, LED e botão." },
+      { title: "Capacitor e diodo", summary: "O capacitor armazena energia por pouco tempo e pode suavizar variações. O diodo permite passagem de corrente em um sentido principal. Eles aparecem em fontes, filtros e proteções.", practice: "Pesquise o símbolo de capacitor e diodo e desenhe cada um no caderno." },
+      { title: "Protoboard e organização", summary: "Protoboard permite montar circuitos sem solda. A organização dos fios evita erro e facilita testar. Separar positivo, negativo e sinal deixa o circuito mais confiável.", practice: "Faça um mapa simples de como ligar positivo e negativo numa protoboard." },
+    ]},
+    { title: "Módulo 3 • Leitura e montagem", lessons: [
+      { title: "Como ler um circuito simples", summary: "Leia o circuito seguindo o caminho da energia: fonte, componentes, retorno. Identifique onde entra tensão, onde tem limitação e qual é a saída esperada.", practice: "Pegue um desenho de circuito simples e marque fonte, resistor, LED e retorno." },
+      { title: "Projeto: LED com botão", summary: "O projeto básico junta fonte de baixa tensão, resistor, LED e botão. O botão controla a passagem de corrente e o resistor protege o LED.", practice: "Monte no papel o passo a passo do projeto antes de tentar montar fisicamente." },
+      { title: "Checklist de teste", summary: "Antes de ligar, confira polaridade, valor do resistor, posição do LED, conexões e fonte. Testar com calma evita queimar componente e facilita achar erros.", practice: "Crie uma checklist com 6 itens para revisar antes de energizar um circuito." },
+    ]},
+  ],
+  checklist: ["Entendi tensão, corrente e resistência", "Sei usar a Lei de Ohm no básico", "Reconheço resistor, LED, botão, capacitor e diodo", "Sei ler circuito simples", "Tenho regras de segurança", "Montei um projeto no papel"],
+  finalProject: "Planejar um circuito de LED com botão usando fonte de baixa tensão, resistor de proteção e checklist de segurança.",
+};
+
 function makeCourse(id: string, title: string, category: string, level: CourseLevel, price: string, hero: string, focus: string, duration = "1h 30min", free = false): CourseContent {
   return {
     id, title, category, level, price, hero, duration, free,
@@ -114,6 +145,7 @@ function makeCourse(id: string, title: string, category: string, level: CourseLe
 export const professionalCourses: CourseContent[] = [
   apresentacao,
   logica,
+  tecnicoEletronica,
   makeCourse("informatica-zero-iniciante", "Informática do Zero • Iniciante", "Informática", "iniciante", "R$ 1,00", "💻", "informática básica"),
   makeCourse("formacao-profissional", "Formação Profissional Completa", "Carreira", "intermediario", "R$ 5,00", "💼", "postura profissional, currículo e atendimento", "2h"),
   makeCourse("design-social-media", "Design para Social Media", "Design", "intermediario", "R$ 5,00", "🎨", "design para posts e divulgação"),
