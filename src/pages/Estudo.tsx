@@ -9,9 +9,12 @@ type Compra = {
   status: string;
 };
 
+type View = "catalog" | "course";
+
 export default function Estudo() {
   const [compras, setCompras] = useState<Compra[]>([]);
   const [selecionado, setSelecionado] = useState(professionalCourses[0]);
+  const [view, setView] = useState<View>("catalog");
   const [loading, setLoading] = useState(true);
 
   const liberadas = useMemo(() => compras.filter((item) => item.status === "compra aprovada"), [compras]);
@@ -44,6 +47,17 @@ export default function Estudo() {
     return liberadas.some((compra) => compra.course_id === courseId || compra.course_title === title);
   }
 
+  function abrirCurso(course: (typeof professionalCourses)[number]) {
+    const acesso = temAcesso(course.id, course.title, course.free);
+    if (!acesso) {
+      alert("Curso bloqueado. Compre e aguarde aprovação para acessar.");
+      return;
+    }
+    setSelecionado(course);
+    setView("course");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function baixarMaterial() {
     const texto = `${selecionado.title}\n\n${selecionado.subtitle}\n\nObjetivo: ${selecionado.outcome}\n\n${selecionado.modules
       .map((modulo) => `${modulo.title}\n${modulo.lessons.map((aula, i) => `Aula ${i + 1}: ${aula.title}\n${aula.summary}\nPrática: ${aula.practice}`).join("\n\n")}`)
@@ -57,97 +71,122 @@ export default function Estudo() {
     URL.revokeObjectURL(url);
   }
 
-  return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[2.5rem] border border-zinc-800 bg-gradient-to-br from-zinc-950 via-black to-emerald-950/30 p-6 md:p-8">
-        <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-emerald-400/10 blur-3xl" />
-        <div className="relative">
-          <span className="rounded-full border border-emerald-900 bg-emerald-950/30 px-4 py-2 text-xs font-black uppercase text-emerald-300">Cursos premium</span>
-          <h2 className="mt-5 text-4xl font-black md:text-5xl">Área de Estudo</h2>
-          <p className="mt-2 max-w-2xl text-zinc-400">Teste grátis liberado. Cursos pagos só abrem para a conta que comprou e foi aprovada.</p>
-          <button onClick={carregarCompras} className="mt-5 rounded-2xl border border-zinc-700 px-5 py-3 text-sm font-black text-zinc-300">Atualizar acessos</button>
-        </div>
-      </section>
+  if (view === "course") {
+    return (
+      <div className="space-y-6">
+        <button onClick={() => setView("catalog")} className="rounded-full border border-zinc-800 bg-zinc-950 px-5 py-3 text-sm font-black text-zinc-300">
+          ← Voltar para cursos
+        </button>
 
-      <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
-        <aside className="rounded-[2rem] border border-zinc-800 bg-zinc-950 p-4">
-          <h3 className="text-xl font-black">Catálogo de cursos</h3>
-          <p className="mt-1 text-sm text-zinc-500">Grátis + cursos comprados</p>
-          {loading && <p className="mt-3 text-sm text-zinc-500">Verificando compras...</p>}
+        <main className="overflow-hidden rounded-[2.5rem] border border-zinc-800 bg-zinc-950 shadow-2xl">
+          <div className="relative min-h-[420px] overflow-hidden border-b border-zinc-800 bg-gradient-to-br from-zinc-100 via-white to-emerald-100 p-6 text-black md:p-10">
+            <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-emerald-300/50 blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-zinc-300/60 blur-3xl" />
 
-          <div className="mt-4 space-y-3">
-            {professionalCourses.map((course) => {
-              const acesso = temAcesso(course.id, course.title, course.free);
-              const ativo = selecionado.id === course.id;
-              return (
-                <button
-                  key={course.id}
-                  onClick={() => acesso ? setSelecionado(course) : alert("Curso bloqueado. Compre e aguarde aprovação para acessar.")}
-                  className={`w-full rounded-[1.5rem] border p-4 text-left transition ${ativo ? "border-white bg-white text-black" : "border-zinc-800 bg-black text-white hover:border-zinc-600"} ${!acesso ? "opacity-60" : ""}`}
-                >
-                  <p className="text-2xl">{course.hero}</p>
-                  <p className="mt-2 font-black">{course.title}</p>
-                  <p className="mt-1 text-xs opacity-70">{course.category} • {course.level} • {course.duration}</p>
-                  <p className={`mt-3 inline-flex rounded-full border px-3 py-1 text-xs font-black ${acesso ? "border-emerald-700 text-emerald-300" : "border-amber-800 text-amber-200"}`}>{acesso ? course.price === "Grátis" ? "grátis liberado" : "liberado" : course.price}</p>
-                </button>
-              );
-            })}
-          </div>
-        </aside>
+            <div className="relative mx-auto max-w-4xl text-center">
+              <p className="text-7xl md:text-8xl">{selecionado.hero}</p>
+              <p className="mt-5 text-xs font-black uppercase tracking-[0.35em] text-zinc-600">{selecionado.category} • {selecionado.level}</p>
+              <h1 className="mt-4 text-4xl font-black leading-tight md:text-7xl">{selecionado.title}</h1>
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-zinc-700 md:text-lg">{selecionado.subtitle}</p>
 
-        <main className="overflow-hidden rounded-[2.5rem] border border-zinc-800 bg-zinc-950">
-          <div className="relative overflow-hidden border-b border-zinc-800 bg-gradient-to-br from-black via-zinc-950 to-emerald-950/30 p-6 md:p-10">
-            <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
-            <div className="relative text-center">
-              <p className="text-6xl">{selecionado.hero}</p>
-              <p className="mt-4 text-xs font-black uppercase tracking-widest text-emerald-300">{selecionado.category} • {selecionado.level}</p>
-              <h1 className="mt-3 text-4xl font-black leading-tight md:text-6xl">{selecionado.title}</h1>
-              <p className="mx-auto mt-4 max-w-2xl text-zinc-400">{selecionado.subtitle}</p>
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <span className="rounded-2xl border border-zinc-700 px-5 py-3 text-sm font-black text-zinc-300">⏱️ {selecionado.duration}</span>
-                <span className="rounded-2xl border border-zinc-700 px-5 py-3 text-sm font-black text-zinc-300">💰 {selecionado.price}</span>
-                <button onClick={baixarMaterial} className="rounded-2xl bg-white px-5 py-3 font-black text-black">Baixar material</button>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <span className="rounded-full bg-black px-5 py-3 text-sm font-black text-white">⏱️ {selecionado.duration}</span>
+                <span className="rounded-full bg-black px-5 py-3 text-sm font-black text-white">💰 {selecionado.price}</span>
+                <button onClick={baixarMaterial} className="rounded-full bg-emerald-400 px-6 py-3 font-black text-black">Baixar material</button>
               </div>
             </div>
           </div>
 
           <div className="space-y-6 p-5 md:p-8">
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-3xl border border-zinc-800 bg-black p-5">
+              <div className="rounded-[2rem] border border-zinc-800 bg-black p-6">
                 <p className="text-xs font-black uppercase text-zinc-500">Resultado esperado</p>
-                <p className="mt-2 text-sm leading-6 text-zinc-300">{selecionado.outcome}</p>
+                <p className="mt-3 text-sm leading-7 text-zinc-300">{selecionado.outcome}</p>
               </div>
-              <div className="rounded-3xl border border-zinc-800 bg-black p-5">
+              <div className="rounded-[2rem] border border-zinc-800 bg-black p-6">
                 <p className="text-xs font-black uppercase text-zinc-500">Projeto final</p>
-                <p className="mt-2 text-sm leading-6 text-zinc-300">{selecionado.finalProject}</p>
+                <p className="mt-3 text-sm leading-7 text-zinc-300">{selecionado.finalProject}</p>
               </div>
             </div>
 
             {selecionado.modules.map((modulo, moduloIndex) => (
-              <section key={modulo.title} className="rounded-[2rem] border border-zinc-800 bg-black p-5">
-                <p className="text-xs font-black uppercase text-emerald-300">Módulo {moduloIndex + 1}</p>
-                <h2 className="mt-1 text-2xl font-black">{modulo.title}</h2>
-                <div className="mt-5 grid gap-3">
+              <section key={modulo.title} className="rounded-[2rem] border border-zinc-800 bg-black p-5 md:p-6">
+                <p className="text-xs font-black uppercase tracking-widest text-emerald-300">Módulo {moduloIndex + 1}</p>
+                <h2 className="mt-2 text-2xl font-black md:text-3xl">{modulo.title}</h2>
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
                   {modulo.lessons.map((aula, aulaIndex) => (
-                    <div key={aula.title} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+                    <div key={aula.title} className="rounded-[1.5rem] border border-zinc-800 bg-zinc-950 p-5">
                       <p className="text-xs font-black uppercase text-zinc-500">Aula {aulaIndex + 1}</p>
-                      <h3 className="mt-1 font-black">{aula.title}</h3>
+                      <h3 className="mt-2 text-lg font-black">{aula.title}</h3>
                       <p className="mt-2 text-sm leading-6 text-zinc-400">{aula.summary}</p>
-                      <p className="mt-3 rounded-xl border border-emerald-900 bg-emerald-950/20 p-3 text-sm text-emerald-100">Prática: {aula.practice}</p>
+                      <p className="mt-4 rounded-2xl border border-emerald-900 bg-emerald-950/20 p-3 text-sm leading-6 text-emerald-100">Prática: {aula.practice}</p>
                     </div>
                   ))}
                 </div>
               </section>
             ))}
 
-            <section className="rounded-[2rem] border border-zinc-800 bg-black p-5">
+            <section className="rounded-[2rem] border border-zinc-800 bg-black p-5 md:p-6">
               <h2 className="text-2xl font-black">Checklist de conclusão</h2>
               <div className="mt-4 grid gap-2 md:grid-cols-2">
-                {selecionado.checklist.map((item) => <p key={item} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-300">✅ {item}</p>)}
+                {selecionado.checklist.map((item) => (
+                  <p key={item} className="rounded-2xl border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-300">✅ {item}</p>
+                ))}
               </div>
             </section>
           </div>
         </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <section className="relative overflow-hidden rounded-[2.5rem] border border-zinc-800 bg-gradient-to-br from-zinc-950 via-black to-emerald-950/30 p-6 md:p-8">
+        <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="relative">
+          <span className="rounded-full border border-emerald-900 bg-emerald-950/30 px-4 py-2 text-xs font-black uppercase text-emerald-300">Vitrine de cursos</span>
+          <h2 className="mt-5 text-4xl font-black md:text-5xl">Escolha seu curso</h2>
+          <p className="mt-2 max-w-2xl text-zinc-400">Clique em um curso liberado para abrir a página própria dele. O curso gratuito fica liberado para teste.</p>
+          <button onClick={carregarCompras} className="mt-5 rounded-2xl border border-zinc-700 px-5 py-3 text-sm font-black text-zinc-300">Atualizar acessos</button>
+          {loading && <p className="mt-3 text-sm text-zinc-500">Verificando compras...</p>}
+        </div>
+      </section>
+
+      <section className="grid gap-6">
+        {professionalCourses.map((course) => {
+          const acesso = temAcesso(course.id, course.title, course.free);
+          return (
+            <button key={course.id} onClick={() => abrirCurso(course)} className={`group overflow-hidden rounded-[2rem] border border-zinc-800 bg-zinc-950 text-left transition hover:-translate-y-1 hover:border-zinc-600 ${!acesso ? "opacity-60" : ""}`}>
+              <div className="aspect-[16/9] bg-gradient-to-br from-zinc-100 via-white to-zinc-300 p-6 text-black md:p-10">
+                <div className="flex h-full flex-col justify-between rounded-[1.5rem] border border-black/10 bg-white/70 p-5 shadow-2xl backdrop-blur">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.25em] text-zinc-500">THKLAYUS COURSE</p>
+                      <h3 className="mt-3 max-w-xl text-3xl font-black leading-tight md:text-5xl">{course.title}</h3>
+                    </div>
+                    <p className="text-5xl md:text-7xl">{course.hero}</p>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-2xl bg-black p-4 text-white"><p className="text-xs text-zinc-400">Nível</p><p className="font-black">{course.level}</p></div>
+                    <div className="rounded-2xl bg-black p-4 text-white"><p className="text-xs text-zinc-400">Tempo</p><p className="font-black">{course.duration}</p></div>
+                    <div className="rounded-2xl bg-black p-4 text-white"><p className="text-xs text-zinc-400">Preço</p><p className="font-black">{course.price}</p></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 md:p-6">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-2xl font-black">{course.title}</h3>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">{course.subtitle}</p>
+                  </div>
+                  <span className={`rounded-full border px-4 py-2 text-xs font-black ${acesso ? "border-emerald-700 text-emerald-300" : "border-amber-800 text-amber-200"}`}>{acesso ? "Abrir curso" : "Bloqueado"}</span>
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </section>
     </div>
   );
