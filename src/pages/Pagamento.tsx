@@ -14,7 +14,7 @@ const produtos: Produto[] = [
 ];
 
 const whatsapp = "5585992686478";
-const chavePix = "85 99268-6478";
+const chavePix = "64448272-b9c0-41ac-8755-2704ae0cca92";
 const duvidaMsg = encodeURIComponent("Olá! Tenho dúvida sobre o curso de eletrônica do AprendaJá antes de comprar.");
 
 function gerarMensagem(produto: Produto, compraId?: string, userId?: string) {
@@ -34,7 +34,7 @@ export default function Pagamento() {
 
   async function carregarUsuario() { const { data } = await supabase.auth.getUser(); setUserId(data.user?.id ?? ""); }
   async function copiar(texto: string, mensagemOk: string) { try { await navigator.clipboard.writeText(texto); setSucesso(mensagemOk); } catch { setErro("Não consegui copiar nesse navegador. Copie manualmente: " + texto); } }
-  async function copiarPix() { await copiar(chavePix, "Chave Pix copiada. Pague o valor exato mostrado na tela e registre a compra."); }
+  async function copiarPix() { await copiar(chavePix, "Chave Pix aleatória copiada. Pague o valor exato mostrado na tela e registre a compra."); }
   async function copiarValor() { await copiar(produto.preco, "Valor copiado. Pague exatamente esse valor no Pix."); }
   async function copiarUserId() { if (!userId) { setErro("Entre na sua conta para gerar seu ID de usuário."); return; } await copiar(userId, "ID do usuário copiado. Envie esse ID junto com o comprovante no WhatsApp."); }
   async function copiarProdutoId() { await copiar(produto.id, "ID do curso/produto copiado."); }
@@ -90,8 +90,8 @@ export default function Pagamento() {
           </div>
 
           <div className="mt-4 rounded-[2rem] border border-blue-400/20 bg-blue-500/10 p-5">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-200">Chave Pix</p>
-            <p className="mt-3 break-all rounded-2xl bg-black/45 p-4 text-2xl font-black text-white">{chavePix}</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-200">Chave Pix aleatória</p>
+            <p className="mt-3 break-all rounded-2xl bg-black/45 p-4 text-xl font-black text-white md:text-2xl">{chavePix}</p>
             <button onClick={copiarPix} className="mt-4 w-full rounded-2xl bg-white px-5 py-4 font-black text-black">Copiar chave Pix</button>
           </div>
 
