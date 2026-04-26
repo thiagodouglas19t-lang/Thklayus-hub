@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { canAccessInternalPanel } from "../lib/roles";
 
@@ -27,6 +27,12 @@ type Message = {
   created_at?: string;
 };
 
+const CLOSED_STATUSES = ["fechado", "closed", "encerrado", "resolvido"];
+
+function isClosedThread(thread: Thread) {
+  return CLOSED_STATUSES.includes(String(thread.status).toLowerCase().trim());
+}
+
 export default function Chat() {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -38,8 +44,14 @@ export default function Chat() {
   const [loading, setLoading] = useState(true);
   const [setupError, setSetupError] = useState("");
   const [sending, setSending] = useState(false);
+  const [showClosed, setShowClosed] = useState(false);
 
   const internal = canAccessInternalPanel(userEmail);
+
+  const visibleThreads = useMemo(() => {
+    if (showClosed && internal) return threads;
+    return threads.filter((thread) => !isClosedThread(thread));
+  }, [threads, showClosed, internal]);
 
   useEffect(() => {
     loadInitialData();
@@ -73,7 +85,9 @@ export default function Chat() {
     const isInternal = canAccessInternalPanel(currentEmail);
     let query = supabase.from("chat_threads").select("*").order("created_at", { ascending: false });
 
-    if (!isInternal) query = query.eq("user_id", currentUserId);
+    if (!isInternal) {
+      query = query.eq("user_id", currentUserId).not("status", "in", "(fechado,closed,encerrado,resolvido)");
+    }
 
     const { data, error } = await query;
 
@@ -102,6 +116,10 @@ export default function Chat() {
 
   async function sendMessage() {
     if (!selectedThread) return;
+    if (isClosedThread(selectedThread)) {
+      alert("Esse ticket já foi fechado. Abra um novo ticket se precisar de ajuda.");
+      return;
+    }
     if (!text.trim() && !file) return;
     setSending(true);
 
@@ -152,26 +170,33 @@ export default function Chat() {
 
     const updated = { ...selectedThread, status };
     setSelectedThread(updated);
-    setThreads(threads.map((thread) => (thread.id === updated.id ? updated : thread)));
+    setThreads((current) => current.map((thread) => (thread.id === updated.id ? updated : thread)));
   }
 
-  async function closeAndDeleteTicket() {
+  async function closeTicket() {
     if (!selectedThread || selectedThread.type !== "ticket") return;
 
-    const ok = confirm("Fechar esse ticket vai apagar ele e as mensagens para sempre. Continuar?");
+    const ok = confirm("Fechar esse ticket? Ele vai sumir da lista do usuário e o chat ficará bloqueado.");
     if (!ok) return;
 
-    await supabase.from("chat_messages").delete().eq("thread_id", selectedThread.id);
-    const { error } = await supabase.from("chat_threads").delete().eq("id", selectedThread.id);
+    const closedStatus = "fechado";
+    const { error } = await supabase.from("chat_threads").update({ status: closedStatus }).eq("id", selectedThread.id);
 
     if (error) {
-      setSetupError("Erro ao apagar ticket: " + error.message);
+      setSetupError("Erro ao fechar ticket: " + error.message);
       return;
     }
 
+    await supabase.from("chat_messages").insert({
+      thread_id: selectedThread.id,
+      user_id: userId,
+      content: "✅ Ticket fechado pelo suporte. Se precisar de mais ajuda, abra um novo ticket.",
+    });
+
+    const closedThread = { ...selectedThread, status: closedStatus };
+    setThreads((current) => current.map((thread) => (thread.id === closedThread.id ? closedThread : thread)));
     setSelectedThread(null);
     setMessages([]);
-    setThreads(threads.filter((thread) => thread.id !== selectedThread.id));
   }
 
   if (loading) {
@@ -209,22 +234,31 @@ export default function Chat() {
 
       <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
         <section className="pro-card rounded-3xl p-4">
-          <div className="flex items-center justify-between px-2">
+          <div className="flex items-center justify-between gap-3 px-2">
             <h3 className="text-xl font-black">Conversas</h3>
-            <span className="rounded-full border border-zinc-800 px-3 py-1 text-xs font-bold text-zinc-500">{threads.length}</span>
+            <span className="rounded-full border border-zinc-800 px-3 py-1 text-xs font-bold text-zinc-500">{visibleThreads.length}</span>
           </div>
 
+          {internal && (
+            <button
+              onClick={() => setShowClosed((value) => !value)}
+              className="mt-3 w-full rounded-2xl border border-zinc-800 bg-black px-4 py-2 text-xs font-black text-zinc-400 hover:border-zinc-600"
+            >
+              {showClosed ? "Ocultar fechados" : "Mostrar fechados"}
+            </button>
+          )}
+
           <div className="mt-4 max-h-[620px] space-y-2 overflow-y-auto pr-1">
-            {threads.length === 0 ? (
-              <div className="rounded-2xl border border-zinc-800 bg-black p-4 text-sm text-zinc-500">Nenhuma conversa ainda.</div>
+            {visibleThreads.length === 0 ? (
+              <div className="rounded-2xl border border-zinc-800 bg-black p-4 text-sm text-zinc-500">Nenhuma conversa aberta.</div>
             ) : (
-              threads.map((thread) => (
+              visibleThreads.map((thread) => (
                 <button
                   key={thread.id}
                   onClick={() => setSelectedThread(thread)}
                   className={`w-full rounded-2xl border p-4 text-left transition ${
                     selectedThread?.id === thread.id ? "border-white bg-white text-black" : "border-zinc-800 bg-black text-white hover:border-zinc-600"
-                  }`}
+                  } ${isClosedThread(thread) ? "opacity-55" : ""}`}
                 >
                   <p className="text-xs font-black uppercase opacity-70">{thread.type === "purchase" ? "Compra" : "Ticket"}</p>
                   <p className="mt-1 font-black">{thread.title}</p>
@@ -267,7 +301,9 @@ export default function Chat() {
                         <button onClick={() => updateThreadStatus("compra recusada")} className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-black">Recusar</button>
                       </>
                     )}
-                    {selectedThread.type === "ticket" && <button onClick={closeAndDeleteTicket} className="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-black text-red-200">Fechar e apagar</button>}
+                    {selectedThread.type === "ticket" && !isClosedThread(selectedThread) && (
+                      <button onClick={closeTicket} className="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-black text-red-200">Fechar ticket</button>
+                    )}
                   </div>
                 )}
               </div>
@@ -284,11 +320,17 @@ export default function Chat() {
                 })}
               </div>
 
-              <div className="mt-4 grid gap-3">
-                <textarea value={text} onChange={(event) => setText(event.target.value)} placeholder="Digite uma mensagem..." className="min-h-24 rounded-2xl border border-zinc-800 bg-black px-4 py-3 outline-none" />
-                <input type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="rounded-2xl border border-zinc-800 bg-black px-4 py-3 text-sm" />
-                <button onClick={sendMessage} disabled={sending} className="pro-button rounded-2xl py-3 font-black disabled:opacity-60">{sending ? "Enviando..." : "Enviar mensagem"}</button>
-              </div>
+              {isClosedThread(selectedThread) ? (
+                <div className="mt-4 rounded-2xl border border-zinc-800 bg-black p-4 text-center text-sm font-bold text-zinc-400">
+                  Esse ticket foi fechado. Para continuar, abra um novo ticket no suporte.
+                </div>
+              ) : (
+                <div className="mt-4 grid gap-3">
+                  <textarea value={text} onChange={(event) => setText(event.target.value)} placeholder="Digite uma mensagem..." className="min-h-24 rounded-2xl border border-zinc-800 bg-black px-4 py-3 outline-none" />
+                  <input type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="rounded-2xl border border-zinc-800 bg-black px-4 py-3 text-sm" />
+                  <button onClick={sendMessage} disabled={sending} className="pro-button rounded-2xl py-3 font-black disabled:opacity-60">{sending ? "Enviando..." : "Enviar mensagem"}</button>
+                </div>
+              )}
             </div>
           )}
         </section>
