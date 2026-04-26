@@ -257,12 +257,28 @@ export default function Chat() {
     const ok = confirm("ANTI-GOLPE: aprove somente se o dinheiro caiu na sua conta/banco. Não confie só no print do comprovante. Confirmar liberação do curso?");
     if (!ok) return;
 
-    await updateThreadStatus("compra aprovada");
-    await supabase.from("chat_messages").insert({
-      thread_id: selectedThread.id,
-      user_id: userId,
-      content: "✅ Pagamento aprovado pelo ADM. Curso liberado na Área de Estudo.",
-    });
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/liberar-curso-chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ thread_id: selectedThread.id }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erro ao liberar curso.");
+
+      await loadThreads(userId, userEmail);
+      await loadMessages(selectedThread.id);
+      setSelectedThread({ ...selectedThread, status: "compra aprovada" });
+    } catch (err) {
+      alert((err as Error).message);
+    }
   }
 
   async function rejectPurchase() {
