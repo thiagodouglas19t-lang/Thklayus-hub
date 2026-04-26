@@ -2,11 +2,7 @@ export type CourseLevel = "iniciante" | "intermediario" | "avancado";
 
 export type CourseModule = {
   title: string;
-  lessons: {
-    title: string;
-    summary: string;
-    practice: string;
-  }[];
+  lessons: { title: string; summary: string; practice: string }[];
 };
 
 export type CourseContent = {
@@ -25,125 +21,54 @@ export type CourseContent = {
   finalProject: string;
 };
 
+function makeCourse(id: string, title: string, category: string, level: CourseLevel, price: string, hero: string, focus: string, duration = "1h 30min", free = false): CourseContent {
+  return {
+    id, title, category, level, price, hero, duration, free,
+    subtitle: `Aprenda ${focus} com aulas práticas, checklist e projeto final.`,
+    outcome: `Sair com uma base real para aplicar ${focus} em estudo, trabalho ou serviço.`,
+    modules: [
+      { title: "Módulo 1 • Fundamentos", lessons: [
+        { title: `O que é ${focus}`, summary: `Entenda a base de ${focus} sem complicação.`, practice: `Escreva uma explicação simples sobre ${focus}.` },
+        { title: "Erros comuns", summary: "Veja o que iniciantes fazem errado e como evitar.", practice: "Liste 3 erros e como corrigir cada um." },
+        { title: "Ferramentas e preparação", summary: "Organize o ambiente antes de começar.", practice: "Monte um checklist do que você precisa para praticar." },
+      ]},
+      { title: "Módulo 2 • Prática guiada", lessons: [
+        { title: "Passo a passo", summary: "Aprenda um processo simples para executar com segurança.", practice: "Faça uma versão simples seguindo o passo a passo." },
+        { title: "Exemplo bom vs ruim", summary: "Compare resultados e entenda o que muda qualidade.", practice: "Melhore um exemplo ruim usando as regras aprendidas." },
+        { title: "Checklist de qualidade", summary: "Use critérios claros antes de entregar algo.", practice: "Avalie seu resultado com nota de 0 a 10." },
+      ]},
+      { title: "Módulo 3 • Aplicação profissional", lessons: [
+        { title: "Projeto real", summary: "Crie algo que pode ser usado de verdade.", practice: "Produza uma entrega final simples." },
+        { title: "Revisão e melhoria", summary: "Aprenda a lapidar antes de mostrar para alguém.", practice: "Revise e melhore 3 pontos do projeto." },
+        { title: "Como apresentar ou vender", summary: "Mostre valor de forma clara e direta.", practice: "Escreva uma mensagem oferecendo seu resultado." },
+      ]},
+    ],
+    checklist: ["Entendi a base", "Fiz a prática", "Revisei o resultado", "Concluí o projeto", "Sei explicar o que fiz"],
+    finalProject: `Criar um projeto final aplicando ${focus} e baixar o material de apoio.`,
+  };
+}
+
 export const professionalCourses: CourseContent[] = [
-  {
-    id: "teste-apresentacao-pro",
-    title: "Curso Teste • Apresentação Bonita do Zero",
-    subtitle: "Curso gratuito para você ver o layout real da sala de aula premium.",
-    category: "Escola",
-    level: "iniciante",
-    price: "Grátis",
-    free: true,
-    duration: "35 min",
-    outcome: "Criar uma apresentação simples, bonita e organizada sem ficar perdido.",
-    hero: "🎤",
-    modules: [
-      {
-        title: "Módulo 1 • Estrutura que salva qualquer apresentação",
-        lessons: [
-          { title: "Começo, meio e fim", summary: "Você aprende a separar a apresentação em abertura, explicação e conclusão.", practice: "Escreva 3 frases: uma para começar, uma para explicar e uma para concluir." },
-          { title: "Como não lotar o slide", summary: "A regra é simples: slide guia, você explica. Pouco texto e palavras-chave.", practice: "Pegue um parágrafo grande e reduza para 5 palavras-chave." },
-        ],
-      },
-      {
-        title: "Módulo 2 • Visual bonito sem exagero",
-        lessons: [
-          { title: "Fonte, contraste e espaçamento", summary: "Aprenda o básico que faz um slide parecer limpo e profissional.", practice: "Monte uma capa com título grande, subtítulo curto e bastante espaço vazio." },
-          { title: "Imagem que ajuda", summary: "Imagem só entra quando explica o tema ou deixa o slide mais claro.", practice: "Escolha 1 imagem e escreva uma legenda curta explicando por que ela está ali." },
-        ],
-      },
-      {
-        title: "Módulo 3 • Fala e entrega",
-        lessons: [
-          { title: "Roteiro de fala", summary: "Você aprende a falar sem ler tudo do slide.", practice: "Grave um áudio de 30 segundos explicando o slide de introdução." },
-          { title: "Checklist final", summary: "Revise se a apresentação tem clareza, ordem e conclusão.", practice: "Use o checklist e marque o que precisa melhorar." },
-        ],
-      },
-    ],
-    checklist: ["Título claro", "Pouco texto", "Visual limpo", "Exemplo no meio", "Conclusão curta"],
-    finalProject: "Criar uma apresentação de 6 slides sobre um tema escolar e baixar o material de apoio.",
-  },
-  {
-    id: "informatica-zero-iniciante",
-    title: "Informática do Zero • Iniciante",
-    subtitle: "Aprenda computador, arquivos, internet e organização digital sem complicação.",
-    category: "Informática",
-    level: "iniciante",
-    price: "R$ 1,00",
-    duration: "1h 20min",
-    outcome: "Usar computador/celular com mais segurança para estudar e trabalhar.",
-    hero: "💻",
-    modules: [
-      { title: "Módulo 1 • Base digital", lessons: [
-        { title: "O que são arquivos e pastas", summary: "Entenda onde ficam documentos, imagens e downloads.", practice: "Crie uma pasta para estudos e organize 3 arquivos nela." },
-        { title: "Navegador e pesquisa", summary: "Aprenda a pesquisar melhor sem cair em sites confusos.", practice: "Pesquise um tema e salve 2 links úteis." },
-      ]},
-      { title: "Módulo 2 • Organização", lessons: [
-        { title: "Downloads e anexos", summary: "Saiba baixar, encontrar e enviar arquivos.", practice: "Baixe um PDF e envie como anexo para você mesmo." },
-        { title: "E-mail básico", summary: "Crie mensagens claras, assunto correto e anexos.", practice: "Escreva um e-mail pedindo uma informação de forma educada." },
-      ]},
-      { title: "Módulo 3 • Uso prático", lessons: [
-        { title: "Rotina digital simples", summary: "Monte uma rotina para estudar e achar arquivos rápido.", practice: "Crie uma lista de 5 tarefas digitais da semana." },
-        { title: "Erros comuns", summary: "Evite apagar arquivos, perder senhas e baixar coisas erradas.", practice: "Revise seu celular/computador e apague arquivos inúteis." },
-      ]},
-    ],
-    checklist: ["Pasta organizada", "Downloads localizados", "E-mail com assunto", "Links salvos", "Arquivos nomeados"],
-    finalProject: "Organizar uma pasta de estudos com arquivos, links e um e-mail pronto.",
-  },
-  {
-    id: "powerpoint-pro-intermediario",
-    title: "PowerPoint Profissional • Intermediário",
-    subtitle: "Slides bonitos, claros e com cara de apresentação séria.",
-    category: "Escola",
-    level: "intermediario",
-    price: "R$ 5,00",
-    duration: "1h 40min",
-    outcome: "Criar slides melhores para trabalhos, seminários e reuniões.",
-    hero: "📊",
-    modules: [
-      { title: "Módulo 1 • Estrutura", lessons: [
-        { title: "Roteiro antes do design", summary: "Organize a ideia antes de abrir o PowerPoint.", practice: "Escreva 6 títulos de slides para um tema." },
-        { title: "Hierarquia visual", summary: "Título, subtítulo e texto precisam ter ordem clara.", practice: "Reorganize um slide bagunçado em 3 blocos." },
-      ]},
-      { title: "Módulo 2 • Design limpo", lessons: [
-        { title: "Cores e contraste", summary: "Use cores sem deixar o slide cansativo.", practice: "Monte uma paleta com 2 cores principais." },
-        { title: "Imagens e ícones", summary: "Use elementos visuais que ajudam a entender.", practice: "Troque 3 frases por ícones ou imagens úteis." },
-      ]},
-      { title: "Módulo 3 • Apresentação", lessons: [
-        { title: "Como apresentar sem ler", summary: "Use o slide como guia, não como texto completo.", practice: "Treine 1 slide falando sem ler." },
-        { title: "Finalização forte", summary: "Aprenda a fechar com resumo e conclusão.", practice: "Escreva uma conclusão em 3 linhas." },
-      ]},
-    ],
-    checklist: ["Roteiro claro", "Pouco texto", "Contraste bom", "Imagens úteis", "Conclusão forte"],
-    finalProject: "Criar uma apresentação de 8 slides com capa, introdução, desenvolvimento e conclusão.",
-  },
-  {
-    id: "canva-design-avancado",
-    title: "Canva e Design • Avançado",
-    subtitle: "Crie artes, posts, capas e materiais com aparência profissional.",
-    category: "Design",
-    level: "avancado",
-    price: "R$ 10,00",
-    duration: "2h",
-    outcome: "Criar peças visuais para escola, divulgação e pequenos serviços.",
-    hero: "🎨",
-    modules: [
-      { title: "Módulo 1 • Base visual", lessons: [
-        { title: "Composição", summary: "Aprenda a distribuir elementos sem poluir.", practice: "Crie uma capa com título, imagem e botão visual." },
-        { title: "Tipografia", summary: "Escolha fontes que combinam e mantêm leitura.", practice: "Teste 2 combinações de fonte para um post." },
-      ]},
-      { title: "Módulo 2 • Peças reais", lessons: [
-        { title: "Post de divulgação", summary: "Monte um post com chamada, benefício e ação.", practice: "Crie um post vendendo um serviço simples." },
-        { title: "Cartaz escolar", summary: "Faça cartaz organizado com título e blocos de informação.", practice: "Crie um cartaz sobre meio ambiente." },
-      ]},
-      { title: "Módulo 3 • Entrega profissional", lessons: [
-        { title: "Exportação correta", summary: "Saiba baixar em PNG, PDF e formatos úteis.", practice: "Exporte uma arte em PNG e PDF." },
-        { title: "Como cobrar por artes", summary: "Entenda valor, revisão e prazo.", practice: "Monte uma tabela simples de preços." },
-      ]},
-    ],
-    checklist: ["Visual limpo", "Fonte legível", "Cores consistentes", "Chamada clara", "Arquivo exportado certo"],
-    finalProject: "Criar um pacote com 1 post, 1 capa e 1 cartaz pronto para entregar.",
-  },
+  makeCourse("teste-apresentacao-pro", "Curso Teste • Apresentação Bonita do Zero", "Escola", "iniciante", "Grátis", "🎤", "apresentações bonitas", "35 min", true),
+  makeCourse("informatica-zero-iniciante", "Informática do Zero • Iniciante", "Informática", "iniciante", "R$ 1,00", "💻", "informática básica"),
+  makeCourse("logica-iniciante", "Lógica para Iniciantes", "Tecnologia", "iniciante", "R$ 1,00", "🧠", "raciocínio lógico"),
+  makeCourse("formacao-profissional", "Formação Profissional Completa", "Carreira", "intermediario", "R$ 5,00", "💼", "postura profissional, currículo e atendimento", "2h"),
+  makeCourse("design-social-media", "Design para Social Media", "Design", "intermediario", "R$ 5,00", "🎨", "design para posts e divulgação"),
+  makeCourse("sobrancelha-design", "Design de Sobrancelha • Iniciante", "Beleza", "iniciante", "R$ 5,00", "✨", "noções de design de sobrancelha com foco em atendimento e organização", "1h 20min"),
+  makeCourse("powerpoint-pro", "PowerPoint Profissional", "Escola", "intermediario", "R$ 5,00", "📊", "slides profissionais"),
+  makeCourse("canva-avancado", "Canva e Design • Avançado", "Design", "avancado", "R$ 10,00", "🎨", "criação visual avançada", "2h"),
+  makeCourse("excel-pratico", "Excel para Vida Real", "Informática", "intermediario", "R$ 5,00", "📈", "planilhas úteis e controle financeiro"),
+  makeCourse("seguranca-digital", "Segurança Digital e Anti-Golpes", "Segurança", "intermediario", "R$ 5,00", "🛡️", "proteção de contas e identificação de golpes"),
+  makeCourse("capcut-basico", "CapCut Básico para Vídeos", "Criação", "iniciante", "R$ 5,00", "🎬", "edição simples de vídeos"),
+  makeCourse("mini-negocio-digital", "Mini Negócio Digital", "Dinheiro", "avancado", "R$ 10,00", "🚀", "serviços digitais e venda online", "2h 10min"),
+  makeCourse("atendimento-cliente", "Atendimento ao Cliente", "Carreira", "iniciante", "R$ 1,00", "🤝", "respostas profissionais e suporte"),
+  makeCourse("resumo-escolar", "Resumo Escolar Inteligente", "Escola", "iniciante", "R$ 1,00", "📝", "resumos claros e estudo rápido"),
+  makeCourse("mapa-mental", "Mapas Mentais Bonitos", "Escola", "intermediario", "R$ 5,00", "🗺️", "mapas mentais para estudar e apresentar"),
+  makeCourse("precificacao-servicos", "Precificação de Serviços", "Dinheiro", "intermediario", "R$ 5,00", "💰", "cobrança por artes, slides e trabalhos"),
+  makeCourse("organizacao-rotina", "Organização de Rotina", "Produtividade", "iniciante", "R$ 1,00", "⏱️", "rotina, foco e tarefas"),
+  makeCourse("google-drive", "Google Drive e Docs", "Informática", "iniciante", "R$ 1,00", "☁️", "Drive, Docs e compartilhamento"),
+  makeCourse("email-profissional", "E-mail Profissional", "Carreira", "iniciante", "R$ 1,00", "📧", "mensagens, anexos e comunicação formal"),
+  makeCourse("artes-vender", "Artes para Vender", "Design", "avancado", "R$ 10,00", "🖼️", "criação de artes simples para clientes"),
 ];
 
 export function findCourse(id?: string | null, title?: string | null) {
