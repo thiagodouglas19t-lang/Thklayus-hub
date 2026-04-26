@@ -1,17 +1,4 @@
-const modelos = [
-  {
-    titulo: "Roteiro rápido para apresentação",
-    texto: "1. Apresente o tema. 2. Explique o problema. 3. Mostre os pontos principais. 4. Dê um exemplo. 5. Finalize com conclusão curta.",
-  },
-  {
-    titulo: "Modelo de fala inicial",
-    texto: "Bom dia/boa tarde. Hoje eu vou apresentar sobre [tema]. A ideia principal é explicar [objetivo] de um jeito simples e direto.",
-  },
-  {
-    titulo: "Modelo de conclusão",
-    texto: "Concluindo, esse tema é importante porque [motivo]. Com isso, entendemos que [resumo final]. Obrigado pela atenção.",
-  },
-];
+import { useMemo, useState } from "react";
 
 const dicas = [
   "Use letras grandes no slide, sem encher de texto.",
@@ -31,47 +18,92 @@ const ideias = [
   "Cartaz escolar simples e bonito",
 ];
 
+function gerarApresentacao(tema: string, materia: string) {
+  const assunto = tema.trim() || "meu tema";
+  const area = materia.trim() || "trabalho escolar";
+
+  return [
+    {
+      titulo: `1. Capa — ${assunto}`,
+      texto: `Tema: ${assunto}\nMatéria: ${area}\nNome: [seu nome]\nTurma: [sua turma]`,
+    },
+    {
+      titulo: "2. Introdução",
+      texto: `Hoje eu vou apresentar sobre ${assunto}. Esse tema é importante porque ajuda a entender melhor um assunto ligado a ${area}.`,
+    },
+    {
+      titulo: "3. O que é?",
+      texto: `${assunto} pode ser explicado de forma simples como um tema que envolve ideias, exemplos e impactos no dia a dia.`,
+    },
+    {
+      titulo: "4. Pontos principais",
+      texto: `• Conceito principal de ${assunto}\n• Onde aparece na prática\n• Por que isso importa\n• Exemplo fácil de entender`,
+    },
+    {
+      titulo: "5. Exemplo prático",
+      texto: `Um exemplo de ${assunto} no cotidiano é quando conseguimos perceber esse tema em situações reais, na escola, na internet ou na sociedade.`,
+    },
+    {
+      titulo: "6. Conclusão",
+      texto: `Concluindo, ${assunto} é importante porque mostra como o conhecimento pode ser usado para entender melhor o mundo. Obrigado pela atenção.`,
+    },
+  ];
+}
+
 export default function Gratis() {
+  const [tema, setTema] = useState("");
+  const [materia, setMateria] = useState("");
+  const slides = useMemo(() => gerarApresentacao(tema, materia), [tema, materia]);
+
+  function copiarTudo() {
+    const texto = slides.map((slide) => `${slide.titulo}\n${slide.texto}`).join("\n\n");
+    navigator.clipboard.writeText(texto);
+    alert("Apresentação copiada!");
+  }
+
   return (
     <div className="space-y-6">
-      <section className="glass-card rounded-[2rem] p-6 md:p-8">
-        <span className="rounded-full border border-emerald-900 bg-emerald-950/40 px-4 py-2 text-xs font-black uppercase text-emerald-300">
-          100% grátis
-        </span>
-        <h2 className="mt-5 text-4xl font-black md:text-5xl">Coisas grátis</h2>
-        <p className="mt-3 max-w-2xl text-zinc-400">
-          Um canto livre do THKLAYUS para estudar, montar apresentação, pegar modelos de fala e ideias de trabalhos sem pagar nada.
-        </p>
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-3">
-        <div className="pro-card rounded-3xl p-6">
-          <p className="text-4xl">📚</p>
-          <h3 className="mt-3 text-xl font-black">Estudo livre</h3>
-          <p className="mt-2 text-sm text-zinc-400">Dicas rápidas para organizar matéria, resumo e explicação.</p>
-        </div>
-        <div className="pro-card rounded-3xl p-6">
-          <p className="text-4xl">🎤</p>
-          <h3 className="mt-3 text-xl font-black">Apresentação</h3>
-          <p className="mt-2 text-sm text-zinc-400">Modelos de começo, meio e fim para falar melhor na frente da turma.</p>
-        </div>
-        <div className="pro-card rounded-3xl p-6">
-          <p className="text-4xl">🎁</p>
-          <h3 className="mt-3 text-xl font-black">Materiais grátis</h3>
-          <p className="mt-2 text-sm text-zinc-400">Ideias, checklists e estruturas para usar nos trabalhos.</p>
+      <section className="relative overflow-hidden rounded-[2.5rem] border border-emerald-900 bg-gradient-to-br from-emerald-950/40 via-black to-zinc-950 p-6 md:p-8">
+        <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="relative">
+          <span className="rounded-full border border-emerald-900 bg-emerald-950/40 px-4 py-2 text-xs font-black uppercase text-emerald-300">
+            100% grátis • sem API externa
+          </span>
+          <h2 className="mt-5 text-4xl font-black md:text-5xl">Gerador de apresentação</h2>
+          <p className="mt-3 max-w-2xl text-zinc-400">
+            Digite um tema e o THKLAYUS monta uma estrutura pronta de slides, fala inicial e conclusão. Funciona sem chave de IA.
+          </p>
         </div>
       </section>
 
       <section className="pro-card rounded-3xl p-6">
-        <h3 className="text-2xl font-black">Modelos prontos para apresentação</h3>
-        <div className="mt-5 grid gap-4">
-          {modelos.map((item) => (
-            <div key={item.titulo} className="rounded-2xl border border-zinc-800 bg-black p-5">
-              <h4 className="font-black">{item.titulo}</h4>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-zinc-400">{item.texto}</p>
-            </div>
-          ))}
+        <h3 className="text-2xl font-black">Criar apresentação grátis</h3>
+        <div className="mt-5 grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+          <input
+            value={tema}
+            onChange={(e) => setTema(e.target.value)}
+            placeholder="Tema: ex. Inteligência artificial"
+            className="rounded-2xl border border-zinc-800 bg-black px-4 py-3 outline-none"
+          />
+          <input
+            value={materia}
+            onChange={(e) => setMateria(e.target.value)}
+            placeholder="Matéria: ex. Tecnologia"
+            className="rounded-2xl border border-zinc-800 bg-black px-4 py-3 outline-none"
+          />
+          <button onClick={copiarTudo} className="rounded-2xl bg-white px-5 py-3 font-black text-black">
+            Copiar
+          </button>
         </div>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        {slides.map((slide) => (
+          <div key={slide.titulo} className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6 transition hover:border-zinc-600">
+            <h4 className="text-xl font-black">{slide.titulo}</h4>
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-zinc-400">{slide.texto}</p>
+          </div>
+        ))}
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
@@ -99,9 +131,9 @@ export default function Gratis() {
       </section>
 
       <section className="rounded-[2rem] border border-white/10 bg-white p-6 text-black">
-        <h3 className="text-2xl font-black">Como usar isso?</h3>
+        <h3 className="text-2xl font-black">Quer algo mais bonito?</h3>
         <p className="mt-2 text-sm text-zinc-700">
-          Copie um modelo, troque as partes entre colchetes pelo seu tema e transforme em slide. Essa área fica grátis para ajudar quem ainda não quer comprar curso ou serviço.
+          A parte grátis cria a base. Se precisar de slide completo, arte ou trabalho personalizado, abra um ticket no suporte.
         </p>
       </section>
     </div>
