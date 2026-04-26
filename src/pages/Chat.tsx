@@ -28,20 +28,6 @@ type Message = {
 };
 
 const CLOSED_STATUSES = ["fechado", "closed", "encerrado", "resolvido", "deleted", "oculto"];
-const HIDDEN_KEY = "thklayus_hidden_threads";
-
-function getHiddenThreadIds() {
-  try {
-    return JSON.parse(localStorage.getItem(HIDDEN_KEY) || "[]") as string[];
-  } catch {
-    return [];
-  }
-}
-
-function saveHiddenThreadId(id: string) {
-  const ids = Array.from(new Set([...getHiddenThreadIds(), id]));
-  localStorage.setItem(HIDDEN_KEY, JSON.stringify(ids));
-}
 
 function isClosedThread(thread: Thread) {
   return CLOSED_STATUSES.includes(String(thread.status).toLowerCase().trim());
@@ -78,18 +64,17 @@ export default function Chat() {
   const [sending, setSending] = useState(false);
   const [showClosed, setShowClosed] = useState(false);
   const [notificationsOn, setNotificationsOn] = useState(false);
-  const [hiddenIds, setHiddenIds] = useState<string[]>(getHiddenThreadIds());
+  const [closingTicket, setClosingTicket] = useState(false);
 
   const internal = canAccessInternalPanel(userEmail);
 
   const visibleThreads = useMemo(() => {
     return threads.filter((thread) => {
-      if (!internal && hiddenIds.includes(thread.id)) return false;
       if (!internal && isClosedThread(thread)) return false;
       if (internal && showClosed) return true;
-      return !isClosedThread(thread) && !hiddenIds.includes(thread.id);
+      return !isClosedThread(thread);
     });
-  }, [threads, showClosed, internal, hiddenIds]);
+  }, [threads, showClosed, internal]);
 
   useEffect(() => {
     loadInitialData();
@@ -237,18 +222,19 @@ export default function Chat() {
   }
 
   async function updateThreadStatus(status: string) {
-    if (!selectedThread) return;
+    if (!selectedThread) return false;
 
     const { error } = await supabase.from("chat_threads").update({ status }).eq("id", selectedThread.id);
 
     if (error) {
       setSetupError("Erro ao atualizar status: " + error.message);
-      return;
+      return false;
     }
 
     const updated = { ...selectedThread, status };
     setSelectedThread(updated);
     setThreads((current) => current.map((thread) => (thread.id === updated.id ? updated : thread)));
+    return true;
   }
 
   async function approvePurchaseSafely() {
@@ -287,7 +273,9 @@ export default function Chat() {
     const ok = confirm("Recusar compra? Use isso se o Pix não caiu, comprovante parece falso ou pagamento está incorreto.");
     if (!ok) return;
 
-    await updateThreadStatus("compra recusada");
+    const updated = await updateThreadStatus("compra recusada");
+    if (!updated) return;
+
     await supabase.from("chat_messages").insert({
       thread_id: selectedThread.id,
       user_id: userId,
@@ -297,21 +285,19 @@ export default function Chat() {
 
   async function closeTicket() {
     if (!selectedThread || selectedThread.type !== "ticket") return;
+    if (closingTicket) return;
 
-    const ok = confirm("Fechar esse ticket? Ele vai sumir da lista do usuário e o chat ficará bloqueado.");
+    const ok = confirm("Fechar esse ticket? O cliente não poderá enviar novas mensagens nele.");
     if (!ok) return;
 
+    setClosingTicket(true);
     const ticketId = selectedThread.id;
-    saveHiddenThreadId(ticketId);
-    setHiddenIds(getHiddenThreadIds());
-    setThreads((current) => current.filter((thread) => thread.id !== ticketId));
-    setSelectedThread(null);
-    setMessages([]);
 
     const { error } = await supabase.from("chat_threads").update({ status: "fechado" }).eq("id", ticketId);
 
     if (error) {
-      alert("Ticket ocultado neste aparelho, mas o banco recusou atualizar status: " + error.message);
+      setClosingTicket(false);
+      alert("Erro ao fechar ticket: " + error.message);
       return;
     }
 
@@ -320,6 +306,14 @@ export default function Chat() {
       user_id: userId,
       content: "✅ Ticket fechado pelo suporte. Se precisar de mais ajuda, abra um novo ticket.",
     });
+
+    const updated = { ...selectedThread, status: "fechado" };
+    setSelectedThread(updated);
+    setThreads((current) => current.map((thread) => (thread.id === ticketId ? updated : thread)));
+    await loadThreads(userId, userEmail);
+    await loadMessages(ticketId);
+    setClosingTicket(false);
+    alert("Ticket fechado com sucesso.");
   }
 
   if (loading) {
@@ -427,7 +421,7 @@ export default function Chat() {
                   {internal && (
                     <div className="flex flex-wrap gap-2">
                       {selectedThread.type === "purchase" && <><button onClick={approvePurchaseSafely} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black shadow-lg shadow-blue-500/20 transition active:scale-95">Aprovar seguro</button><button onClick={rejectPurchase} className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 transition active:scale-95">Recusar</button></>}
-                      {selectedThread.type === "ticket" && !isClosedThread(selectedThread) && <button onClick={closeTicket} className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 transition active:scale-95">Fechar ticket</button>}
+                      {selectedThread.type === "ticket" && !isClosedThread(selectedThread) && <button onClick={closeTicket} disabled={closingTicket} className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">{closingTicket ? "Fechando..." : "Fechar ticket"}</button>}
                     </div>
                   )}
                 </div>
