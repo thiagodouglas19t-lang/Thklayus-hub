@@ -15,6 +15,7 @@ const produtos: Produto[] = [
 
 const whatsapp = "5585992686478";
 const chavePix = "85 99268-6478";
+const duvidaMsg = encodeURIComponent("Olá! Tenho dúvida sobre o curso de eletrônica do AprendaJá antes de comprar.");
 
 function gerarMensagem(produto: Produto, compraId?: string, userId?: string) {
   return encodeURIComponent(`Olá! Quero comprar pelo AprendaJá.\n\nCurso/produto escolhido: ${produto.nome}\nID do curso/produto: ${produto.id}\nValor: ${produto.preco}\nID do usuário: ${userId || "preciso entrar na conta"}\nID da compra: ${compraId || "ainda não gerado"}\n\nEstou enviando o comprovante para liberar exatamente esse curso/produto.`);
@@ -61,8 +62,9 @@ export default function Pagamento() {
             <span className="rounded-full border border-amber-300/25 bg-amber-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-amber-100">Oferta principal • AprendaJá</span>
             <h1 className="mt-6 text-4xl font-black leading-[1.02] tracking-[-0.06em] md:text-7xl">Aprenda eletrônica do zero ao primeiro circuito funcional.</h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-300 md:text-lg">Mesmo começando do básico, você aprende segurança, Lei de Ohm, resistores, LEDs, capacitores, protoboard, multímetro, esquemas e projetos práticos.</p>
-            <div className="mt-6 flex flex-wrap gap-2">{[`${modulos.length} módulos`, `${aulas} aulas`, "Certificado", "Projetos práticos"].map((item) => <span key={item} className="rounded-full border border-white/10 bg-black/35 px-4 py-2 text-sm font-black text-zinc-200">{item}</span>)}</div>
-            <div className="mt-7 flex flex-wrap items-center gap-4"><div><p className="text-sm font-black uppercase tracking-[0.18em] text-zinc-500">Preço promocional</p><p className="text-5xl font-black text-emerald-200">R$ 29,90</p><p className="text-sm font-bold text-zinc-500 line-through">De R$ 49,90</p></div><button onClick={() => setProduto(produtos[0])} className="rounded-2xl bg-white px-6 py-4 font-black text-black shadow-lg shadow-amber-500/20 transition active:scale-95">Comprar curso principal</button></div>
+            <div className="mt-6 flex flex-wrap gap-2">{[`${modulos.length} módulos`, `${aulas} aulas`, "Certificado", "Projetos práticos", "Bônus incluso"].map((item) => <span key={item} className="rounded-full border border-white/10 bg-black/35 px-4 py-2 text-sm font-black text-zinc-200">{item}</span>)}</div>
+            <div className="mt-7 flex flex-wrap items-center gap-4"><div><p className="text-sm font-black uppercase tracking-[0.18em] text-zinc-500">Preço promocional</p><p className="text-5xl font-black text-emerald-200">R$ 29,90</p><p className="text-sm font-bold text-zinc-500 line-through">De R$ 49,90</p><p className="mt-1 text-xs font-black uppercase tracking-[0.16em] text-amber-200">Oferta inicial para primeiros alunos</p></div><button onClick={() => setProduto(produtos[0])} className="rounded-2xl bg-white px-6 py-4 font-black text-black shadow-lg shadow-amber-500/20 transition active:scale-95">Quero começar agora</button></div>
+            <a href={`https://wa.me/${whatsapp}?text=${duvidaMsg}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-3 text-sm font-black text-emerald-100">Tirar dúvida no WhatsApp</a>
           </div>
           <div className="rounded-[2rem] border border-white/10 bg-black/50 p-5">
             <p className="text-6xl">⚡</p>
@@ -72,11 +74,19 @@ export default function Pagamento() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3">{["Não é só teoria: tem prática em toda aula.", "Certificado liberado ao concluir 100%.", "Acesso controlado pelo ADM após confirmação do Pix."].map((item, index) => <div key={item} className="rounded-3xl border border-white/10 bg-zinc-950 p-5"><p className="text-3xl font-black text-blue-200">0{index + 1}</p><p className="mt-3 text-sm leading-6 text-zinc-300">{item}</p></div>)}</section>
+      <section className="grid gap-4 md:grid-cols-4">{[["01", "Prática em toda aula", "Não é só teoria: o aluno faz atividade em cada etapa."], ["02", "Certificado", "Liberado ao concluir 100% do curso."], ["03", "Suporte direto", "Dúvidas podem ser tiradas pelo WhatsApp."], ["04", "Acesso seguro", "ADM libera só depois de confirmar o Pix."]].map(([num, title, text]) => <div key={String(num)} className="rounded-3xl border border-white/10 bg-zinc-950 p-5"><p className="text-3xl font-black text-blue-200">{num}</p><h3 className="mt-3 font-black text-white">{title}</h3><p className="mt-2 text-sm leading-6 text-zinc-400">{text}</p></div>)}</section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        {["Bônus: checklist de bancada segura", "Bônus: roteiro de projeto final", "Bônus: material para baixar"].map((item) => <div key={item} className="rounded-[2rem] border border-amber-400/20 bg-amber-500/10 p-5"><p className="text-3xl">🎁</p><h3 className="mt-3 text-xl font-black text-amber-100">{item}</h3><p className="mt-2 text-sm leading-6 text-amber-100/70">Incluído para deixar o aluno com caminho claro até o resultado final.</p></div>)}
+      </section>
 
       <section className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-5 md:p-6">
         <h2 className="text-3xl font-black">Módulos do curso principal</h2>
         <div className="mt-5 grid gap-3 md:grid-cols-2">{modulos.map((modulo, index) => <div key={modulo.title} className="rounded-2xl border border-white/10 bg-black/35 p-4"><p className="text-xs font-black uppercase tracking-[0.16em] text-zinc-500">Módulo {index + 1}</p><h3 className="mt-1 font-black text-white">{modulo.title}</h3><p className="mt-2 text-sm text-zinc-500">{modulo.lessons.length} aulas práticas</p></div>)}</div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        {["Gostei porque não ficou só na teoria. Tem prática e projeto.", "A parte de segurança ajuda muito quem está começando.", "Ficou bem mais fácil entender resistor, LED e multímetro."].map((text, index) => <div key={text} className="rounded-[2rem] border border-white/10 bg-black/45 p-5"><p className="text-amber-200">★★★★★</p><p className="mt-4 text-sm leading-6 text-zinc-300">“{text}”</p><p className="mt-4 text-xs font-black uppercase tracking-[0.16em] text-zinc-600">Aluno teste {index + 1}</p></div>)}
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1fr_0.8fr]">
@@ -92,7 +102,7 @@ export default function Pagamento() {
           <div className="mt-6 grid gap-3 md:grid-cols-2"><button onClick={copiarPix} className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 font-black text-white">Copiar chave Pix</button><button onClick={registrarCompra} disabled={loading} className="rounded-2xl bg-white px-5 py-4 font-black text-black disabled:opacity-60">{loading ? "Registrando..." : compraId ? "Registrar outra compra" : "Registrar compra"}</button></div>
           <a href={`https://wa.me/${whatsapp}?text=${mensagem}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-4 font-black text-emerald-100">Enviar comprovante no WhatsApp</a>
         </div>
-        <div className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-6"><h3 className="text-2xl font-black text-white">Como funciona</h3><div className="mt-5 space-y-3">{[["1", "Escolha o curso."], ["2", "Copie a chave Pix e pague."], ["3", "Clique em Registrar compra."], ["4", "Envie comprovante com IDs."], ["5", "ADM libera o acesso." ]].map(([num, text]) => <div key={num} className="flex gap-3 rounded-2xl border border-white/10 bg-black/35 p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-white font-black text-black">{num}</span><p className="text-sm font-bold text-zinc-300">{text}</p></div>)}</div><p className="mt-5 text-xs leading-5 text-zinc-500">Anti-golpe: o acesso só é liberado depois do ADM conferir o Pix no banco.</p></div>
+        <div className="space-y-4"><div className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-6"><h3 className="text-2xl font-black text-white">Como funciona</h3><div className="mt-5 space-y-3">{[["1", "Escolha o curso."], ["2", "Copie a chave Pix e pague."], ["3", "Clique em Registrar compra."], ["4", "Envie comprovante com IDs."], ["5", "ADM libera o acesso." ]].map(([num, text]) => <div key={num} className="flex gap-3 rounded-2xl border border-white/10 bg-black/35 p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-white font-black text-black">{num}</span><p className="text-sm font-bold text-zinc-300">{text}</p></div>)}</div></div><div className="rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-6"><h3 className="text-xl font-black text-emerald-100">Compra com suporte</h3><p className="mt-2 text-sm leading-6 text-emerald-100/75">Se tiver problema para acessar depois da confirmação, você chama no suporte e o ADM verifica seu ID da compra.</p></div><p className="text-xs leading-5 text-zinc-500">Anti-golpe: o acesso só é liberado depois do ADM conferir o Pix no banco.</p></div>
       </section>
     </div>
   );
