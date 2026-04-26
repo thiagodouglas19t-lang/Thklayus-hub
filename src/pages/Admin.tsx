@@ -7,6 +7,7 @@ type Thread = {
   type: "ticket" | "purchase" | "order";
   title: string;
   status: string;
+  course_id?: string | null;
   course_title?: string | null;
   total_price?: string | null;
   price?: string | null;
@@ -165,9 +166,56 @@ export default function Admin() {
     });
   }
 
+  async function aprovarCompraSegura(item: Thread) {
+    if (item.type !== "purchase") return;
+    if (updatingId === item.id) return;
+
+    if (normalize(item.status) === "compra aprovada") {
+      alert("Essa compra já está aprovada.");
+      return;
+    }
+
+    const ok = confirm("ANTI-GOLPE: confirme somente se o Pix caiu na conta/banco. Isso vai liberar o curso para o cliente.");
+    if (!ok) return;
+
+    setUpdatingId(item.id);
+
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+
+      if (!token) throw new Error("Sessão expirada. Saia e entre novamente.");
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/liberar-curso-chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ thread_id: item.id }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || "Erro ao liberar curso.");
+
+      setThreads((current) => current.map((thread) => (thread.id === item.id ? { ...thread, status: "compra aprovada" } : thread)));
+      alert("Compra aprovada e curso liberado.");
+      await carregar();
+    } catch (error) {
+      alert((error as Error).message);
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
   async function atualizarStatus(id: string, status: string) {
     const threadAtual = threads.find((item) => item.id === id);
     if (!threadAtual) return;
+
+    if (status === "compra aprovada" && threadAtual.type === "purchase") {
+      await aprovarCompraSegura(threadAtual);
+      return;
+    }
 
     if (threadAtual.status === status) {
       alert("Esse item já está com esse status.");
@@ -180,9 +228,6 @@ export default function Admin() {
     }
 
     if (updatingId === id) return;
-
-    const ok = status === "compra aprovada" ? confirm("Confirma que o Pix caiu na conta? Só aprove depois de conferir no banco.") : true;
-    if (!ok) return;
 
     setUpdatingId(id);
 
@@ -347,7 +392,7 @@ export default function Admin() {
                   </div>
 
                   <div className="grid min-w-52 gap-2">
-                    {item.type === "purchase" && <button disabled={isUpdating || item.status === "compra aprovada"} onClick={() => atualizarStatus(item.id, "compra aprovada")} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black shadow-lg shadow-amber-500/10 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Aprovar compra</button>}
+                    {item.type === "purchase" && <button disabled={isUpdating || normalize(item.status) === "compra aprovada"} onClick={() => aprovarCompraSegura(item)} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black shadow-lg shadow-amber-500/10 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">{isUpdating ? "Aprovando..." : "Aprovar e liberar"}</button>}
                     {item.type === "purchase" && <button disabled={isUpdating || item.status === "compra finalizada"} onClick={() => atualizarStatus(item.id, "compra finalizada")} className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Fechar compra</button>}
                     {item.type === "purchase" && <button disabled={isUpdating || item.status === "compra recusada"} onClick={() => atualizarStatus(item.id, "compra recusada")} className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Recusar compra</button>}
                     {item.type === "order" && <button disabled={isUpdating || item.status === "em produção"} onClick={() => atualizarStatus(item.id, "em produção")} className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-4 py-2 text-sm font-black text-violet-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Em produção</button>}
