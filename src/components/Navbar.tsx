@@ -67,7 +67,7 @@ export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarPro
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.14),transparent_30%)]" />
         <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-4">
           <button onClick={() => setPage("home")} className="flex items-center gap-3 text-left active:scale-95">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-gradient-to-br from-violet-600 via-blue-500 to-sky-300 text-lg font-black text-white shadow-lg shadow-blue-500/20">A</div>
+            <div className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-gradient-to-br from-violet-600 via-blue-500 to-sky-300 text-[13px] font-black tracking-[-0.08em] text-white shadow-lg shadow-blue-500/20">THK</div>
             <div><h1 className="bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-xl font-black tracking-[0.16em] text-transparent md:text-2xl">AprendaJá</h1><p className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">THKLAYUS</p></div>
           </button>
           <nav className="hidden max-w-[820px] gap-2 overflow-x-auto rounded-3xl border border-white/10 bg-white/[0.03] p-1.5 shadow-2xl shadow-black/50 lg:flex">{visibleMenu.map((item) => Item(item))}</nav>
