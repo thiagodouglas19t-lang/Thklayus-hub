@@ -102,8 +102,7 @@ function typeIcon(type: Thread["type"]) {
   if (type === "purchase") return "◈";
   if (type === "order") return "✦";
   return "◇";
-}
-
+}\n
 function formatDate(value?: string) {
   if (!value) return "Sem data";
   try {
@@ -120,6 +119,10 @@ export default function Admin() {
   const [erro, setErro] = useState("");
   const [busca, setBusca] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [manualUserId, setManualUserId] = useState("");
+  const [manualCourseId, setManualCourseId] = useState("");
+  const [manualCourseTitle, setManualCourseTitle] = useState("");
+  const [manualLoading, setManualLoading] = useState(false);
 
   useEffect(() => {
     carregar();
@@ -147,6 +150,45 @@ export default function Admin() {
     } catch {
       alert("Não foi possível copiar nesse navegador.");
     }
+  }
+
+  async function liberarCursoManual() {
+    const userId = manualUserId.trim();
+    const courseId = manualCourseId.trim();
+    const courseTitle = manualCourseTitle.trim() || courseId;
+
+    if (!userId || !courseId) {
+      alert("Preencha o ID do usuário e o ID do curso.");
+      return;
+    }
+
+    const ok = confirm(`Liberar acesso manual?\n\nUsuário: ${userId}\nCurso: ${courseTitle}\nID do curso: ${courseId}`);
+    if (!ok) return;
+
+    setManualLoading(true);
+
+    const { error } = await supabase.from("acessos_cursos").upsert(
+      {
+        user_id: userId,
+        produto_id: courseId,
+        course_title: courseTitle,
+        liberado_em: new Date().toISOString(),
+        origem: "manual_admin",
+      },
+      { onConflict: "user_id,produto_id" }
+    );
+
+    setManualLoading(false);
+
+    if (error) {
+      alert("Erro ao liberar curso: " + error.message);
+      return;
+    }
+
+    setManualUserId("");
+    setManualCourseId("");
+    setManualCourseTitle("");
+    alert("Curso liberado manualmente para esse usuário.");
   }
 
   async function registrarMensagem(id: string, status: string) {
@@ -266,7 +308,7 @@ export default function Admin() {
         if (!matchTab) return false;
         if (!termo) return true;
 
-        const texto = `${item.title} ${item.status} ${item.type} ${item.course_title ?? ""} ${item.total_price ?? ""} ${item.price ?? ""} ${item.id}`.toLowerCase();
+        const texto = `${item.title} ${item.status} ${item.type} ${item.course_title ?? ""} ${item.total_price ?? ""} ${item.price ?? ""} ${item.id} ${item.user_id}`.toLowerCase();
         return texto.includes(termo);
       })
       .sort((a, b) => b.priority - a.priority);
@@ -318,6 +360,23 @@ export default function Admin() {
         ))}
       </section>
 
+      <section className="rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h3 className="text-2xl font-black text-emerald-100">Liberar curso manualmente</h3>
+            <p className="mt-1 max-w-2xl text-sm text-emerald-100/75">Use para brinde, teste, cortesia, parceria ou quando precisar liberar um curso pago de graça para um usuário específico.</p>
+          </div>
+          <span className="rounded-full border border-emerald-300/20 bg-black/25 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-emerald-100">ADM</span>
+        </div>
+        <div className="mt-5 grid gap-3 lg:grid-cols-[1.2fr_0.8fr_1fr_auto]">
+          <input value={manualUserId} onChange={(e) => setManualUserId(e.target.value)} placeholder="ID do usuário" className="min-h-12 rounded-2xl border border-emerald-300/20 bg-black/35 px-4 text-sm font-bold text-white outline-none placeholder:text-emerald-100/35" />
+          <input value={manualCourseId} onChange={(e) => setManualCourseId(e.target.value)} placeholder="ID do curso ex: 7 ou curso-basico" className="min-h-12 rounded-2xl border border-emerald-300/20 bg-black/35 px-4 text-sm font-bold text-white outline-none placeholder:text-emerald-100/35" />
+          <input value={manualCourseTitle} onChange={(e) => setManualCourseTitle(e.target.value)} placeholder="Nome do curso opcional" className="min-h-12 rounded-2xl border border-emerald-300/20 bg-black/35 px-4 text-sm font-bold text-white outline-none placeholder:text-emerald-100/35" />
+          <button onClick={liberarCursoManual} disabled={manualLoading} className="rounded-2xl bg-white px-5 py-3 font-black text-black transition active:scale-95 disabled:opacity-60">{manualLoading ? "Liberando..." : "Liberar"}</button>
+        </div>
+        <p className="mt-3 text-xs text-emerald-100/60">Dica: o ID do usuário aparece para o cliente na tela de pagamento. O ID do curso aparece no catálogo/detalhes.</p>
+      </section>
+
       {filaRapida.length > 0 && (
         <section className="rounded-[2rem] border border-red-400/20 bg-red-500/10 p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -343,68 +402,51 @@ export default function Admin() {
       )}
 
       <section className="grid gap-3 rounded-[2rem] border border-white/10 bg-white/[0.025] p-3 backdrop-blur-xl lg:grid-cols-[1fr_auto]">
-        <input
-          value={busca}
-          onChange={(event) => setBusca(event.target.value)}
-          placeholder="Buscar por título, curso, status, valor ou ID..."
-          className="min-h-12 rounded-2xl border border-white/10 bg-black/45 px-4 text-sm font-bold text-white outline-none transition placeholder:text-zinc-600 focus:border-amber-300/40"
-        />
-        <div className="flex gap-2 overflow-x-auto">
-          {tabs.map((item) => (
-            <button key={item} onClick={() => setTab(item)} className={`whitespace-nowrap rounded-2xl px-4 py-2.5 text-sm font-black transition active:scale-95 ${tab === item ? "bg-white text-black shadow-lg shadow-amber-500/20" : "text-zinc-400 hover:bg-white/[0.05] hover:text-white"}`}>{item}</button>
-          ))}
-        </div>
+        <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar por título, curso, status, valor, ID da compra ou ID do usuário..." className="min-h-12 rounded-2xl border border-white/10 bg-black/45 px-4 text-sm font-bold text-white outline-none transition placeholder:text-zinc-600 focus:border-amber-300/40" />
+        <div className="flex gap-2 overflow-x-auto">{tabs.map((item) => <button key={item} onClick={() => setTab(item)} className={`whitespace-nowrap rounded-2xl px-4 py-2.5 text-sm font-black transition active:scale-95 ${tab === item ? "bg-white text-black shadow-lg shadow-amber-500/20" : "text-zinc-400 hover:bg-white/[0.05] hover:text-white"}`}>{item}</button>)}</div>
       </section>
 
       {erro && <div className="rounded-3xl border border-red-400/20 bg-red-500/10 p-5 text-red-100">Erro: {erro}</div>}
       {loading && <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-6 text-zinc-400">Carregando dados reais...</div>}
 
       <section className="grid gap-4">
-        {!loading && filtrados.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-8 text-center text-zinc-500">
-            <p className="text-4xl">◇</p>
-            <p className="mt-3 text-lg font-black text-zinc-300">Nada encontrado.</p>
-            <p className="mt-1 text-sm">Tente limpar a busca ou mudar o filtro.</p>
-          </div>
-        ) : (
-          filtrados.map((item) => {
-            const isUpdating = updatingId === item.id;
-            const isClosedTicket = item.type === "ticket" && isClosedStatus(item.status);
-
-            return (
-              <div key={item.id} className={`group rounded-[2rem] border p-5 shadow-xl shadow-black/25 backdrop-blur-xl transition hover:-translate-y-0.5 ${item.priority >= 80 ? "border-red-400/25 bg-red-500/[0.06] hover:border-red-300/40" : item.priority >= 50 ? "border-amber-400/25 bg-amber-500/[0.05] hover:border-amber-300/40" : "border-white/10 bg-white/[0.035] hover:border-amber-300/30"}`}>
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="flex min-w-0 gap-4">
-                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-white/10 bg-black/35 text-xl font-black text-amber-100">{typeIcon(item.type)}</div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">{typeLabel(item.type)} • {formatDate(item.created_at)} • {ageHours(item.created_at)}h aberto</p>
-                      <h3 className="mt-1 truncate text-xl font-black tracking-[-0.02em]">{item.title}</h3>
-                      <button onClick={() => copiar(item.id)} className="mt-1 text-left text-xs text-zinc-600 underline decoration-zinc-800 underline-offset-4 hover:text-zinc-300">ID: {item.id}</button>
-                      {item.course_title && <p className="mt-2 text-sm text-zinc-400">Curso: <span className="text-zinc-200">{item.course_title}</span></p>}
-                      {(item.total_price || item.price) && <p className="mt-1 text-sm text-zinc-400">Valor: <span className="text-zinc-200">{item.total_price || item.price}</span></p>}
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <p className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${priorityStyle(item.priority)}`}>{priorityLabel(item.priority)} • {item.priority}</p>
-                        <p className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${statusStyle(item.status)}`}>{item.status}</p>
-                        {isPendingStatus(item.status) && <p className="inline-flex rounded-full border border-amber-400/20 bg-amber-500/10 px-3 py-1 text-xs font-black text-amber-100">Precisa atenção</p>}
-                      </div>
-                      {item.comprovante_url && <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="mt-3 block text-sm font-black text-amber-100 underline">Abrir comprovante</a>}
+        {!loading && filtrados.length === 0 ? <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-8 text-center text-zinc-500"><p className="text-4xl">◇</p><p className="mt-3 text-lg font-black text-zinc-300">Nada encontrado.</p><p className="mt-1 text-sm">Tente limpar a busca ou mudar o filtro.</p></div> : filtrados.map((item) => {
+          const isUpdating = updatingId === item.id;
+          const isClosedTicket = item.type === "ticket" && isClosedStatus(item.status);
+          return (
+            <div key={item.id} className={`group rounded-[2rem] border p-5 shadow-xl shadow-black/25 backdrop-blur-xl transition hover:-translate-y-0.5 ${item.priority >= 80 ? "border-red-400/25 bg-red-500/[0.06] hover:border-red-300/40" : item.priority >= 50 ? "border-amber-400/25 bg-amber-500/[0.05] hover:border-amber-300/40" : "border-white/10 bg-white/[0.035] hover:border-amber-300/30"}`}>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex min-w-0 gap-4">
+                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-white/10 bg-black/35 text-xl font-black text-amber-100">{typeIcon(item.type)}</div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">{typeLabel(item.type)} • {formatDate(item.created_at)} • {ageHours(item.created_at)}h aberto</p>
+                    <h3 className="mt-1 truncate text-xl font-black tracking-[-0.02em]">{item.title}</h3>
+                    <button onClick={() => copiar(item.id)} className="mt-1 block text-left text-xs text-zinc-600 underline decoration-zinc-800 underline-offset-4 hover:text-zinc-300">ID da compra/ticket: {item.id}</button>
+                    <button onClick={() => copiar(item.user_id)} className="mt-1 block text-left text-xs text-blue-300/70 underline decoration-blue-900 underline-offset-4 hover:text-blue-200">ID do usuário: {item.user_id}</button>
+                    {item.course_title && <p className="mt-2 text-sm text-zinc-400">Curso: <span className="text-zinc-200">{item.course_title}</span></p>}
+                    {item.course_id && <button onClick={() => copiar(String(item.course_id))} className="mt-1 text-left text-xs text-emerald-300/70 underline decoration-emerald-900 underline-offset-4 hover:text-emerald-200">ID do curso: {item.course_id}</button>}
+                    {(item.total_price || item.price) && <p className="mt-1 text-sm text-zinc-400">Valor: <span className="text-zinc-200">{item.total_price || item.price}</span></p>}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <p className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${priorityStyle(item.priority)}`}>{priorityLabel(item.priority)} • {item.priority}</p>
+                      <p className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${statusStyle(item.status)}`}>{item.status}</p>
+                      {isPendingStatus(item.status) && <p className="inline-flex rounded-full border border-amber-400/20 bg-amber-500/10 px-3 py-1 text-xs font-black text-amber-100">Precisa atenção</p>}
                     </div>
-                  </div>
-
-                  <div className="grid min-w-52 gap-2">
-                    {item.type === "purchase" && <button disabled={isUpdating || normalize(item.status) === "compra aprovada"} onClick={() => aprovarCompraSegura(item)} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black shadow-lg shadow-amber-500/10 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">{isUpdating ? "Aprovando..." : "Aprovar e liberar"}</button>}
-                    {item.type === "purchase" && <button disabled={isUpdating || item.status === "compra finalizada"} onClick={() => atualizarStatus(item.id, "compra finalizada")} className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Fechar compra</button>}
-                    {item.type === "purchase" && <button disabled={isUpdating || item.status === "compra recusada"} onClick={() => atualizarStatus(item.id, "compra recusada")} className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Recusar compra</button>}
-                    {item.type === "order" && <button disabled={isUpdating || item.status === "em produção"} onClick={() => atualizarStatus(item.id, "em produção")} className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-4 py-2 text-sm font-black text-violet-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Em produção</button>}
-                    {item.type === "order" && <button disabled={isUpdating || item.status === "pedido finalizado"} onClick={() => atualizarStatus(item.id, "pedido finalizado")} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Finalizar pedido</button>}
-                    {item.type === "ticket" && <button disabled={isUpdating || isClosedTicket} onClick={() => atualizarStatus(item.id, "fechado")} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-black text-zinc-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">{isClosedTicket ? "Ticket fechado" : isUpdating ? "Fechando..." : "Fechar ticket"}</button>}
-                    <button onClick={() => copiar(`${typeLabel(item.type)}: ${item.title}\nStatus: ${item.status}\nID: ${item.id}`)} className="rounded-xl border border-white/10 bg-black/35 px-4 py-2 text-sm font-black text-zinc-300 transition hover:border-amber-300/30 hover:text-white active:scale-95">Copiar resumo</button>
+                    {item.comprovante_url && <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="mt-3 block text-sm font-black text-amber-100 underline">Abrir comprovante</a>}
                   </div>
                 </div>
+                <div className="grid min-w-52 gap-2">
+                  {item.type === "purchase" && <button disabled={isUpdating || normalize(item.status) === "compra aprovada"} onClick={() => aprovarCompraSegura(item)} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black shadow-lg shadow-amber-500/10 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">{isUpdating ? "Aprovando..." : "Aprovar e liberar"}</button>}
+                  {item.type === "purchase" && <button disabled={isUpdating || item.status === "compra finalizada"} onClick={() => atualizarStatus(item.id, "compra finalizada")} className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-sm font-black text-emerald-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Fechar compra</button>}
+                  {item.type === "purchase" && <button disabled={isUpdating || item.status === "compra recusada"} onClick={() => atualizarStatus(item.id, "compra recusada")} className="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Recusar compra</button>}
+                  {item.type === "order" && <button disabled={isUpdating || item.status === "em produção"} onClick={() => atualizarStatus(item.id, "em produção")} className="rounded-xl border border-violet-400/20 bg-violet-500/10 px-4 py-2 text-sm font-black text-violet-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Em produção</button>}
+                  {item.type === "order" && <button disabled={isUpdating || item.status === "pedido finalizado"} onClick={() => atualizarStatus(item.id, "pedido finalizado")} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">Finalizar pedido</button>}
+                  {item.type === "ticket" && <button disabled={isUpdating || isClosedTicket} onClick={() => atualizarStatus(item.id, "fechado")} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-black text-zinc-200 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-50">{isClosedTicket ? "Ticket fechado" : isUpdating ? "Fechando..." : "Fechar ticket"}</button>}
+                  <button onClick={() => copiar(`${typeLabel(item.type)}: ${item.title}\nStatus: ${item.status}\nID: ${item.id}\nUsuário: ${item.user_id}\nCurso: ${item.course_title ?? "-"}\nID curso: ${item.course_id ?? "-"}`)} className="rounded-xl border border-white/10 bg-black/35 px-4 py-2 text-sm font-black text-zinc-300 transition hover:border-amber-300/30 hover:text-white active:scale-95">Copiar resumo</button>
+                </div>
               </div>
-            );
-          })
-        )}
+            </div>
+          );
+        })}
       </section>
     </div>
   );
