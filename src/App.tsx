@@ -13,9 +13,10 @@ import Admin from "./pages/Admin";
 import Chat from "./pages/Chat";
 import Login from "./pages/Login";
 import Resolver from "./pages/Resolver";
+import Perfil from "./pages/Perfil";
 import Navbar from "./components/Navbar";
 
-export type Page = "home" | "cursos" | "gratis" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver";
+export type Page = "home" | "cursos" | "gratis" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver" | "perfil";
 
 export default function App() {
   const [page, setPage] = useState<Page>("home");
@@ -53,6 +54,7 @@ export default function App() {
     if (page === "cursos") return <Cursos />;
     if (page === "gratis") return <Gratis />;
     if (page === "resolver") return <Resolver />;
+    if (page === "perfil") return <Perfil />;
     if (page === "estudo") return <Estudo />;
     if (page === "pedidos") return <Pedidos />;
     if (page === "suporte") return <Suporte />;
