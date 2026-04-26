@@ -38,7 +38,7 @@ const chavePix = "85 99268-6478";
 
 function gerarMensagem(produto: Produto, compraId?: string, userId?: string) {
   return encodeURIComponent(
-    `Olá! Quero comprar pelo AprendaJá.\n\nProduto: ${produto.nome}\nValor: ${produto.preco}\nID do usuário: ${userId || "preciso entrar na conta"}\nID da compra: ${compraId || "ainda não gerado"}\n\nJá vou mandar o comprovante por aqui.`
+    `Olá! Quero comprar pelo AprendaJá.\n\nCurso/produto escolhido: ${produto.nome}\nID do curso/produto: ${produto.id}\nValor: ${produto.preco}\nID do usuário: ${userId || "preciso entrar na conta"}\nID da compra: ${compraId || "ainda não gerado"}\n\nEstou enviando o comprovante para liberar exatamente esse curso/produto.`
   );
 }
 
@@ -83,6 +83,10 @@ export default function Pagamento() {
     await copiar(userId, "ID do usuário copiado. Envie esse ID junto com o comprovante no WhatsApp.");
   }
 
+  async function copiarProdutoId() {
+    await copiar(produto.id, "ID do curso/produto copiado.");
+  }
+
   async function registrarCompra() {
     setErro("");
     setSucesso("");
@@ -124,8 +128,8 @@ export default function Pagamento() {
       user_id: userData.user.id,
       content:
         produto.tipo === "purchase"
-          ? `🛒 Compra registrada\n\nProduto: ${produto.nome}\nValor: ${produto.preco}\nID do usuário: ${userData.user.id}\nID da compra: ${thread.id}\nStatus: aguardando confirmação do Pix.\n\nEnvie o comprovante pelo WhatsApp informando o ID do usuário e o ID da compra para o ADM liberar o acesso.`
-          : `📦 Pedido registrado\n\nProduto: ${produto.nome}\nValor: ${produto.preco}\nID do usuário: ${userData.user.id}\nID do pedido: ${thread.id}\nStatus: pendente.\n\nO ADM/DEV vai combinar os detalhes pelo chat ou WhatsApp.`,
+          ? `🛒 Compra registrada\n\nCurso/produto escolhido: ${produto.nome}\nID do curso/produto: ${produto.id}\nValor: ${produto.preco}\nID do usuário: ${userData.user.id}\nID da compra: ${thread.id}\nStatus: aguardando confirmação do Pix.\n\nEnvie o comprovante pelo WhatsApp informando o ID do usuário, ID da compra e o curso/produto escolhido para o ADM liberar exatamente o acesso certo.`
+          : `📦 Pedido registrado\n\nProduto escolhido: ${produto.nome}\nID do produto: ${produto.id}\nValor: ${produto.preco}\nID do usuário: ${userData.user.id}\nID do pedido: ${thread.id}\nStatus: pendente.\n\nO ADM/DEV vai combinar os detalhes pelo chat ou WhatsApp.`,
     });
 
     if (messageError) {
@@ -137,7 +141,7 @@ export default function Pagamento() {
 
     setCompraId(thread.id);
     setLoading(false);
-    setSucesso("Compra registrada. Agora envie o comprovante no WhatsApp com seu ID de usuário e o ID da compra.");
+    setSucesso("Compra registrada. Agora envie o comprovante no WhatsApp com curso escolhido, ID do curso, seu ID de usuário e ID da compra.");
   }
 
   return (
@@ -146,7 +150,7 @@ export default function Pagamento() {
         <p className="text-sm font-black uppercase tracking-[0.22em] text-blue-300">Pagamento manual seguro</p>
         <h1 className="mt-3 text-3xl font-black text-white md:text-5xl">Comprar no AprendaJá</h1>
         <p className="mt-4 max-w-2xl text-zinc-400">
-          Escolha o produto, pague no Pix, registre a compra e envie o comprovante com seu ID de usuário. O ADM confere e libera seu acesso pelo painel.
+          Escolha o curso/produto, pague no Pix, registre a compra e envie o comprovante com seu ID de usuário. O ADM confere e libera o curso/produto certo pelo painel.
         </p>
       </div>
 
@@ -170,6 +174,7 @@ export default function Pagamento() {
             >
               <h2 className="text-xl font-black text-white">{item.nome}</h2>
               <p className="mt-2 text-sm text-zinc-400">{item.descricao}</p>
+              <p className="mt-3 break-all text-xs text-zinc-500">ID: {item.id}</p>
               <p className="mt-4 text-2xl font-black text-blue-300">{item.preco}</p>
             </button>
           );
@@ -179,15 +184,19 @@ export default function Pagamento() {
       <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_0.8fr]">
         <div className="rounded-[2rem] border border-white/10 bg-black/50 p-6 backdrop-blur-xl">
           <h2 className="text-2xl font-black text-white">Resumo da compra</h2>
-          <p className="mt-2 text-zinc-400">Produto escolhido: <span className="font-bold text-white">{produto.nome}</span></p>
-          <p className="text-zinc-400">Valor: <span className="font-bold text-blue-300">{produto.preco}</span></p>
+          <div className="mt-4 rounded-2xl border border-violet-400/20 bg-violet-500/10 p-4 text-sm text-violet-100">
+            <p>Curso/produto escolhido: <span className="font-black text-white">{produto.nome}</span></p>
+            <p className="mt-1 break-all">ID do curso/produto: <span className="font-black text-white">{produto.id}</span></p>
+            <p className="mt-1">Valor: <span className="font-black text-blue-200">{produto.preco}</span></p>
+            <button onClick={copiarProdutoId} className="mt-3 rounded-xl bg-white px-4 py-2 text-xs font-black text-black transition active:scale-95">Copiar ID do curso</button>
+          </div>
           <p className="mt-4 rounded-2xl border border-blue-400/20 bg-blue-500/10 p-4 text-sm text-blue-100">
             Chave Pix: <span className="font-black">{chavePix}</span>
           </p>
 
           <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100">
             <p className="font-black">Aviso importante</p>
-            <p className="mt-1 text-amber-100/80">Ao enviar o comprovante no WhatsApp, informe também seu ID de usuário. Sem esse ID, o ADM pode demorar mais para liberar seu curso.</p>
+            <p className="mt-1 text-amber-100/80">Ao enviar o comprovante no WhatsApp, informe: curso escolhido, ID do curso/produto, seu ID de usuário e ID da compra.</p>
             <p className="mt-3 break-all text-xs">Seu ID de usuário: <span className="font-black">{userId || "entre na conta para aparecer"}</span></p>
             <button onClick={copiarUserId} className="mt-3 rounded-xl bg-white px-4 py-2 text-xs font-black text-black transition active:scale-95">Copiar meu ID</button>
           </div>
@@ -213,11 +222,11 @@ export default function Pagamento() {
           <h3 className="text-2xl font-black text-white">Como funciona</h3>
           <div className="mt-5 space-y-3">
             {[
-              ["1", "Escolha o produto."],
+              ["1", "Escolha o curso/produto."],
               ["2", "Copie a chave Pix e pague."],
               ["3", "Clique em Registrar compra."],
-              ["4", "Envie o comprovante com seu ID de usuário."],
-              ["5", "O ADM usa seu ID para liberar o curso certo."],
+              ["4", "Envie comprovante com curso, ID do curso, ID do usuário e ID da compra."],
+              ["5", "O ADM usa essas informações para liberar o acesso certo."],
             ].map(([num, text]) => (
               <div key={num} className="flex gap-3 rounded-2xl border border-white/10 bg-black/35 p-4">
                 <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-white font-black text-black">{num}</span>
