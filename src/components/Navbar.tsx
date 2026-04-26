@@ -8,7 +8,8 @@ type Page =
   | "chat"
   | "admin"
   | "resolver"
-  | "perfil";
+  | "perfil"
+  | "sobre";
 
 type NavbarProps = {
   page: Page;
@@ -25,6 +26,7 @@ const menu: { label: string; short: string; value: Page; icon: string }[] = [
   { label: "Tickets", short: "Tickets", value: "suporte", icon: "◇" },
   { label: "Chat", short: "Chat", value: "chat", icon: "●" },
   { label: "Perfil", short: "Perfil", value: "perfil", icon: "◌" },
+  { label: "Sobre", short: "Sobre", value: "sobre", icon: "ℹ" },
   { label: "Grátis", short: "Grátis", value: "gratis", icon: "✧" },
   { label: "Resolver", short: "Resolver", value: "resolver", icon: "⚡" },
   { label: "Admin", short: "Admin", value: "admin", icon: "♛" },
@@ -73,11 +75,11 @@ export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarPro
         <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-4">
           <button onClick={() => setPage("home")} className="flex items-center gap-3 text-left active:scale-95">
             <div className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-gradient-to-br from-violet-600 via-blue-500 to-sky-300 text-lg font-black text-white shadow-lg shadow-blue-500/20">
-              T
+              A
             </div>
             <div>
-              <h1 className="bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-xl font-black tracking-[0.22em] text-transparent md:text-2xl">THKLAYUS</h1>
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Cursos • pedidos • suporte</p>
+              <h1 className="bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-xl font-black tracking-[0.16em] text-transparent md:text-2xl">AprendaJá</h1>
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">THKLAYUS</p>
             </div>
           </button>
 
@@ -105,7 +107,7 @@ export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarPro
       </header>
 
       <nav className="fixed bottom-3 left-1/2 z-50 flex w-[calc(100%-24px)] max-w-xl -translate-x-1/2 gap-1 overflow-x-auto rounded-[1.7rem] border border-white/10 bg-black/85 p-1.5 shadow-2xl shadow-black/80 backdrop-blur-2xl lg:hidden">
-        {menu.slice(0, 7).map((item) => Item(item, true))}
+        {menu.slice(0, 8).map((item) => Item(item, true))}
       </nav>
     </>
   );
