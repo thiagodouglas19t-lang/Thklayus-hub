@@ -1,45 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { professionalCourses } from "../data/courses";
 
-type Produto = {
-  id: string;
-  nome: string;
-  descricao: string;
-  preco: string;
-  tipo: "purchase" | "order";
-};
+type Produto = { id: string; nome: string; descricao: string; preco: string; tipo: "purchase" | "order" };
+
+const cursoPrincipal = professionalCourses.find((course) => course.id === "tecnico-eletronica");
 
 const produtos: Produto[] = [
-  {
-    id: "curso-basico",
-    nome: "Curso Básico",
-    descricao: "Acesso inicial aos conteúdos do AprendaJá.",
-    preco: "R$ 19,90",
-    tipo: "purchase",
-  },
-  {
-    id: "suporte-premium",
-    nome: "Suporte Premium",
-    descricao: "Atendimento prioritário para dúvidas e pedidos.",
-    preco: "R$ 9,90",
-    tipo: "purchase",
-  },
-  {
-    id: "servico-escolar",
-    nome: "Serviço Escolar",
-    descricao: "Pedido de apresentação, resumo ou material de estudo.",
-    preco: "A combinar",
-    tipo: "order",
-  },
+  { id: "tecnico-eletronica", nome: "Técnico em Eletrônica • Fundamentos Completos", descricao: "Curso principal: eletrônica do zero, segurança, componentes, multímetro, esquemas e projetos práticos.", preco: "R$ 29,90", tipo: "purchase" },
+  { id: "powerpoint-pro", nome: "PowerPoint Profissional", descricao: "Aprenda a criar apresentações bonitas para escola, trabalho e clientes.", preco: "R$ 9,90", tipo: "purchase" },
+  { id: "informatica-zero-iniciante", nome: "Informática do Zero", descricao: "Curso de entrada para aprender organização digital, internet, arquivos e ferramentas básicas.", preco: "R$ 4,90", tipo: "purchase" },
+  { id: "servico-escolar", nome: "Serviço Escolar Personalizado", descricao: "Pedido de apresentação, resumo, mapa mental, trabalho ou material de estudo.", preco: "A combinar", tipo: "order" },
 ];
 
 const whatsapp = "5585992686478";
 const chavePix = "85 99268-6478";
 
 function gerarMensagem(produto: Produto, compraId?: string, userId?: string) {
-  return encodeURIComponent(
-    `Olá! Quero comprar pelo AprendaJá.\n\nCurso/produto escolhido: ${produto.nome}\nID do curso/produto: ${produto.id}\nValor: ${produto.preco}\nID do usuário: ${userId || "preciso entrar na conta"}\nID da compra: ${compraId || "ainda não gerado"}\n\nEstou enviando o comprovante para liberar exatamente esse curso/produto.`
-  );
+  return encodeURIComponent(`Olá! Quero comprar pelo AprendaJá.\n\nCurso/produto escolhido: ${produto.nome}\nID do curso/produto: ${produto.id}\nValor: ${produto.preco}\nID do usuário: ${userId || "preciso entrar na conta"}\nID da compra: ${compraId || "ainda não gerado"}\n\nEstou enviando o comprovante para liberar exatamente esse curso/produto.`);
 }
 
 export default function Pagamento() {
@@ -49,194 +27,73 @@ export default function Pagamento() {
   const [userId, setUserId] = useState("");
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
-
   const mensagem = useMemo(() => gerarMensagem(produto, compraId, userId), [produto, compraId, userId]);
 
-  useEffect(() => {
-    carregarUsuario();
-  }, []);
+  useEffect(() => { carregarUsuario(); }, []);
 
-  async function carregarUsuario() {
-    const { data } = await supabase.auth.getUser();
-    setUserId(data.user?.id ?? "");
-  }
-
-  async function copiar(texto: string, mensagemOk: string) {
-    try {
-      await navigator.clipboard.writeText(texto);
-      setSucesso(mensagemOk);
-    } catch {
-      setErro("Não consegui copiar nesse navegador. Copie manualmente: " + texto);
-    }
-  }
-
-  async function copiarPix() {
-    await copiar(chavePix, "Chave Pix copiada. Depois do pagamento, clique em Registrar compra.");
-  }
-
-  async function copiarUserId() {
-    if (!userId) {
-      setErro("Entre na sua conta para gerar seu ID de usuário.");
-      return;
-    }
-
-    await copiar(userId, "ID do usuário copiado. Envie esse ID junto com o comprovante no WhatsApp.");
-  }
-
-  async function copiarProdutoId() {
-    await copiar(produto.id, "ID do curso/produto copiado.");
-  }
+  async function carregarUsuario() { const { data } = await supabase.auth.getUser(); setUserId(data.user?.id ?? ""); }
+  async function copiar(texto: string, mensagemOk: string) { try { await navigator.clipboard.writeText(texto); setSucesso(mensagemOk); } catch { setErro("Não consegui copiar nesse navegador. Copie manualmente: " + texto); } }
+  async function copiarPix() { await copiar(chavePix, "Chave Pix copiada. Depois do pagamento, clique em Registrar compra."); }
+  async function copiarUserId() { if (!userId) { setErro("Entre na sua conta para gerar seu ID de usuário."); return; } await copiar(userId, "ID do usuário copiado. Envie esse ID junto com o comprovante no WhatsApp."); }
+  async function copiarProdutoId() { await copiar(produto.id, "ID do curso/produto copiado."); }
 
   async function registrarCompra() {
-    setErro("");
-    setSucesso("");
-    setLoading(true);
-
+    setErro(""); setSucesso(""); setLoading(true);
     const { data: userData } = await supabase.auth.getUser();
-
-    if (!userData.user) {
-      setLoading(false);
-      setErro("Entre na sua conta antes de registrar uma compra.");
-      return;
-    }
-
+    if (!userData.user) { setLoading(false); setErro("Entre na sua conta antes de registrar uma compra."); return; }
     setUserId(userData.user.id);
-
-    const { data: thread, error: threadError } = await supabase
-      .from("chat_threads")
-      .insert({
-        user_id: userData.user.id,
-        type: produto.tipo,
-        title: produto.tipo === "purchase" ? `Compra - ${produto.nome}` : `Pedido - ${produto.nome}`,
-        status: produto.tipo === "purchase" ? "em análise" : "pendente",
-        course_id: produto.id,
-        course_title: produto.nome,
-        price: produto.preco,
-        total_price: produto.preco,
-      })
-      .select("id")
-      .single();
-
-    if (threadError) {
-      setLoading(false);
-      setErro("Erro ao registrar compra: " + threadError.message);
-      return;
-    }
-
-    const { error: messageError } = await supabase.from("chat_messages").insert({
-      thread_id: thread.id,
-      user_id: userData.user.id,
-      content:
-        produto.tipo === "purchase"
-          ? `🛒 Compra registrada\n\nCurso/produto escolhido: ${produto.nome}\nID do curso/produto: ${produto.id}\nValor: ${produto.preco}\nID do usuário: ${userData.user.id}\nID da compra: ${thread.id}\nStatus: aguardando confirmação do Pix.\n\nEnvie o comprovante pelo WhatsApp informando o ID do usuário, ID da compra e o curso/produto escolhido para o ADM liberar exatamente o acesso certo.`
-          : `📦 Pedido registrado\n\nProduto escolhido: ${produto.nome}\nID do produto: ${produto.id}\nValor: ${produto.preco}\nID do usuário: ${userData.user.id}\nID do pedido: ${thread.id}\nStatus: pendente.\n\nO ADM/DEV vai combinar os detalhes pelo chat ou WhatsApp.`,
-    });
-
-    if (messageError) {
-      setLoading(false);
-      setErro("A compra foi criada, mas deu erro ao salvar a mensagem: " + messageError.message);
-      setCompraId(thread.id);
-      return;
-    }
-
-    setCompraId(thread.id);
-    setLoading(false);
-    setSucesso("Compra registrada. Agora envie o comprovante no WhatsApp com curso escolhido, ID do curso, seu ID de usuário e ID da compra.");
+    const { data: thread, error: threadError } = await supabase.from("chat_threads").insert({ user_id: userData.user.id, type: produto.tipo, title: produto.tipo === "purchase" ? `Compra - ${produto.nome}` : `Pedido - ${produto.nome}`, status: produto.tipo === "purchase" ? "em análise" : "pendente", course_id: produto.id, course_title: produto.nome, price: produto.preco, total_price: produto.preco }).select("id").single();
+    if (threadError) { setLoading(false); setErro("Erro ao registrar compra: " + threadError.message); return; }
+    const { error: messageError } = await supabase.from("chat_messages").insert({ thread_id: thread.id, user_id: userData.user.id, content: produto.tipo === "purchase" ? `🛒 Compra registrada\n\nCurso/produto escolhido: ${produto.nome}\nID do curso/produto: ${produto.id}\nValor: ${produto.preco}\nID do usuário: ${userData.user.id}\nID da compra: ${thread.id}\nStatus: aguardando confirmação do Pix.\n\nEnvie o comprovante pelo WhatsApp informando o ID do usuário, ID da compra e o curso/produto escolhido para o ADM liberar exatamente o acesso certo.` : `📦 Pedido registrado\n\nProduto escolhido: ${produto.nome}\nID do produto: ${produto.id}\nValor: ${produto.preco}\nID do usuário: ${userData.user.id}\nID do pedido: ${thread.id}\nStatus: pendente.\n\nO ADM/DEV vai combinar os detalhes pelo chat ou WhatsApp.` });
+    if (messageError) { setLoading(false); setErro("A compra foi criada, mas deu erro ao salvar a mensagem: " + messageError.message); setCompraId(thread.id); return; }
+    setCompraId(thread.id); setLoading(false); setSucesso("Compra registrada. Agora envie o comprovante no WhatsApp com curso escolhido, ID do curso, seu ID de usuário e ID da compra.");
   }
 
+  const modulos = cursoPrincipal?.modules ?? [];
+  const aulas = modulos.reduce((sum, modulo) => sum + modulo.lessons.length, 0);
+
   return (
-    <div className="mx-auto max-w-5xl">
-      <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-blue-500/10 backdrop-blur-2xl md:p-8">
-        <p className="text-sm font-black uppercase tracking-[0.22em] text-blue-300">Pagamento manual seguro</p>
-        <h1 className="mt-3 text-3xl font-black text-white md:text-5xl">Comprar no AprendaJá</h1>
-        <p className="mt-4 max-w-2xl text-zinc-400">
-          Escolha o curso/produto, pague no Pix, registre a compra e envie o comprovante com seu ID de usuário. O ADM confere e libera o curso/produto certo pelo painel.
-        </p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <section className="relative overflow-hidden rounded-[2.6rem] border border-white/10 bg-white/[0.035] p-6 shadow-2xl shadow-black/40 backdrop-blur-xl md:p-10">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(251,191,36,0.22),transparent_32%),radial-gradient(circle_at_90%_10%,rgba(59,130,246,0.22),transparent_30%)]" />
+        <div className="relative grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div>
+            <span className="rounded-full border border-amber-300/25 bg-amber-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-amber-100">Oferta principal • AprendaJá</span>
+            <h1 className="mt-6 text-4xl font-black leading-[1.02] tracking-[-0.06em] md:text-7xl">Aprenda eletrônica do zero ao primeiro circuito funcional.</h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-300 md:text-lg">Mesmo começando do básico, você aprende segurança, Lei de Ohm, resistores, LEDs, capacitores, protoboard, multímetro, esquemas e projetos práticos.</p>
+            <div className="mt-6 flex flex-wrap gap-2">{[`${modulos.length} módulos`, `${aulas} aulas`, "Certificado", "Projetos práticos"].map((item) => <span key={item} className="rounded-full border border-white/10 bg-black/35 px-4 py-2 text-sm font-black text-zinc-200">{item}</span>)}</div>
+            <div className="mt-7 flex flex-wrap items-center gap-4"><div><p className="text-sm font-black uppercase tracking-[0.18em] text-zinc-500">Preço promocional</p><p className="text-5xl font-black text-emerald-200">R$ 29,90</p><p className="text-sm font-bold text-zinc-500 line-through">De R$ 49,90</p></div><button onClick={() => setProduto(produtos[0])} className="rounded-2xl bg-white px-6 py-4 font-black text-black shadow-lg shadow-amber-500/20 transition active:scale-95">Comprar curso principal</button></div>
+          </div>
+          <div className="rounded-[2rem] border border-white/10 bg-black/50 p-5">
+            <p className="text-6xl">⚡</p>
+            <h2 className="mt-4 text-3xl font-black">O que você vai aprender</h2>
+            <div className="mt-5 space-y-3">{["Entender energia elétrica sem confusão", "Calcular resistores com Lei de Ohm", "Montar circuitos simples em baixa tensão", "Usar multímetro no básico", "Ler esquemas simples", "Criar projeto final documentado"].map((item) => <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm font-bold text-zinc-200">✓ {item}</div>)}</div>
+          </div>
+        </div>
+      </section>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
-        {produtos.map((item) => {
-          const ativo = item.id === produto.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => {
-                setProduto(item);
-                setCompraId("");
-                setErro("");
-                setSucesso("");
-              }}
-              className={`rounded-3xl border p-5 text-left transition active:scale-95 ${
-                ativo
-                  ? "border-blue-400 bg-blue-500/15 shadow-xl shadow-blue-500/10"
-                  : "border-white/10 bg-white/[0.04] hover:border-blue-400/40 hover:bg-white/[0.06]"
-              }`}
-            >
-              <h2 className="text-xl font-black text-white">{item.nome}</h2>
-              <p className="mt-2 text-sm text-zinc-400">{item.descricao}</p>
-              <p className="mt-3 break-all text-xs text-zinc-500">ID: {item.id}</p>
-              <p className="mt-4 text-2xl font-black text-blue-300">{item.preco}</p>
-            </button>
-          );
-        })}
-      </div>
+      <section className="grid gap-4 md:grid-cols-3">{["Não é só teoria: tem prática em toda aula.", "Certificado liberado ao concluir 100%.", "Acesso controlado pelo ADM após confirmação do Pix."].map((item, index) => <div key={item} className="rounded-3xl border border-white/10 bg-zinc-950 p-5"><p className="text-3xl font-black text-blue-200">0{index + 1}</p><p className="mt-3 text-sm leading-6 text-zinc-300">{item}</p></div>)}</section>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_0.8fr]">
+      <section className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-5 md:p-6">
+        <h2 className="text-3xl font-black">Módulos do curso principal</h2>
+        <div className="mt-5 grid gap-3 md:grid-cols-2">{modulos.map((modulo, index) => <div key={modulo.title} className="rounded-2xl border border-white/10 bg-black/35 p-4"><p className="text-xs font-black uppercase tracking-[0.16em] text-zinc-500">Módulo {index + 1}</p><h3 className="mt-1 font-black text-white">{modulo.title}</h3><p className="mt-2 text-sm text-zinc-500">{modulo.lessons.length} aulas práticas</p></div>)}</div>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[1fr_0.8fr]">
         <div className="rounded-[2rem] border border-white/10 bg-black/50 p-6 backdrop-blur-xl">
-          <h2 className="text-2xl font-black text-white">Resumo da compra</h2>
-          <div className="mt-4 rounded-2xl border border-violet-400/20 bg-violet-500/10 p-4 text-sm text-violet-100">
-            <p>Curso/produto escolhido: <span className="font-black text-white">{produto.nome}</span></p>
-            <p className="mt-1 break-all">ID do curso/produto: <span className="font-black text-white">{produto.id}</span></p>
-            <p className="mt-1">Valor: <span className="font-black text-blue-200">{produto.preco}</span></p>
-            <button onClick={copiarProdutoId} className="mt-3 rounded-xl bg-white px-4 py-2 text-xs font-black text-black transition active:scale-95">Copiar ID do curso</button>
-          </div>
-          <p className="mt-4 rounded-2xl border border-blue-400/20 bg-blue-500/10 p-4 text-sm text-blue-100">
-            Chave Pix: <span className="font-black">{chavePix}</span>
-          </p>
-
-          <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100">
-            <p className="font-black">Aviso importante</p>
-            <p className="mt-1 text-amber-100/80">Ao enviar o comprovante no WhatsApp, informe: curso escolhido, ID do curso/produto, seu ID de usuário e ID da compra.</p>
-            <p className="mt-3 break-all text-xs">Seu ID de usuário: <span className="font-black">{userId || "entre na conta para aparecer"}</span></p>
-            <button onClick={copiarUserId} className="mt-3 rounded-xl bg-white px-4 py-2 text-xs font-black text-black transition active:scale-95">Copiar meu ID</button>
-          </div>
-
-          {compraId && (
-            <p className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-100">
-              ID da compra: <span className="font-black">{compraId}</span>
-            </p>
-          )}
-
+          <h2 className="text-2xl font-black text-white">Comprar no Pix</h2>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">{produtos.map((item) => { const ativo = item.id === produto.id; return <button key={item.id} onClick={() => { setProduto(item); setCompraId(""); setErro(""); setSucesso(""); }} className={`rounded-3xl border p-5 text-left transition active:scale-95 ${ativo ? "border-blue-400 bg-blue-500/15" : "border-white/10 bg-white/[0.04]"}`}><h3 className="font-black text-white">{item.nome}</h3><p className="mt-2 text-sm text-zinc-400">{item.descricao}</p><p className="mt-3 break-all text-xs text-zinc-500">ID: {item.id}</p><p className="mt-4 text-2xl font-black text-blue-300">{item.preco}</p></button>; })}</div>
+          <div className="mt-5 rounded-2xl border border-violet-400/20 bg-violet-500/10 p-4 text-sm text-violet-100"><p>Escolhido: <span className="font-black text-white">{produto.nome}</span></p><p className="mt-1 break-all">ID: <span className="font-black text-white">{produto.id}</span></p><p className="mt-1">Valor: <span className="font-black text-blue-200">{produto.preco}</span></p><button onClick={copiarProdutoId} className="mt-3 rounded-xl bg-white px-4 py-2 text-xs font-black text-black">Copiar ID do curso</button></div>
+          <p className="mt-4 rounded-2xl border border-blue-400/20 bg-blue-500/10 p-4 text-sm text-blue-100">Chave Pix: <span className="font-black">{chavePix}</span></p>
+          <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100"><p className="font-black">Obrigatório no WhatsApp</p><p className="mt-1">Envie o comprovante com: curso escolhido, ID do curso, seu ID de usuário e ID da compra.</p><p className="mt-3 break-all text-xs">Seu ID: <span className="font-black">{userId || "entre na conta para aparecer"}</span></p><button onClick={copiarUserId} className="mt-3 rounded-xl bg-white px-4 py-2 text-xs font-black text-black">Copiar meu ID</button></div>
+          {compraId && <p className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-100">ID da compra: <span className="font-black">{compraId}</span></p>}
           {erro && <p className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-100">{erro}</p>}
           {sucesso && <p className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-100">{sucesso}</p>}
-
-          <div className="mt-6 grid gap-3 md:grid-cols-2">
-            <button onClick={copiarPix} className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-center font-black text-white transition hover:bg-white/[0.08] active:scale-95">Copiar chave Pix</button>
-            <button onClick={registrarCompra} disabled={loading} className="rounded-2xl bg-white px-5 py-4 text-center font-black text-black shadow-lg shadow-blue-500/20 transition hover:scale-[1.01] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60">{loading ? "Registrando..." : compraId ? "Registrar outra compra" : "Registrar compra"}</button>
-          </div>
-
-          <a href={`https://wa.me/${whatsapp}?text=${mensagem}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-4 text-center font-black text-emerald-100 transition hover:bg-emerald-500/15 active:scale-95">Enviar comprovante no WhatsApp</a>
+          <div className="mt-6 grid gap-3 md:grid-cols-2"><button onClick={copiarPix} className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 font-black text-white">Copiar chave Pix</button><button onClick={registrarCompra} disabled={loading} className="rounded-2xl bg-white px-5 py-4 font-black text-black disabled:opacity-60">{loading ? "Registrando..." : compraId ? "Registrar outra compra" : "Registrar compra"}</button></div>
+          <a href={`https://wa.me/${whatsapp}?text=${mensagem}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-4 font-black text-emerald-100">Enviar comprovante no WhatsApp</a>
         </div>
-
-        <div className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-6 backdrop-blur-xl">
-          <h3 className="text-2xl font-black text-white">Como funciona</h3>
-          <div className="mt-5 space-y-3">
-            {[
-              ["1", "Escolha o curso/produto."],
-              ["2", "Copie a chave Pix e pague."],
-              ["3", "Clique em Registrar compra."],
-              ["4", "Envie comprovante com curso, ID do curso, ID do usuário e ID da compra."],
-              ["5", "O ADM usa essas informações para liberar o acesso certo."],
-            ].map(([num, text]) => (
-              <div key={num} className="flex gap-3 rounded-2xl border border-white/10 bg-black/35 p-4">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-white font-black text-black">{num}</span>
-                <p className="text-sm font-bold text-zinc-300">{text}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-5 text-xs leading-5 text-zinc-500">Anti-golpe: o acesso só é liberado depois do ADM conferir o Pix no banco. Nunca envie acesso antes de confirmar o pagamento.</p>
-        </div>
-      </div>
+        <div className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-6"><h3 className="text-2xl font-black text-white">Como funciona</h3><div className="mt-5 space-y-3">{[["1", "Escolha o curso."], ["2", "Copie a chave Pix e pague."], ["3", "Clique em Registrar compra."], ["4", "Envie comprovante com IDs."], ["5", "ADM libera o acesso." ]].map(([num, text]) => <div key={num} className="flex gap-3 rounded-2xl border border-white/10 bg-black/35 p-4"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-white font-black text-black">{num}</span><p className="text-sm font-bold text-zinc-300">{text}</p></div>)}</div><p className="mt-5 text-xs leading-5 text-zinc-500">Anti-golpe: o acesso só é liberado depois do ADM conferir o Pix no banco.</p></div>
+      </section>
     </div>
   );
 }
