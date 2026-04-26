@@ -16,12 +16,18 @@ type Thread = {
 
 const tabs = ["todos", "compras", "pedidos", "tickets", "pendentes", "finalizados"];
 const finalizados = ["compra finalizada", "pedido finalizado", "fechado", "entregue", "compra recusada"];
+const CLOSED_STATUSES = ["fechado", "closed", "encerrado", "resolvido", "deleted", "oculto"];
+
+function isClosedStatus(status: string) {
+  return CLOSED_STATUSES.includes(String(status).toLowerCase().trim());
+}
 
 export default function Admin() {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("todos");
   const [erro, setErro] = useState("");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     carregar();
@@ -43,11 +49,29 @@ export default function Admin() {
   }
 
   async function atualizarStatus(id: string, status: string) {
+    const threadAtual = threads.find((item) => item.id === id);
+    if (!threadAtual) return;
+
+    if (threadAtual.status === status) {
+      alert("Esse item já está com esse status.");
+      return;
+    }
+
+    if (threadAtual.type === "ticket" && isClosedStatus(threadAtual.status)) {
+      alert("Esse ticket já foi fechado.");
+      return;
+    }
+
+    if (updatingId === id) return;
+
     const ok = status === "compra aprovada" ? confirm("Confirma que o Pix caiu na conta? Só aprove depois de conferir no banco.") : true;
     if (!ok) return;
 
+    setUpdatingId(id);
+
     const { error } = await supabase.from("chat_threads").update({ status }).eq("id", id);
     if (error) {
+      setUpdatingId(null);
       alert("Erro ao atualizar: " + error.message);
       return;
     }
@@ -60,7 +84,7 @@ export default function Admin() {
       "compra recusada": "❌ Compra recusada. O pagamento não foi confirmado.",
       "em produção": "🛠️ Pedido em produção. O ADM/DEV começou a trabalhar nele.",
       "pedido finalizado": "✅ Pedido finalizado pelo ADM. Confira a entrega no chat.",
-      fechado: "✅ Atendimento fechado pelo ADM.",
+      fechado: "✅ Ticket fechado pelo suporte. Se precisar de mais ajuda, abra um novo ticket.",
     };
 
     await supabase.from("chat_messages").insert({
@@ -68,6 +92,8 @@ export default function Admin() {
       user_id: "00000000-0000-0000-0000-000000000000",
       content: mensagens[status] || `Status atualizado para: ${status}`,
     });
+
+    setUpdatingId(null);
   }
 
   const filtrados = useMemo(() => {
@@ -122,29 +148,34 @@ export default function Admin() {
         {!loading && filtrados.length === 0 ? (
           <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6 text-zinc-500">Nada encontrado nessa categoria.</div>
         ) : (
-          filtrados.map((item) => (
-            <div key={item.id} className="rounded-[2rem] border border-zinc-800 bg-zinc-950 p-5 transition hover:border-zinc-600">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-black uppercase text-zinc-500">{item.type === "purchase" ? "Compra" : item.type === "order" ? "Pedido" : "Ticket"}</p>
-                  <h3 className="mt-1 text-xl font-black">{item.title}</h3>
-                  {item.course_title && <p className="mt-1 text-sm text-zinc-400">Curso: {item.course_title}</p>}
-                  {(item.total_price || item.price) && <p className="mt-1 text-sm text-zinc-400">Valor: {item.total_price || item.price}</p>}
-                  <p className="mt-2 inline-flex rounded-full border border-zinc-700 px-3 py-1 text-xs font-black text-zinc-300">{item.status}</p>
-                  {item.comprovante_url && <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="mt-3 block text-sm font-black underline">Abrir comprovante</a>}
-                </div>
+          filtrados.map((item) => {
+            const isUpdating = updatingId === item.id;
+            const isClosedTicket = item.type === "ticket" && isClosedStatus(item.status);
 
-                <div className="grid min-w-52 gap-2">
-                  {item.type === "purchase" && <button onClick={() => atualizarStatus(item.id, "compra aprovada")} className="rounded-xl bg-emerald-400 px-4 py-2 text-sm font-black text-black">Aprovar compra</button>}
-                  {item.type === "purchase" && <button onClick={() => atualizarStatus(item.id, "compra finalizada")} className="rounded-xl border border-emerald-900 bg-emerald-950 px-4 py-2 text-sm font-black text-emerald-200">Fechar compra</button>}
-                  {item.type === "purchase" && <button onClick={() => atualizarStatus(item.id, "compra recusada")} className="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-black text-red-200">Recusar compra</button>}
-                  {item.type === "order" && <button onClick={() => atualizarStatus(item.id, "em produção")} className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-black">Em produção</button>}
-                  {item.type === "order" && <button onClick={() => atualizarStatus(item.id, "pedido finalizado")} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black">Finalizar pedido</button>}
-                  {item.type === "ticket" && <button onClick={() => atualizarStatus(item.id, "fechado")} className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-black">Fechar ticket</button>}
+            return (
+              <div key={item.id} className="rounded-[2rem] border border-zinc-800 bg-zinc-950 p-5 transition hover:border-zinc-600">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase text-zinc-500">{item.type === "purchase" ? "Compra" : item.type === "order" ? "Pedido" : "Ticket"}</p>
+                    <h3 className="mt-1 text-xl font-black">{item.title}</h3>
+                    {item.course_title && <p className="mt-1 text-sm text-zinc-400">Curso: {item.course_title}</p>}
+                    {(item.total_price || item.price) && <p className="mt-1 text-sm text-zinc-400">Valor: {item.total_price || item.price}</p>}
+                    <p className="mt-2 inline-flex rounded-full border border-zinc-700 px-3 py-1 text-xs font-black text-zinc-300">{item.status}</p>
+                    {item.comprovante_url && <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="mt-3 block text-sm font-black underline">Abrir comprovante</a>}
+                  </div>
+
+                  <div className="grid min-w-52 gap-2">
+                    {item.type === "purchase" && <button disabled={isUpdating || item.status === "compra aprovada"} onClick={() => atualizarStatus(item.id, "compra aprovada")} className="rounded-xl bg-emerald-400 px-4 py-2 text-sm font-black text-black disabled:cursor-not-allowed disabled:opacity-50">Aprovar compra</button>}
+                    {item.type === "purchase" && <button disabled={isUpdating || item.status === "compra finalizada"} onClick={() => atualizarStatus(item.id, "compra finalizada")} className="rounded-xl border border-emerald-900 bg-emerald-950 px-4 py-2 text-sm font-black text-emerald-200 disabled:cursor-not-allowed disabled:opacity-50">Fechar compra</button>}
+                    {item.type === "purchase" && <button disabled={isUpdating || item.status === "compra recusada"} onClick={() => atualizarStatus(item.id, "compra recusada")} className="rounded-xl border border-red-900 bg-red-950 px-4 py-2 text-sm font-black text-red-200 disabled:cursor-not-allowed disabled:opacity-50">Recusar compra</button>}
+                    {item.type === "order" && <button disabled={isUpdating || item.status === "em produção"} onClick={() => atualizarStatus(item.id, "em produção")} className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50">Em produção</button>}
+                    {item.type === "order" && <button disabled={isUpdating || item.status === "pedido finalizado"} onClick={() => atualizarStatus(item.id, "pedido finalizado")} className="rounded-xl bg-white px-4 py-2 text-sm font-black text-black disabled:cursor-not-allowed disabled:opacity-50">Finalizar pedido</button>}
+                    {item.type === "ticket" && <button disabled={isUpdating || isClosedTicket} onClick={() => atualizarStatus(item.id, "fechado")} className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50">{isClosedTicket ? "Ticket fechado" : isUpdating ? "Fechando..." : "Fechar ticket"}</button>}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </section>
     </div>
