@@ -3,12 +3,22 @@ import { professionalCourses } from "../data/courses";
 export default function Home({ setPage }: any) {
   const populares = professionalCourses.slice(0, 4);
   const cursoExemplo = professionalCourses[0];
+  const totalAulas = professionalCourses.reduce((sum, course) => sum + course.modules.reduce((aulas, modulo) => aulas + modulo.lessons.length, 0), 0);
+  const totalHoras = professionalCourses.reduce((sum, course) => sum + Number.parseInt(course.duration) || sum, 0);
 
   const acoes = [
     { title: "Ver formações", text: "Catálogo com grade curricular, preço, duração e projeto final.", icon: "◈", page: "cursos" },
     { title: "Meus cursos", text: "Continue de onde parou, marque aulas e baixe materiais.", icon: "▣", page: "estudo" },
     { title: "Suporte", text: "Envie comprovante, tire dúvidas e acompanhe atendimento no app.", icon: "◇", page: "suporte" },
   ];
+
+  const diferenciais = [
+    ["Grade real", "Módulos, aulas, práticas e projeto final em cada formação."],
+    ["Acesso seguro", "Compra manual, conferência do PIX e liberação controlada pelo ADM."],
+    ["Área do aluno", "Progresso, material, certificado e continuação dos estudos no app."],
+  ];
+
+  const fluxo = ["Escolha a formação", "Pague no PIX", "Envie o comprovante", "ADM libera", "Estude no app"];
 
   return (
     <div className="space-y-6">
@@ -29,7 +39,7 @@ export default function Home({ setPage }: any) {
             </div>
           </div>
           <div className="grid gap-3">
-            {[[`${professionalCourses.length}`, "formações ativas"], ["PIX", "compra manual segura"], ["ADM", "liberação controlada"], ["Chat", "suporte interno"]].map(([valor, label]) => (
+            {[[`${professionalCourses.length}`, "formações ativas"], [`${totalAulas}`, "aulas práticas"], [`${totalHoras}h`, "carga estimada"], ["ADM", "liberação controlada"]].map(([valor, label]) => (
               <div key={label} className="rounded-3xl border border-white/10 bg-black/45 p-5 shadow-xl shadow-black/30 backdrop-blur-xl">
                 <p className="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-3xl font-black text-transparent md:text-5xl">{valor}</p>
                 <p className="mt-1 text-sm font-bold text-zinc-500">{label}</p>
@@ -50,6 +60,15 @@ export default function Home({ setPage }: any) {
               <p className="mt-5 inline-flex rounded-2xl bg-white px-4 py-2 text-sm font-black text-black transition group-hover:scale-[1.03]">Abrir</p>
             </div>
           </button>
+        ))}
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        {diferenciais.map(([title, text]) => (
+          <div key={title} className="rounded-[2rem] border border-white/10 bg-black/35 p-5 shadow-xl shadow-black/20">
+            <h3 className="text-xl font-black text-white">{title}</h3>
+            <p className="mt-2 text-sm leading-6 text-zinc-400">{text}</p>
+          </div>
         ))}
       </section>
 
@@ -75,6 +94,19 @@ export default function Home({ setPage }: any) {
                 <p className="mt-2 text-xl font-black text-emerald-200">{course.price}</p>
               </div>
             </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-white/10 bg-zinc-950 p-5 shadow-2xl shadow-black/30 md:p-6">
+        <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300">Como funciona</p>
+        <h3 className="mt-2 text-3xl font-black tracking-[-0.03em]">Compra simples, acesso controlado</h3>
+        <div className="mt-5 grid gap-3 md:grid-cols-5">
+          {fluxo.map((item, index) => (
+            <div key={item} className="rounded-3xl border border-white/10 bg-black p-4">
+              <p className="text-xs font-black text-zinc-500">PASSO {index + 1}</p>
+              <p className="mt-2 text-sm font-black text-white">{item}</p>
+            </div>
           ))}
         </div>
       </section>
