@@ -10,15 +10,15 @@ const chapterPacks: CourseChapterPack[] = [
   assistenteAdministrativoChapters,
   canvaBasicoChapters,
   {
-    courseId: "atendimento-cliente",
+    courseId: "suporte-atendimento-cliente",
     chapters: [atendimentoClienteChapter1]
   },
   {
-    courseId: "oratoria-profissional",
+    courseId: "apresentacao-oratoria-profissional",
     chapters: [oratoriaChapter1]
   },
   {
-    courseId: "empreendedorismo-digital",
+    courseId: "empreendedorismo-servicos-digitais",
     chapters: [empreendedorismoChapter1]
   }
 ];
