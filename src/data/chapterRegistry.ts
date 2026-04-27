@@ -1,8 +1,12 @@
 import type { CourseContent, CourseModule } from "./courseTypes";
 import type { CourseChapterPack } from "./courseChapterTypes";
 import { assistenteAdministrativoChapters } from "./chapters/assistenteAdministrativo";
+import { canvaBasicoChapters } from "./chapters/canvaBasico";
 
-const chapterPacks: CourseChapterPack[] = [assistenteAdministrativoChapters];
+const chapterPacks: CourseChapterPack[] = [
+  assistenteAdministrativoChapters,
+  canvaBasicoChapters
+];
 
 function chapterToModule(chapter: CourseChapterPack["chapters"][number]): CourseModule {
   return {
