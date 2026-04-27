@@ -3,21 +3,43 @@ import { lesson } from "../../courseTypes";
 
 export const sitesClientesChapter1: CourseChapter = {
   id: "sites-cap-1",
-  title: "Site Simples para Cliente",
-  subtitle: "Monte uma página que alguém realmente usaria para divulgar um serviço",
+  title: "Site Premium Nível Empresa",
+  subtitle: "Crie uma landing page com cara de marca grande, copy forte, visual premium e entrega profissional",
   order: 1,
-  workplaceScenario: "Um pequeno negócio precisa de uma página simples com apresentação, serviços, preço inicial e contato. O objetivo não é inventar moda: é criar algo claro e confiável.",
-  chapterDeliverable: "Criar o planejamento de uma landing page com seções, textos e chamada para contato",
+  workplaceScenario: "Uma empresa quer um site que pareça caro, confiável e moderno. O site precisa apresentar a marca, explicar o valor, mostrar serviços, gerar confiança e levar o visitante para uma ação clara.",
+  chapterDeliverable: "Criar o plano completo de uma landing page premium com estrutura, copy, seções, identidade visual e proposta de entrega",
   successCriteria: [
-    "Objetivo do site definido",
-    "Seções organizadas",
-    "Texto simples e confiável",
-    "Chamada para contato clara"
+    "Hero section com promessa forte",
+    "Seções organizadas para conversão",
+    "Copy clara com benefício e prova",
+    "Visual premium com paleta, fonte e espaçamento",
+    "Entrega pronta para virar portfólio ou proposta comercial"
   ],
   lessons: [
-    lesson("Briefing do cliente", "Antes de criar qualquer site, você precisa entender o negócio, o público e o que a pessoa quer receber pelo WhatsApp ou formulário.", "Crie um briefing com nome do negócio, público, serviços, diferencial e contato."),
-    lesson("Estrutura da página", "Uma landing page simples precisa de começo forte, prova, serviços, chamada e contato. Sem isso, vira só uma página bonita que não vende.", "Monte a ordem das seções: topo, benefícios, serviços, prova, dúvidas e contato."),
-    lesson("Texto que passa confiança", "O texto precisa ser direto. Explique o que a pessoa faz, para quem é e como contratar.", "Escreva os textos principais da página em linguagem simples."),
-    lesson("Entrega para o cliente", "Mesmo sem programar, você pode entregar planejamento, texto e estrutura. Isso já vira serviço vendável.", "Organize o material em um documento chamado plano-do-site-cliente."),
-  ],
+    lesson(
+      "Briefing nível empresa",
+      "Um site premium começa antes do design. Você precisa entender objetivo, público, posicionamento, tom de voz, diferencial, oferta e ação principal. Sem briefing, o site vira só uma página bonita sem estratégia.",
+      "Crie um briefing com: nome da marca, público, promessa, serviço principal, diferencial, prova de confiança, CTA e estilo visual desejado."
+    ),
+    lesson(
+      "Arquitetura de conversão",
+      "Uma landing page premium precisa conduzir o visitante. A ordem ideal é: hero forte, problema, solução, benefícios, processo, prova, oferta, FAQ e CTA final.",
+      "Monte a estrutura completa da página com pelo menos 8 seções e escreva o objetivo de cada seção."
+    ),
+    lesson(
+      "Copy que vende sem parecer golpe",
+      "Texto premium é direto, elegante e confiável. Ele não promete milagre. Ele mostra problema, benefício, prova e próximo passo com clareza.",
+      "Escreva a copy principal: título, subtítulo, 3 benefícios, 1 seção de prova, FAQ e chamada final para contato."
+    ),
+    lesson(
+      "Direção visual premium",
+      "Visual caro não é encher de efeito. É usar contraste, espaço, hierarquia, fonte boa, imagens certas e consistência. Preto, branco e uma cor de destaque já conseguem parecer premium.",
+      "Defina paleta, fontes, estilo de botões, tipo de imagem, espaçamento e referência visual da página."
+    ),
+    lesson(
+      "Entrega profissional",
+      "A entrega precisa parecer projeto de empresa: documento organizado, estrutura da página, textos finais, referências visuais e próximos passos. Isso aumenta o valor percebido do serviço.",
+      "Organize tudo em um documento chamado projeto-site-premium e escreva uma mensagem de entrega para o cliente."
+    )
+  ]
 };
