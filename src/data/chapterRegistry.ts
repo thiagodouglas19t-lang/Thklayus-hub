@@ -2,6 +2,7 @@ import type { CourseContent, CourseModule } from "./courseTypes";
 import type { CourseChapterPack } from "./courseChapterTypes";
 import { assistenteAdministrativoChapters } from "./chapters/assistenteAdministrativo";
 import { canvaBasicoChapters } from "./chapters/canvaBasico";
+import { completedCoursePacks } from "./chapters/completedCoursePacks";
 import { atendimentoClienteChapter1 } from "./chapters/atendimentoCliente/chapter1";
 import { oratoriaChapter1 } from "./chapters/oratoria/chapter1";
 import { empreendedorismoChapter1 } from "./chapters/empreendedorismo/chapter1";
@@ -15,7 +16,8 @@ const chapterPacks: CourseChapterPack[] = [
   { courseId: "apresentacao-oratoria-profissional", chapters: [oratoriaChapter1] },
   { courseId: "empreendedorismo-servicos-digitais", chapters: [empreendedorismoChapter1] },
   { courseId: "office-profissional", chapters: [officeProfissionalChapter1] },
-  { courseId: "ia-na-pratica", chapters: [iaNaPraticaChapter1] }
+  { courseId: "ia-na-pratica", chapters: [iaNaPraticaChapter1] },
+  ...completedCoursePacks,
 ];
 
 function chapterToModule(chapter: CourseChapterPack["chapters"][number]): CourseModule {
