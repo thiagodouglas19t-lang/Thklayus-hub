@@ -180,104 +180,135 @@ export const atendimentoCliente = criarCurso({
 export const desenvolvedorSistemas = criarCurso({
   id: "desenvolvedor-sistemas",
   title: "Qualificação Técnica em Desenvolvedor de Sistemas",
-  subtitle: "Formação prática em lógica, banco de dados e programação para criar sistemas de gestão, cadastros, painéis e aplicações internas.",
+  subtitle: "Formação profissional para criar sistemas de gestão, aplicações internas, cadastros, painéis administrativos e soluções digitais para empresas.",
   category: "Tecnologia",
   level: "intermediario",
   duration: "12 meses • 338h",
   price: "R$ 89,90",
   hero: "🧩",
-  outcome: "Planejar, construir e apresentar um sistema simples com lógica, banco de dados, telas, autenticação e documentação básica.",
+  outcome: "Sair com base real para planejar, documentar, programar e apresentar sistemas de gestão usando lógica, banco de dados, telas, autenticação e boas práticas.",
   modules: [
-    { title: "Lógica de programação", lessons: [
-      lesson("Algoritmos e raciocínio lógico", "Entenda entrada, processamento, saída e como quebrar problemas em passos.", "Escreva o algoritmo de um sistema de cadastro de clientes."),
-      lesson("Variáveis, condições e repetições", "Aprenda a controlar fluxo de decisão e repetição em sistemas.", "Crie regras para aprovar ou bloquear um cadastro."),
-      lesson("Funções e organização", "Separe responsabilidades para evitar código bagunçado.", "Divida um cadastro em funções de validar, salvar e listar."),
+    { title: "Módulo 1 — Fundamentos de sistemas", lessons: [
+      lesson("O que faz um desenvolvedor de sistemas", "Entenda o papel do profissional que cria soluções para empresas, lojas, escolas, escritórios e equipes internas.", "Liste 5 problemas reais que poderiam virar sistema: cadastro, pedido, estoque, financeiro ou atendimento."),
+      lesson("Como um sistema é planejado", "Aprenda a transformar problema em requisitos, telas, dados e fluxos.", "Escreva o objetivo, público e funcionalidades de um sistema de gestão simples."),
+      lesson("Ambiente profissional", "Organização de arquivos, editor, navegador, versionamento básico e rotina de estudo.", "Monte sua estrutura de pastas e checklist de ferramentas para estudar programação."),
     ]},
-    { title: "Banco de dados SQL", lessons: [
-      lesson("Tabelas e relacionamentos", "Entenda registros, colunas, chaves e relações entre dados.", "Modele tabelas para clientes, pedidos e produtos."),
-      lesson("Consultas essenciais", "Aprenda a buscar, filtrar, ordenar e cruzar informações.", "Escreva consultas para listar clientes ativos e pedidos pendentes."),
-      lesson("Segurança dos dados", "Cuidados com acesso, validação e organização de informações.", "Crie regras simples de quem pode ver ou editar cada dado."),
+    { title: "Módulo 2 — Lógica de programação", lessons: [
+      lesson("Algoritmos e raciocínio lógico", "Entrada, processamento, saída, sequência de passos e resolução de problemas.", "Escreva o algoritmo de cadastro de cliente com validação de nome, telefone e status."),
+      lesson("Variáveis, tipos e operadores", "Como armazenar textos, números, valores booleanos, datas e cálculos.", "Modele os campos de um pedido: cliente, produto, quantidade, preço e total."),
+      lesson("Condições e decisões", "Regras com if/else para aprovar, bloquear, calcular ou mostrar mensagens.", "Crie regras para pedido pendente, pago, cancelado e entregue."),
+      lesson("Repetições e listas", "Como trabalhar com vários itens, somar valores e filtrar registros.", "Liste produtos de um pedido e calcule o valor total."),
     ]},
-    { title: "Programação aplicada", lessons: [
-      lesson("Estrutura de um sistema", "Entenda telas, rotas, componentes, estados e comunicação com dados.", "Desenhe o fluxo de um sistema de controle de pedidos."),
-      lesson("CRUD completo", "Criar, listar, editar e remover registros de forma organizada.", "Monte o roteiro de um CRUD de produtos."),
-      lesson("Painel administrativo", "Como mostrar métricas, status e ações para o gestor.", "Planeje um painel com total de clientes, pedidos e receita."),
+    { title: "Módulo 3 — Banco de dados SQL", lessons: [
+      lesson("Modelagem de dados", "Tabelas, colunas, chaves e relacionamentos entre clientes, produtos e pedidos.", "Modele um banco com clientes, produtos, pedidos e itens do pedido."),
+      lesson("Consultas SQL essenciais", "SELECT, WHERE, ORDER BY, INSERT, UPDATE e DELETE em exemplos práticos.", "Escreva consultas para listar clientes ativos, pedidos pendentes e produtos em estoque."),
+      lesson("Relacionamentos e relatórios", "Como cruzar dados para criar visão de gestão.", "Planeje um relatório com total de pedidos por cliente e valor vendido no mês."),
+      lesson("Segurança e integridade", "Noções de permissão, validação e cuidado com dados importantes.", "Crie regras de acesso para usuário comum, atendente e administrador."),
     ]},
-    { title: "Projeto final", lessons: [
-      lesson("Sistema de gestão", "Junte lógica, banco, telas e painel em um projeto completo.", "Crie o escopo de um sistema para loja, escola ou serviço."),
-      lesson("Documentação e apresentação", "Explique problema, solução, funcionalidades e próximos passos.", "Monte uma apresentação técnica do sistema final."),
+    { title: "Módulo 4 — Desenvolvimento de aplicação", lessons: [
+      lesson("Telas e componentes", "Organize interface em páginas, formulários, cards, tabelas e botões de ação.", "Desenhe as telas de login, dashboard, cadastro e listagem."),
+      lesson("CRUD completo", "Criar, listar, editar e remover registros de forma segura e organizada.", "Monte o roteiro do CRUD de produtos com validação e confirmação."),
+      lesson("Autenticação e perfis", "Entenda login, usuário, sessão, permissões e áreas protegidas.", "Defina quais telas cada perfil pode acessar."),
+      lesson("Painel administrativo", "Métricas, filtros, status, botões e visão geral para decisão.", "Planeje um dashboard com pedidos, receita, clientes e pendências."),
+    ]},
+    { title: "Módulo 5 — Projeto profissional", lessons: [
+      lesson("Sistema de gestão completo", "Junte requisitos, banco, telas, CRUD, permissões e painel em um projeto final.", "Crie o escopo de um sistema para loja, curso, escola ou serviço digital."),
+      lesson("Testes e revisão", "Como revisar fluxo, validar botões, conferir dados e corrigir problemas antes de entregar.", "Crie uma checklist de testes para login, cadastro, edição, exclusão e relatório."),
+      lesson("Documentação e apresentação", "Explique problema, solução, tecnologias, telas e próximos passos.", "Monte uma apresentação técnica do sistema final como se fosse para um cliente."),
     ]},
   ],
-  checklist: ["Entendo lógica de programação", "Sei modelar banco SQL", "Planejo CRUD", "Crio painel administrativo", "Apresento projeto técnico"],
-  finalProject: "Criar o protótipo/documentação de um sistema de gestão com cadastro, banco de dados, painel e apresentação final.",
+  checklist: ["Sei transformar problema em requisitos", "Entendo lógica de programação", "Modelo banco de dados SQL", "Planejo CRUD completo", "Entendo autenticação e permissões", "Crio painel administrativo", "Apresento projeto técnico"],
+  finalProject: "Criar a documentação completa e o protótipo funcional de um sistema de gestão com banco SQL, CRUD, autenticação, painel administrativo, testes e apresentação final.",
 });
 
 export const desenvolvedorWebsites = criarCurso({
   id: "desenvolvedor-websites",
   title: "Qualificação Técnica em Desenvolvedor de Websites",
-  subtitle: "Formação para criar sites profissionais com HTML, CSS, JavaScript, WordPress, noções de design e publicação online.",
+  subtitle: "Formação profissional para criar sites institucionais, landing pages, portfólios, páginas de venda e projetos web com HTML, CSS, JavaScript e WordPress.",
   category: "Tecnologia",
   level: "iniciante",
   duration: "12 meses • 364h",
   price: "R$ 89,90",
   hero: "🌐",
-  outcome: "Criar websites institucionais, páginas de venda e portfólios com estrutura, design responsivo e publicação organizada.",
+  outcome: "Sair com base para criar, publicar e apresentar sites profissionais, com estrutura correta, visual responsivo, copy clara, formulário e proposta de entrega.",
   modules: [
-    { title: "Fundamentos da web", lessons: [
-      lesson("Como um site funciona", "Entenda domínio, hospedagem, navegador, páginas, arquivos e links.", "Desenhe a estrutura de um site com home, sobre, serviços e contato."),
-      lesson("HTML profissional", "Crie a estrutura da página com títulos, seções, botões, imagens e formulários.", "Monte o HTML de uma página institucional simples."),
-      lesson("CSS e responsividade", "Organize cores, espaçamento, tipografia e layout para celular e desktop.", "Crie uma versão mobile e desktop de uma seção de vendas."),
+    { title: "Módulo 1 — Fundamentos da web", lessons: [
+      lesson("Como a internet entrega um site", "Entenda domínio, hospedagem, navegador, arquivos, imagens, links e publicação.", "Desenhe a estrutura de um site com home, sobre, serviços, portfólio e contato."),
+      lesson("Planejamento de site", "Defina objetivo, público, seções, promessa e chamada para ação.", "Crie o briefing de um site para uma loja, profissional autônomo ou escola."),
+      lesson("Organização profissional", "Arquivos, pastas, imagens, nomes, versões e preparação para entrega.", "Monte uma estrutura de projeto com assets, pages, styles e scripts."),
     ]},
-    { title: "JavaScript e interação", lessons: [
-      lesson("Interações básicas", "Use JavaScript para menus, botões, modais e validações simples.", "Crie um botão que abre uma seção de contato."),
-      lesson("Formulários e validação", "Colete dados com cuidado e valide campos obrigatórios.", "Planeje um formulário de orçamento para cliente."),
-      lesson("Componentes reutilizáveis", "Evite repetir código criando blocos reaproveitáveis.", "Liste componentes para cards, navbar, footer e depoimentos."),
+    { title: "Módulo 2 — HTML profissional", lessons: [
+      lesson("Estrutura de página", "Use header, main, section, footer, títulos, parágrafos, links e botões.", "Crie o HTML da primeira página de um negócio local."),
+      lesson("Conteúdo que vende", "Organize título, subtítulo, benefícios, prova, oferta e contato.", "Transforme uma descrição simples em uma seção de venda clara."),
+      lesson("Formulários e contato", "Campos, labels, botão, validações básicas e cuidado com informações.", "Crie um formulário de orçamento com nome, contato, serviço e mensagem."),
     ]},
-    { title: "WordPress, design e publicação", lessons: [
-      lesson("WordPress na prática", "Entenda páginas, temas, plugins, menus e conteúdo.", "Planeje um site WordPress para uma loja pequena."),
-      lesson("Design para sites", "Use hierarquia, contraste, imagens e chamadas para ação.", "Melhore a primeira dobra de uma página de serviço."),
-      lesson("Publicação e entrega", "Checklist antes de entregar: links, textos, mobile, velocidade e contato.", "Crie uma checklist de entrega de site."),
+    { title: "Módulo 3 — CSS, layout e responsividade", lessons: [
+      lesson("Visual limpo", "Cores, tipografia, espaçamento, alinhamento e contraste.", "Melhore uma seção visualmente bagunçada aplicando hierarquia."),
+      lesson("Layout responsivo", "Flex, grid, largura, quebra de colunas e adaptação para celular.", "Crie uma seção com cards que funcione no celular e no computador."),
+      lesson("Componentes de interface", "Navbar, hero, cards, FAQ, depoimentos e rodapé.", "Monte 5 componentes reutilizáveis para sites de clientes."),
     ]},
-    { title: "Projeto final", lessons: [
-      lesson("Site profissional", "Planeje e monte uma página completa para uma empresa fictícia.", "Crie um site com home, serviço, preço, contato e chamada para ação."),
-      lesson("Portfólio e proposta", "Apresente o site como serviço vendável.", "Crie uma proposta simples para vender criação de site."),
+    { title: "Módulo 4 — JavaScript e experiência", lessons: [
+      lesson("Interações úteis", "Menus, modais, botões, acordeões e mensagens de confirmação.", "Crie um FAQ que abre e fecha respostas."),
+      lesson("Validação de formulário", "Campos obrigatórios, mensagens de erro e envio organizado.", "Valide um formulário antes de enviar."),
+      lesson("Performance básica", "Imagens leves, carregamento, organização e experiência no mobile.", "Crie uma checklist de performance para revisar antes de publicar."),
+    ]},
+    { title: "Módulo 5 — WordPress e ferramentas visuais", lessons: [
+      lesson("WordPress na prática", "Páginas, temas, plugins, menus, posts e configurações básicas.", "Planeje um site WordPress para uma empresa pequena."),
+      lesson("Design com ferramentas criativas", "Noções de banners, imagens, identidade visual e peças de apoio.", "Crie um banner principal para uma landing page."),
+      lesson("Publicação e manutenção", "Backup, revisão, links, responsividade e ajustes de conteúdo.", "Crie um plano de manutenção mensal simples."),
+    ]},
+    { title: "Módulo 6 — Projeto profissional", lessons: [
+      lesson("Site completo", "Planeje e monte um site profissional com páginas, seções, contato e CTA.", "Crie um site para uma empresa fictícia com home, serviços, sobre, portfólio e contato."),
+      lesson("Portfólio e proposta comercial", "Transforme seu projeto em prova de habilidade e serviço vendável.", "Crie uma proposta de criação de site com escopo, prazo, preço e entrega."),
+      lesson("Apresentação para cliente", "Explique decisões de design, funcionalidades e próximos passos.", "Grave ou escreva uma apresentação curta do site final."),
     ]},
   ],
-  checklist: ["Crio estrutura HTML", "Estilizo com CSS", "Uso interações JS", "Planejo site WordPress", "Entrego site com checklist"],
-  finalProject: "Criar um site profissional completo para uma empresa fictícia, com proposta comercial e checklist de entrega.",
+  checklist: ["Planejo site com briefing", "Crio HTML estruturado", "Faço CSS responsivo", "Uso JavaScript em interações", "Entendo WordPress", "Publico com checklist", "Tenho portfólio e proposta"],
+  finalProject: "Criar um site profissional completo para uma empresa fictícia, com páginas principais, versão mobile, formulário, proposta comercial e apresentação final.",
 });
 
 export const iaNaPratica = criarCurso({
   id: "ia-na-pratica",
   title: "IA na Prática",
-  subtitle: "Aprenda a aplicar inteligência artificial em automações, criatividade, marketing, vendas e gestão sem depender de programação avançada.",
+  subtitle: "Formação aplicada para usar inteligência artificial em automação, criatividade, marketing, vendas, atendimento e gestão de tarefas reais.",
   category: "Inteligência Artificial",
   level: "iniciante",
   duration: "5 meses",
   price: "R$ 59,90",
   hero: "🤖",
-  outcome: "Usar IA de forma prática para criar conteúdo, organizar processos, melhorar atendimento, apoiar vendas e automatizar tarefas simples.",
+  outcome: "Aplicar IA com responsabilidade para melhorar produtividade, criar materiais, organizar processos, apoiar vendas, atender clientes e montar um kit profissional de prompts.",
   modules: [
-    { title: "Fundamentos de IA aplicada", lessons: [
-      lesson("O que a IA faz na prática", "Entenda usos reais de IA em estudos, trabalho, atendimento, marketing e organização.", "Liste 5 tarefas repetitivas que poderiam receber ajuda de IA."),
-      lesson("Prompts profissionais", "Aprenda a pedir com contexto, objetivo, formato e critérios.", "Crie 3 prompts: resumo, roteiro e atendimento."),
-      lesson("Limites e responsabilidade", "Como revisar respostas, evitar dependência e proteger dados sensíveis.", "Crie uma checklist antes de usar IA em trabalho real."),
+    { title: "Módulo 1 — Fundamentos de IA aplicada", lessons: [
+      lesson("O que a IA faz na prática", "Entenda usos reais de IA em estudo, trabalho, atendimento, marketing, vendas e organização.", "Liste 10 tarefas repetitivas que poderiam receber ajuda de IA."),
+      lesson("Como escrever bons prompts", "Use contexto, objetivo, formato, referência, limite e critério de qualidade.", "Crie prompts para resumo, roteiro, atendimento, venda e planejamento."),
+      lesson("Revisão e responsabilidade", "Aprenda a conferir respostas, evitar erro, proteger dados e não depender cegamente da ferramenta.", "Crie uma checklist antes de usar IA em um trabalho real."),
     ]},
-    { title: "Automação e gestão com IA", lessons: [
-      lesson("Automação de tarefas", "Use IA para criar listas, modelos, respostas e processos repetíveis.", "Monte um fluxo de atendimento com mensagens prontas."),
-      lesson("Gestão com IA", "Organize tarefas, calendário, metas, relatórios e decisões simples.", "Crie um plano semanal de trabalho com apoio de IA."),
-      lesson("Assistentes virtuais", "Planeje um assistente para suporte, estudo ou vendas.", "Escreva as regras de um assistente de atendimento."),
+    { title: "Módulo 2 — Automação com IA", lessons: [
+      lesson("Tarefas repetitivas", "Use IA para transformar processos bagunçados em passos claros.", "Monte um fluxo para responder dúvidas frequentes de clientes."),
+      lesson("Modelos prontos", "Crie modelos de mensagem, contrato simples, checklist, briefing e relatório.", "Crie 5 modelos reutilizáveis para um serviço digital."),
+      lesson("Rotina produtiva", "Organize semana, tarefas, prioridades e revisões com apoio de IA.", "Crie uma rotina semanal com blocos de estudo, trabalho e revisão."),
     ]},
-    { title: "Criatividade, marketing e vendas", lessons: [
-      lesson("IA criativa", "Crie ideias de posts, roteiros, títulos, descrições e campanhas.", "Gere uma campanha de 5 posts para um curso."),
-      lesson("Marketing com IA", "Use IA para público-alvo, oferta, copy e calendário de conteúdo.", "Crie uma oferta com benefício, prova e chamada para ação."),
-      lesson("Vendas com IA", "Monte mensagens de venda, atendimento e follow-up com clareza.", "Crie uma sequência de 3 mensagens para vender um serviço."),
+    { title: "Módulo 3 — IA criativa", lessons: [
+      lesson("Ideias e conteúdo", "Use IA para gerar ideias de posts, aulas, roteiros, títulos e campanhas.", "Gere 20 ideias de conteúdo para vender um curso ou serviço."),
+      lesson("Roteiros e apresentações", "Transforme uma ideia solta em roteiro, slides e fala organizada.", "Crie roteiro de apresentação de 3 minutos sobre um tema profissional."),
+      lesson("Design e direção criativa", "Como pedir conceitos visuais, paletas, estilo e estrutura de peças.", "Crie um briefing visual para uma campanha de divulgação."),
     ]},
-    { title: "Projeto final", lessons: [
-      lesson("Sistema pessoal com IA", "Monte um kit de prompts para estudar, vender, atender e organizar tarefas.", "Organize 10 prompts úteis por categoria."),
-      lesson("Aplicação prática", "Escolha uma área e mostre como a IA melhora o processo.", "Apresente um mini projeto usando IA em marketing, vendas ou gestão."),
+    { title: "Módulo 4 — Marketing e vendas com IA", lessons: [
+      lesson("Oferta e público-alvo", "Defina público, dor, desejo, benefício e promessa realista.", "Crie uma oferta para vender um curso ou serviço simples."),
+      lesson("Copywriting com IA", "Crie textos de venda, chamadas, descrições e mensagens de follow-up.", "Escreva uma página simples de venda para uma formação."),
+      lesson("Atendimento e fechamento", "Monte respostas para dúvidas, objeções, comprovante e pós-venda.", "Crie uma sequência de 3 mensagens para tirar dúvidas e fechar venda."),
+    ]},
+    { title: "Módulo 5 — Gestão com IA", lessons: [
+      lesson("Relatórios e decisões", "Transforme dados simples em resumo, prioridade e plano de ação.", "Crie um relatório semanal de vendas fictícias com sugestões."),
+      lesson("Organização de processos", "Documente o passo a passo de atendimento, entrega e suporte.", "Crie um processo padrão para receber, produzir e entregar um pedido."),
+      lesson("Assistente virtual planejado", "Defina função, regras, tom, limites e respostas de um assistente.", "Escreva as instruções de um assistente de suporte para seu app."),
+    ]},
+    { title: "Módulo 6 — Projeto profissional", lessons: [
+      lesson("Kit profissional de prompts", "Monte prompts para estudo, venda, marketing, atendimento, organização e criação.", "Organize 25 prompts por categoria com nome, objetivo e exemplo de uso."),
+      lesson("Mini projeto com IA", "Escolha uma área e mostre como a IA melhora um processo real.", "Crie um mini projeto aplicando IA em marketing, vendas, gestão ou atendimento."),
+      lesson("Apresentação final", "Explique problema, solução com IA, limites, resultado e próximos passos.", "Monte uma apresentação do seu projeto final de IA."),
     ]},
   ],
-  checklist: ["Crio prompts melhores", "Uso IA com responsabilidade", "Automatizo tarefas simples", "Aplico IA em marketing", "Tenho kit de prompts profissional"],
-  finalProject: "Criar um kit de prompts e um mini projeto aplicando IA em uma rotina real de estudo, atendimento, marketing, vendas ou gestão.",
+  checklist: ["Escrevo prompts profissionais", "Uso IA com responsabilidade", "Automatizo tarefas simples", "Crio conteúdo e campanhas", "Apoio vendas e atendimento", "Organizo processos", "Tenho kit profissional de prompts"],
+  finalProject: "Criar um kit com 25 prompts profissionais e apresentar um mini projeto aplicando IA em uma rotina real de marketing, vendas, atendimento, gestão ou estudos.",
 });
