@@ -49,9 +49,9 @@ const mobileBase: MenuItem[] = [
 export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarProps) {
   const internal = canAccessInternalPanel(userEmail);
   const role = getUserRole(userEmail);
-  const visibleMenu = menu.filter((item) => !item.internal || internal);
+  const visibleMenu = menu.filter((item) => (!item.internal || internal) && !(internal && item.value === "suporte"));
   const mobileMenu = internal
-    ? [mobileBase[0], mobileBase[1], mobileBase[2], mobileBase[3], mobileBase[4], { label: "Painel ADM", short: "ADM", value: "admin" as Page, icon: "♛", internal: true }]
+    ? [mobileBase[0], mobileBase[1], mobileBase[2], mobileBase[3], { label: "Painel ADM", short: "ADM", value: "admin" as Page, icon: "♛", internal: true }]
     : mobileBase;
 
   function Item(item: MenuItem, mobile = false) {
