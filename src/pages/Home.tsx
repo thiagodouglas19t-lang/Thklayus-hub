@@ -1,19 +1,55 @@
+import { useMemo } from "react";
 import { professionalCourses } from "../data/courses";
 
 const prioridadeHome = ["ia-na-pratica", "ia-ferramentas-prompts", "apis-na-pratica", "site-nivel-empresa"];
+const PROGRESS_KEY = "thklayus_course_progress_v1";
+const LAST_LESSON_KEY = "thklayus_last_lesson_v1";
+
+type ProgressMap = Record<string, string[]>;
+type LastLessonMap = Record<string, { moduleIndex: number; lessonIndex: number }>;
+
+function readJson<T>(key: string, fallback: T): T {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function countLessons(course: (typeof professionalCourses)[number]) {
+  return course.modules.reduce((total, modulo) => total + modulo.lessons.length, 0);
+}
 
 export default function Home({ setPage }: any) {
   const populares = prioridadeHome.map((id) => professionalCourses.find((course) => course.id === id)).filter(Boolean).slice(0, 4) as typeof professionalCourses;
   const cursoExemplo = professionalCourses[0];
-  const totalAulas = professionalCourses.reduce((sum, course) => sum + course.modules.reduce((aulas, modulo) => aulas + modulo.lessons.length, 0), 0);
+  const totalAulas = professionalCourses.reduce((sum, course) => sum + countLessons(course), 0);
   const totalHoras = professionalCourses.reduce((sum, course) => {
     const horas = course.duration.match(/(\d+)h/)?.[1];
     return sum + (horas ? Number(horas) : 0);
   }, 0);
 
+  const resumoEstudo = useMemo(() => {
+    const progress = readJson<ProgressMap>(PROGRESS_KEY, {});
+    const lastLessons = readJson<LastLessonMap>(LAST_LESSON_KEY, {});
+    return professionalCourses
+      .map((course) => {
+        const total = countLessons(course);
+        const done = Math.min(progress[course.id]?.length ?? 0, total);
+        const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+        const last = lastLessons[course.id];
+        const modulo = last ? course.modules[last.moduleIndex] : undefined;
+        const aula = modulo ? modulo.lessons[last.lessonIndex] : undefined;
+        return { course, total, done, percent, aula: aula?.title };
+      })
+      .filter((item) => item.done > 0)
+      .sort((a, b) => b.done - a.done)[0] ?? null;
+  }, []);
+
   const acoes = [
     { title: "Ver formações", text: "Catálogo com grade curricular, preço, duração e projeto final.", icon: "◈", page: "cursos" },
-    { title: "Meus cursos", text: "Continue de onde parou, marque aulas e baixe materiais.", icon: "▣", page: "estudo" },
+    { title: "Meus cursos", text: resumoEstudo ? `Continue ${resumoEstudo.course.title}.` : "Continue de onde parou, marque aulas e baixe materiais.", icon: "▣", page: "estudo" },
     { title: "Suporte", text: "Envie comprovante, tire dúvidas e acompanhe atendimento no app.", icon: "◇", page: "suporte" },
   ];
 
@@ -37,9 +73,22 @@ export default function Home({ setPage }: any) {
             </div>
             <h2 className="mt-5 max-w-4xl text-4xl font-black leading-[1.01] tracking-[-0.06em] md:text-7xl">Aprenda, acompanhe e evolua em uma plataforma própria.</h2>
             <p className="mt-5 max-w-2xl text-sm leading-7 text-zinc-400 md:text-lg">Cursos com grade curricular, prática guiada, projeto final, certificado e suporte interno. Tudo organizado para parecer formação séria, não conteúdo solto.</p>
+            {resumoEstudo && (
+              <div className="mt-6 rounded-[1.7rem] border border-emerald-400/20 bg-emerald-500/10 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-200">Continuar de onde parou</p>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-xl font-black text-white">{resumoEstudo.course.title}</h3>
+                    <p className="mt-1 text-sm text-emerald-50/70">{resumoEstudo.aula ? `Última aula: ${resumoEstudo.aula}` : `${resumoEstudo.done}/${resumoEstudo.total} aulas concluídas`}</p>
+                  </div>
+                  <span className="rounded-2xl bg-white px-4 py-2 text-sm font-black text-black">{resumoEstudo.percent}%</span>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-emerald-300" style={{ width: `${resumoEstudo.percent}%` }} /></div>
+              </div>
+            )}
             <div className="mt-7 grid gap-3 sm:flex sm:flex-wrap">
               <button onClick={() => setPage("cursos")} className="rounded-2xl bg-white px-6 py-4 font-black text-black shadow-lg shadow-blue-500/20 transition hover:scale-[1.03] active:scale-95">Ver formações</button>
-              <button onClick={() => setPage("estudo")} className="rounded-2xl border border-white/10 bg-white/[0.05] px-6 py-4 font-black text-white transition hover:border-blue-400/40 hover:bg-blue-500/10 active:scale-95">Continuar estudando</button>
+              <button onClick={() => setPage("estudo")} className="rounded-2xl border border-white/10 bg-white/[0.05] px-6 py-4 font-black text-white transition hover:border-blue-400/40 hover:bg-blue-500/10 active:scale-95">{resumoEstudo ? "Continuar agora" : "Continuar estudando"}</button>
               <button onClick={() => setPage("suporte")} className="rounded-2xl border border-violet-400/30 bg-violet-500/10 px-6 py-4 font-black text-violet-100 transition hover:bg-violet-500/20 active:scale-95">Enviar comprovante</button>
             </div>
           </div>
