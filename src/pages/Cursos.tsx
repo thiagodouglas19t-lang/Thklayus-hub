@@ -4,6 +4,15 @@ import { professionalCourses, type CourseContent } from "../data/courses";
 
 const chavePix = "5e5e7367-37bb-4f7b-9de2-eaeb0d3712a2";
 const levelLabel: Record<string, string> = { iniciante: "Iniciante", intermediario: "Intermediário", avancado: "Avançado" };
+const categoryStyle: Record<string, string> = {
+  Tecnologia: "border-cyan-300/30 bg-cyan-500/10 text-cyan-100",
+  "Inteligência Artificial": "border-violet-300/30 bg-violet-500/10 text-violet-100",
+  Informática: "border-blue-300/30 bg-blue-500/10 text-blue-100",
+  Design: "border-pink-300/30 bg-pink-500/10 text-pink-100",
+  Comunicação: "border-amber-300/30 bg-amber-500/10 text-amber-100",
+  Negócios: "border-emerald-300/30 bg-emerald-500/10 text-emerald-100",
+  Atendimento: "border-sky-300/30 bg-sky-500/10 text-sky-100",
+};
 
 function aulasDoCurso(course: CourseContent) {
   return course.modules.reduce((sum, module) => sum + module.lessons.length, 0);
@@ -31,7 +40,11 @@ function areasAtuacao(course: CourseContent) {
 }
 
 function isTechCourse(course: CourseContent) {
-  return ["desenvolvedor-sistemas", "desenvolvedor-websites", "ia-na-pratica"].includes(course.id);
+  return ["desenvolvedor-sistemas", "desenvolvedor-websites", "ia-na-pratica", "apis-na-pratica", "site-nivel-empresa", "ia-ferramentas-prompts"].includes(course.id);
+}
+
+function tagClass(course: CourseContent) {
+  return categoryStyle[course.category] ?? "border-white/10 bg-white/[0.04] text-zinc-300";
 }
 
 function abrirEstudoGratis(course: CourseContent) {
@@ -71,8 +84,8 @@ export default function Cursos() {
         <div className="relative grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
             <span className="rounded-full border border-blue-300/25 bg-blue-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-blue-100">AprendaJá • formações profissionalizantes</span>
-            <h2 className="mt-6 max-w-3xl text-4xl font-black tracking-[-0.06em] text-white md:text-6xl">Cursos com visual premium, grade real e projeto final.</h2>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-300">Cada formação foi organizada como uma qualificação: módulos, aulas práticas, carga horária, projeto final, certificado e acesso controlado pelo ADM.</p>
+            <h2 className="mt-6 max-w-3xl text-4xl font-black tracking-[-0.06em] text-white md:text-6xl">Cursos com grade real, prática e projeto final.</h2>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-300">Escolha uma formação, confira a grade e compre pelo fluxo manual com liberação do ADM.</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {[`${professionalCourses.length} formações`, "Aulas práticas", "Certificado final"].map((item) => <div key={item} className="rounded-2xl border border-white/10 bg-black/35 p-4 text-center text-sm font-black text-zinc-200">{item}</div>)}
             </div>
@@ -88,7 +101,7 @@ export default function Cursos() {
             </div>
             <div className="grid grid-cols-[1fr_135px] gap-4 p-5 pt-0">
               <div>
-                <p className="text-xs font-black uppercase tracking-widest text-cyan-200">Contém na formação</p>
+                <p className="text-xs font-black uppercase tracking-widest text-cyan-200">Conteúdo</p>
                 <div className="mt-3 space-y-1 text-sm font-bold text-white/90">
                   {principaisModulos(cursoDestaque).slice(0, 4).map((item) => <p key={item}>• {item}</p>)}
                 </div>
@@ -100,7 +113,7 @@ export default function Cursos() {
             </div>
             <div className="flex items-center justify-between gap-3 border-t border-white/10 bg-[#052f44] p-5">
               <p className="text-3xl font-black text-white">{cursoDestaque.price}</p>
-              <button onClick={() => setCursoDetalhes(cursoDestaque)} className="rounded-2xl bg-white px-5 py-3 font-black text-[#052f44] transition active:scale-95">Ver grade</button>
+              <button onClick={() => setCursoDetalhes(cursoDestaque)} className="rounded-2xl bg-white px-5 py-3 font-black text-[#052f44] transition active:scale-95">Ver detalhes</button>
             </div>
           </div>
         </div>
@@ -127,16 +140,15 @@ export default function Cursos() {
                 <div className="relative bg-[radial-gradient(circle_at_20%_0%,rgba(125,211,252,0.35),transparent_35%),linear-gradient(135deg,#031d2a,#064d70)] p-5 text-white">
                   <div className="pointer-events-none absolute inset-0 translate-x-[-120%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition duration-700 group-hover:translate-x-[120%]" />
                   <div className="absolute right-4 top-4 text-5xl opacity-90 transition duration-300 group-hover:scale-110">{course.hero}</div>
-                  <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-100/80">Qualificação técnica em</p>
-                  <h3 className="mt-3 max-w-[80%] text-3xl font-black leading-tight">{course.title.replace("Qualificação Técnica em ", "")}</h3>
-                  <p className="mt-3 break-all text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200">ID: {course.id}</p>
+                  <p className="inline-flex rounded-full border border-cyan-200/20 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-cyan-100">{course.category}</p>
+                  <h3 className="mt-4 max-w-[82%] text-3xl font-black leading-tight">{course.title.replace("Qualificação Técnica em ", "")}</h3>
                 </div>
                 <div className="bg-white p-5 text-[#06364d]">
                   <p className="text-lg font-black leading-6">{course.subtitle}</p>
                 </div>
                 <div className="grid grid-cols-[1fr_118px] gap-4 p-5">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-widest text-cyan-200">Cursos / módulos</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-cyan-200">Módulos principais</p>
                     <div className="mt-3 space-y-1 text-sm font-semibold text-white/90">
                       {principaisModulos(course).slice(0, 5).map((item) => <p key={item}>• {item}</p>)}
                     </div>
@@ -147,11 +159,16 @@ export default function Cursos() {
                   </div>
                 </div>
                 <div className="border-t border-white/10 p-5">
-                  <p className="text-xs font-black uppercase tracking-widest text-cyan-200">Áreas de atuação</p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-black text-cyan-100">{levelLabel[course.level]}</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-black text-cyan-100">{aulasDoCurso(course)} aulas</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-black text-cyan-100">ID: {course.id}</span>
+                  </div>
+                  <p className="mt-4 text-xs font-black uppercase tracking-widest text-cyan-200">Áreas de atuação</p>
                   <p className="mt-2 text-sm leading-6 text-cyan-50/80">{areasAtuacao(course)}</p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <button onClick={() => setCursoDetalhes(course)} className="rounded-2xl border border-cyan-200/20 bg-white/5 px-4 py-3 font-black text-white transition active:scale-95">Ver landing</button>
-                    <button onClick={() => comprarOuAcessar(course)} className="rounded-2xl bg-white px-4 py-3 font-black text-[#06364d] transition active:scale-95">Comprar</button>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-[0.85fr_1.15fr]">
+                    <button onClick={() => setCursoDetalhes(course)} className="rounded-2xl border border-cyan-200/20 bg-white/5 px-4 py-3 font-black text-white transition active:scale-95">Ver detalhes</button>
+                    <button onClick={() => comprarOuAcessar(course)} className="rounded-2xl bg-white px-4 py-3 font-black text-[#06364d] shadow-lg shadow-cyan-300/10 transition active:scale-95">Garantir acesso</button>
                   </div>
                 </div>
               </div>
@@ -160,7 +177,7 @@ export default function Cursos() {
                 <div className="bg-white p-5 text-black">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="break-all text-xs font-black uppercase tracking-[0.16em] text-zinc-500">ID: {course.id}</p>
+                      <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${tagClass(course)}`}>{course.category}</span>
                       <h3 className="mt-3 text-2xl font-black leading-tight">{course.title}</h3>
                     </div>
                     <p className="text-5xl transition group-hover:scale-110">{course.hero}</p>
@@ -168,9 +185,9 @@ export default function Cursos() {
                 </div>
                 <div className="space-y-4 p-5">
                   <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-black text-zinc-300">{course.category}</span>
                     <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-black text-zinc-300">{levelLabel[course.level]}</span>
                     <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-black text-zinc-300">{aulasDoCurso(course)} aulas</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-black text-zinc-500">ID: {course.id}</span>
                     {course.free && <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-black">Grátis</span>}
                   </div>
                   <p className="min-h-16 text-sm leading-6 text-zinc-400">{course.subtitle}</p>
@@ -178,9 +195,9 @@ export default function Cursos() {
                     <div className="rounded-2xl border border-white/10 bg-black p-3"><p className="text-xs text-zinc-500">Duração</p><p className="font-black text-white">{course.duration}</p></div>
                     <div className="rounded-2xl border border-white/10 bg-black p-3"><p className="text-xs text-zinc-500">Preço</p><p className="font-black text-emerald-200">{course.price}</p></div>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <button onClick={() => setCursoDetalhes(course)} className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 font-black text-zinc-200 transition active:scale-95">Ver landing</button>
-                    <button onClick={() => comprarOuAcessar(course)} className="rounded-2xl bg-white px-4 py-3 font-black text-black transition active:scale-95">{course.free ? "Começar grátis" : "Comprar"}</button>
+                  <div className="grid gap-3 sm:grid-cols-[0.85fr_1.15fr]">
+                    <button onClick={() => setCursoDetalhes(course)} className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 font-black text-zinc-200 transition active:scale-95">Ver detalhes</button>
+                    <button onClick={() => comprarOuAcessar(course)} className="rounded-2xl bg-white px-4 py-3 font-black text-black shadow-lg shadow-white/10 transition active:scale-95">{course.free ? "Começar grátis" : "Garantir acesso"}</button>
                   </div>
                 </div>
               </>
@@ -196,7 +213,7 @@ export default function Cursos() {
           <div className="max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-[2rem] border border-white/10 bg-zinc-950 shadow-2xl">
             <div className="relative overflow-hidden bg-[radial-gradient(circle_at_15%_0%,rgba(14,165,233,0.35),transparent_32%),linear-gradient(135deg,#031d2a,#06364d)] p-6 md:p-8">
               <button onClick={() => setCursoDetalhes(null)} className="absolute right-4 top-4 rounded-2xl border border-white/15 bg-black/25 px-4 py-2 font-black text-white">X</button>
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-100/80">Landing da formação</p>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-100/80">Detalhes da formação</p>
               <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight text-white md:text-6xl">{cursoDetalhes.title}</h2>
               <p className="mt-4 max-w-2xl text-base leading-7 text-cyan-50/80">{cursoDetalhes.subtitle}</p>
               <div className="mt-6 grid gap-3 sm:grid-cols-4">
