@@ -11,13 +11,17 @@ import {
   oratoriaProfissional,
 } from "./cursos/baseCursos";
 import { apisNaPratica } from "./cursos/apisNaPratica";
+import { siteNivelEmpresa } from "./cursos/siteNivelEmpresa";
+import { iaFerramentasPrompts } from "./cursos/iaFerramentasPrompts";
 import type { CourseContent, Curso } from "./courseTypes";
 
 const chavePixAleatoria = "5e5e7367-37bb-4f7b-9de2-eaeb0d3712a2";
 
 export const professionalCourses: CourseContent[] = [
   iaNaPratica,
+  iaFerramentasPrompts,
   apisNaPratica,
+  siteNivelEmpresa,
   desenvolvedorWebsites,
   desenvolvedorSistemas,
   assistenteAdministrativo,
@@ -46,7 +50,7 @@ export const cursos: Curso[] = professionalCourses.map((course, index) => ({
 export const categorias = ["Todos", "Grátis", "Pagos", ...Array.from(new Set(professionalCourses.map((curso) => curso.category)))];
 
 export const trilhas = [
-  { nome: "Formação em Tecnologia", desc: "IA, APIs, websites, sistemas e criação de soluções digitais.", cursos: ["IA na Prática", "APIs na Prática", "Qualificação Técnica em Desenvolvedor de Websites", "Qualificação Técnica em Desenvolvedor de Sistemas"], icon: "💻" },
+  { nome: "Formação em Tecnologia", desc: "IA, APIs, websites, sistemas e criação de soluções digitais.", cursos: ["IA na Prática", "IA, Ferramentas e Prompts Profissionais", "APIs na Prática", "Criar Site Nível Empresa", "Qualificação Técnica em Desenvolvedor de Websites", "Qualificação Técnica em Desenvolvedor de Sistemas"], icon: "💻" },
   { nome: "Formação Administrativa", desc: "Informática, atendimento, documentos, organização e rotina profissional.", cursos: ["Assistente Administrativo Digital", "Informática Profissional do Zero", "Pacote Office Profissional"], icon: "🏢" },
   { nome: "Criação e Serviços Digitais", desc: "Design, apresentações, precificação e venda de serviços simples.", cursos: ["Design no Canva Profissional", "Empreendedorismo e Serviços Digitais"], icon: "🚀" },
   { nome: "Atendimento e Suporte", desc: "Atendimento ao cliente, tickets, pedidos e fechamento profissional.", cursos: ["Atendimento ao Cliente e Suporte"], icon: "🎧" },
