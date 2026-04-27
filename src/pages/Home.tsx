@@ -1,10 +1,15 @@
 import { professionalCourses } from "../data/courses";
 
+const prioridadeHome = ["ia-na-pratica", "ia-ferramentas-prompts", "apis-na-pratica", "site-nivel-empresa"];
+
 export default function Home({ setPage }: any) {
-  const populares = professionalCourses.slice(0, 4);
+  const populares = prioridadeHome.map((id) => professionalCourses.find((course) => course.id === id)).filter(Boolean).slice(0, 4) as typeof professionalCourses;
   const cursoExemplo = professionalCourses[0];
   const totalAulas = professionalCourses.reduce((sum, course) => sum + course.modules.reduce((aulas, modulo) => aulas + modulo.lessons.length, 0), 0);
-  const totalHoras = professionalCourses.reduce((sum, course) => sum + Number.parseInt(course.duration) || sum, 0);
+  const totalHoras = professionalCourses.reduce((sum, course) => {
+    const horas = course.duration.match(/(\d+)h/)?.[1];
+    return sum + (horas ? Number(horas) : 0);
+  }, 0);
 
   const acoes = [
     { title: "Ver formações", text: "Catálogo com grade curricular, preço, duração e projeto final.", icon: "◈", page: "cursos" },
@@ -39,7 +44,7 @@ export default function Home({ setPage }: any) {
             </div>
           </div>
           <div className="grid gap-3">
-            {[[`${professionalCourses.length}`, "formações ativas"], [`${totalAulas}`, "aulas práticas"], [`${totalHoras}h`, "carga estimada"], ["ADM", "liberação controlada"]].map(([valor, label]) => (
+            {[[`${professionalCourses.length}`, "formações ativas"], [`${totalAulas}`, "aulas práticas"], [`${totalHoras}h`, "carga somada com horas definidas"], ["ADM", "liberação controlada"]].map(([valor, label]) => (
               <div key={label} className="rounded-3xl border border-white/10 bg-black/45 p-5 shadow-xl shadow-black/30 backdrop-blur-xl">
                 <p className="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-3xl font-black text-transparent md:text-5xl">{valor}</p>
                 <p className="mt-1 text-sm font-bold text-zinc-500">{label}</p>
@@ -76,8 +81,8 @@ export default function Home({ setPage }: any) {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-300">Vitrine</p>
-            <h3 className="mt-2 text-3xl font-black tracking-[-0.03em]">Formações em destaque</h3>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-zinc-500">Cada curso tem ID próprio para compra, liberação pelo ADM e acesso na área do aluno.</p>
+            <h3 className="mt-2 text-3xl font-black tracking-[-0.03em]">Trilha principal de tecnologia</h3>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-zinc-500">Cursos estratégicos para aprender IA, prompts, APIs e criação de sites profissionais sem promessa falsa.</p>
           </div>
           <button onClick={() => setPage("cursos")} className="rounded-2xl bg-white px-5 py-3 font-black text-black shadow-lg shadow-blue-500/20 transition active:scale-95">Ver catálogo</button>
         </div>
