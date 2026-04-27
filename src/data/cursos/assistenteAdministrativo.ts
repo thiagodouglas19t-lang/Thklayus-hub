@@ -2,47 +2,43 @@ import { CourseContent, lesson } from "../courseTypes";
 
 export const assistenteAdministrativo: CourseContent = {
   id: "assistente-administrativo-digital",
-  title: "Assistente Administrativo Digital",
-  subtitle: "Formação prática para trabalhar com documentos, atendimento, organização, planilhas, e-mail e rotina administrativa.",
+  title: "Assistente Administrativo Básico",
+  subtitle: "Curso simples e direto para aprender organização, documentos, e-mail, planilhas e atendimento básico no dia a dia.",
   category: "Administração",
   level: "iniciante",
-  duration: "40h",
-  price: "R$ 39,90",
+  duration: "4h • curso rápido",
+  price: "R$ 12,90",
   hero: "🏢",
-  outcome: "Atuar em rotinas administrativas básicas com organização, comunicação profissional e domínio de ferramentas digitais.",
+  outcome: "Aprender o básico para organizar tarefas, responder mensagens com mais profissionalismo e montar controles simples.",
   modules: [
     {
-      title: "Fundamentos da rotina administrativa",
+      title: "Rotina administrativa simples",
       lessons: [
-        lesson("O papel do assistente administrativo", "Você aprende o que um assistente faz no dia a dia: organizar informações, atender pessoas, controlar documentos e apoiar processos internos.", "Liste 5 tarefas administrativas que uma empresa pequena precisa controlar toda semana."),
-        lesson("Organização profissional de tarefas", "Como separar demandas urgentes, importantes e recorrentes sem se perder.", "Monte uma lista de tarefas com prioridade alta, média e baixa."),
-        lesson("Postura profissional", "Comunicação, pontualidade, cuidado com dados e responsabilidade no ambiente de trabalho.", "Escreva 3 atitudes que passam confiança para um cliente ou gestor."),
+        lesson("O que um assistente faz", "Entenda tarefas básicas: organizar informações, atender pessoas, controlar documentos e anotar pedidos.", "Liste 5 tarefas que uma pessoa pode organizar em casa, escola ou pequeno negócio."),
+        lesson("Organização de tarefas", "Aprenda a separar o que é urgente, importante e pendente sem complicar.", "Monte uma lista com prioridade alta, média e baixa."),
       ],
     },
     {
-      title: "Documentos, e-mail e atendimento",
+      title: "Documentos e mensagens",
       lessons: [
-        lesson("Documentos básicos", "Como criar documentos simples, comunicados, recibos, propostas e registros internos.", "Crie um modelo de comunicado interno com título, data, mensagem e assinatura."),
-        lesson("E-mail profissional", "Estrutura de assunto, saudação, mensagem objetiva, anexos e encerramento.", "Escreva um e-mail confirmando o recebimento de um pedido."),
-        lesson("Atendimento inicial", "Como receber uma solicitação, coletar informações e encaminhar corretamente.", "Crie uma mensagem padrão para receber pedidos de suporte ou orçamento."),
+        lesson("Documento básico", "Como criar comunicado, recibo simples ou anotação organizada.", "Crie um comunicado curto com título, data, mensagem e assinatura."),
+        lesson("Mensagem profissional", "Como responder cliente, familiar ou contato sem parecer bagunçado.", "Reescreva uma mensagem informal deixando ela mais clara e educada."),
       ],
     },
     {
-      title: "Planilhas e controles simples",
+      title: "Planilhas e controle",
       lessons: [
-        lesson("Controle de clientes", "Como organizar nome, contato, status, data e observações em uma planilha.", "Monte uma tabela com 5 clientes fictícios e status de atendimento."),
-        lesson("Controle de pagamentos", "Entradas, pendências, vencimentos e observações sem complicar.", "Crie uma tabela de pagamentos com pago, pendente e atrasado."),
-        lesson("Relatório simples", "Como transformar dados em um resumo claro para tomada de decisão.", "Escreva um relatório de 5 linhas sobre os dados da sua tabela."),
+        lesson("Tabela simples", "Como organizar nome, contato, valor, status e observação.", "Monte uma tabela com 5 registros fictícios."),
+        lesson("Controle de pagamentos", "Aprenda a marcar pago, pendente e atrasado.", "Crie uma tabela simples de pagamentos."),
       ],
     },
     {
-      title: "Projeto profissional",
+      title: "Projeto final rápido",
       lessons: [
-        lesson("Montando um kit administrativo", "Junte modelos de e-mail, tabela de clientes, tabela de pagamentos e checklist de atendimento.", "Organize todos os modelos criados nas aulas anteriores."),
-        lesson("Revisão e entrega", "Como revisar erros, deixar o material claro e apresentar como um mini portfólio.", "Faça uma revisão final e destaque o que você sabe fazer."),
+        lesson("Kit administrativo básico", "Junte mensagem pronta, tabela de clientes e tabela de pagamentos.", "Organize os 3 materiais em uma pasta ou arquivo final."),
       ],
     },
   ],
-  checklist: ["Sei organizar tarefas por prioridade", "Sei criar documentos simples", "Sei responder e-mails profissionais", "Sei montar planilhas básicas", "Tenho um kit administrativo pronto"],
-  finalProject: "Criar um kit administrativo com comunicado, e-mail profissional, tabela de clientes, tabela de pagamentos e checklist de atendimento.",
+  checklist: ["Organizo tarefas simples", "Crio documentos básicos", "Respondo mensagens melhor", "Monto tabelas simples", "Tenho um kit administrativo básico"],
+  finalProject: "Criar um kit administrativo básico com mensagem pronta, tabela de contatos/pedidos e tabela de pagamentos.",
 };
