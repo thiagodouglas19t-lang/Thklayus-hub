@@ -1,8 +1,8 @@
 import { assistenteAdministrativo } from "./cursos/assistenteAdministrativo";
 import { informaticaProfissional } from "./cursos/informaticaProfissional";
+import { designCanvaBasico } from "./cursos/designCanvaBasico";
 import {
   atendimentoCliente,
-  designCanvaProfissional,
   desenvolvedorSistemas,
   desenvolvedorWebsites,
   empreendedorismoDigital,
@@ -27,7 +27,7 @@ export const professionalCourses: CourseContent[] = [
   assistenteAdministrativo,
   informaticaProfissional,
   officeProfissional,
-  designCanvaProfissional,
+  designCanvaBasico,
   oratoriaProfissional,
   empreendedorismoDigital,
   atendimentoCliente,
@@ -51,8 +51,8 @@ export const categorias = ["Todos", "Grátis", "Pagos", ...Array.from(new Set(pr
 
 export const trilhas = [
   { nome: "Formação em Tecnologia", desc: "IA, APIs, websites, sistemas e criação de soluções digitais.", cursos: ["IA na Prática", "IA, Ferramentas e Prompts Profissionais", "APIs na Prática", "Criar Site Nível Empresa", "Qualificação Técnica em Desenvolvedor de Websites", "Qualificação Técnica em Desenvolvedor de Sistemas"], icon: "💻" },
-  { nome: "Formação Administrativa", desc: "Informática, atendimento, documentos, organização e rotina profissional.", cursos: ["Assistente Administrativo Digital", "Informática Profissional do Zero", "Pacote Office Profissional"], icon: "🏢" },
-  { nome: "Criação e Serviços Digitais", desc: "Design, apresentações, precificação e venda de serviços simples.", cursos: ["Design no Canva Profissional", "Empreendedorismo e Serviços Digitais"], icon: "🚀" },
+  { nome: "Formação Administrativa", desc: "Informática, atendimento, documentos, organização e rotina profissional.", cursos: ["Assistente Administrativo Básico", "Informática Profissional do Zero", "Pacote Office Profissional"], icon: "🏢" },
+  { nome: "Criação e Serviços Digitais", desc: "Design, apresentações, precificação e venda de serviços simples.", cursos: ["Canva Básico: Crie Artes Pelo Celular", "Empreendedorismo e Serviços Digitais"], icon: "🚀" },
   { nome: "Atendimento e Suporte", desc: "Atendimento ao cliente, tickets, pedidos e fechamento profissional.", cursos: ["Atendimento ao Cliente e Suporte"], icon: "🎧" },
 ];
 
