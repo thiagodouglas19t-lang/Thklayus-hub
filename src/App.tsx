@@ -20,6 +20,8 @@ import Navbar from "./components/Navbar";
 
 export type Page = "home" | "cursos" | "gratis" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver" | "perfil" | "sobre" | "pagamento";
 
+const validPages: Page[] = ["home", "cursos", "gratis", "estudo", "pedidos", "suporte", "chat", "admin", "resolver", "perfil", "sobre", "pagamento"];
+
 export default function App() {
   const [page, setPage] = useState<Page>("home");
   const [user, setUser] = useState<User | null>(null);
@@ -45,6 +47,17 @@ export default function App() {
     });
 
     return () => data.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    function openPage(event: Event) {
+      const customEvent = event as CustomEvent<Page>;
+      const nextPage = customEvent.detail;
+      if (validPages.includes(nextPage)) setPage(nextPage);
+    }
+
+    window.addEventListener("thklayus-open-page", openPage);
+    return () => window.removeEventListener("thklayus-open-page", openPage);
   }, []);
 
   function renderPage() {
