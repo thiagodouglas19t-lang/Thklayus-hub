@@ -119,7 +119,7 @@ export default function CourseWorkspace({ course, lesson, moduleTitle, moduleInd
       `Aula ${lessonIndex + 1}/${moduleLessonsCount}: ${lesson.title}`,
       "",
       "Cenário de trabalho:",
-      `Você recebeu uma demanda real relacionada a: ${lesson.title}. Sua missão é entregar algo claro, organizado e apresentável.",
+      `Você recebeu uma demanda real relacionada a: ${lesson.title}. Sua missão é entregar algo claro, organizado e apresentável.`,
       "",
       "Briefing do job:",
       lesson.summary,
