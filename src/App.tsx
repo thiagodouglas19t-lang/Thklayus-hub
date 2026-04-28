@@ -16,11 +16,12 @@ import Resolver from "./pages/Resolver";
 import Perfil from "./pages/Perfil";
 import Sobre from "./pages/Sobre";
 import Pagamento from "./pages/Pagamento";
+import Livros from "./pages/Livros";
 import Navbar from "./components/Navbar";
 
-export type Page = "home" | "cursos" | "gratis" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver" | "perfil" | "sobre" | "pagamento";
+export type Page = "home" | "cursos" | "gratis" | "livros" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver" | "perfil" | "sobre" | "pagamento";
 
-const validPages: Page[] = ["home", "cursos", "gratis", "estudo", "pedidos", "suporte", "chat", "admin", "resolver", "perfil", "sobre", "pagamento"];
+const validPages: Page[] = ["home", "cursos", "gratis", "livros", "estudo", "pedidos", "suporte", "chat", "admin", "resolver", "perfil", "sobre", "pagamento"];
 
 export default function App() {
   const [page, setPage] = useState<Page>("home");
@@ -61,13 +62,14 @@ export default function App() {
   }, []);
 
   function renderPage() {
-    const publicPages: Page[] = ["home", "cursos", "gratis", "resolver", "sobre", "pagamento"];
+    const publicPages: Page[] = ["home", "cursos", "gratis", "livros", "resolver", "sobre", "pagamento"];
 
     if (!user && !publicPages.includes(page)) return <Login onLoginSuccess={loadUser} />;
     if (page === "admin" && !canAccessInternalPanel(user?.email)) return <Home setPage={setPage} />;
     if (page === "home") return <Home setPage={setPage} />;
     if (page === "cursos") return <Cursos />;
     if (page === "gratis") return <Gratis />;
+    if (page === "livros") return <Livros />;
     if (page === "resolver") return <Resolver />;
     if (page === "perfil") return <Perfil />;
     if (page === "sobre") return <Sobre />;
