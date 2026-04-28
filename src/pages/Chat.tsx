@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { canAccessInternalPanel } from "../lib/roles";
+import { formatBrasiliaDateTime } from "../lib/date";
 
 type ChatType = "ticket" | "purchase";
 
@@ -38,17 +39,12 @@ function statusStyle(status: string) {
   if (["fechado", "closed", "encerrado", "resolvido"].includes(value)) return "border-zinc-600/40 bg-zinc-500/10 text-zinc-300";
   if (["compra aprovada", "aprovado"].includes(value)) return "border-emerald-400/30 bg-emerald-500/10 text-emerald-200";
   if (["compra recusada", "recusado"].includes(value)) return "border-red-400/30 bg-red-500/10 text-red-200";
-  if (["em análise", "pendente"].includes(value)) return "border-amber-400/30 bg-amber-500/10 text-amber-200";
+  if (["em análise", "em analise", "pendente"].includes(value)) return "border-amber-400/30 bg-amber-500/10 text-amber-200";
   return "border-blue-400/30 bg-blue-500/10 text-blue-200";
 }
 
 function formatTime(value?: string) {
-  if (!value) return "";
-  try {
-    return new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
-  } catch {
-    return "";
-  }
+  return value ? `${formatBrasiliaDateTime(value)} BRT` : "";
 }
 
 export default function Chat() {
@@ -92,7 +88,7 @@ export default function Chat() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, (payload) => {
         const msg = payload.new as Message;
         if (msg.thread_id === selectedThread?.id) loadMessages(msg.thread_id);
-        if (msg.user_id !== userId) notifyUser("Nova mensagem no THKLAYUS", msg.content || "Você recebeu uma nova mensagem.");
+        if (msg.user_id !== userId) notifyUser("Nova mensagem no AprendaJá", msg.content || "Você recebeu uma nova mensagem.");
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_threads" }, () => {
         loadThreads(userId, userEmail);
@@ -120,7 +116,7 @@ export default function Chat() {
     const permission = await Notification.requestPermission();
     if (permission === "granted") {
       setNotificationsOn(true);
-      new Notification("THKLAYUS ativado", { body: "Você receberá alertas de novas mensagens." });
+      new Notification("AprendaJá ativado", { body: "Você receberá alertas de novas mensagens." });
     } else {
       alert("Notificação não foi permitida.");
     }
@@ -349,7 +345,7 @@ export default function Chat() {
           <div>
             <span className="rounded-full border border-blue-400/20 bg-blue-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.2em] text-blue-200">Atendimento seguro</span>
             <h2 className="mt-5 text-3xl font-black leading-tight tracking-[-0.03em] md:text-5xl">Chat interno</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400 md:text-base">Compras, comprovantes, pedidos e tickets organizados dentro do THKLAYUS.</p>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400 md:text-base">Compras, comprovantes, pedidos e tickets organizados dentro do AprendaJá.</p>
           </div>
           <button onClick={enableNotifications} className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-xs font-black text-zinc-300 transition hover:border-blue-400/40 hover:bg-blue-500/10 md:text-sm">🔔 {notificationsOn ? "Ativas" : "Ativar"}</button>
         </div>
@@ -391,6 +387,7 @@ export default function Chat() {
                         <p className="text-[11px] font-black uppercase opacity-70">{thread.type === "purchase" ? "Compra" : "Ticket"}</p>
                         <p className="mt-1 truncate text-base font-black">{thread.title}</p>
                         {thread.type === "purchase" && <p className="mt-1 truncate text-xs opacity-70">{thread.course_title} • Total {thread.total_price || thread.price}</p>}
+                        <p className="mt-1 text-[10px] font-bold opacity-60">{formatTime(thread.created_at)}</p>
                         <p className={`mt-3 inline-flex rounded-full border px-3 py-1 text-[11px] font-black ${active ? "border-black/20 bg-black/10 text-black" : statusStyle(thread.status)}`}>{thread.status}</p>
                       </div>
                     </div>
@@ -413,7 +410,7 @@ export default function Chat() {
               <div className="border-b border-white/10 bg-black/30 p-4 md:p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-300">{selectedThread.type === "purchase" ? "Compra" : "Ticket"}</p>
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-300">{selectedThread.type === "purchase" ? "Compra" : "Ticket"} • {formatTime(selectedThread.created_at)}</p>
                     <h3 className="mt-1 text-2xl font-black tracking-[-0.03em]">{selectedThread.title}</h3>
                     <p className={`mt-2 inline-flex rounded-full border px-3 py-1 text-xs font-black ${statusStyle(selectedThread.status)}`}>Status: {selectedThread.status}</p>
                   </div>
