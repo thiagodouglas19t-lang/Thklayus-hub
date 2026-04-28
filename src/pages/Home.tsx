@@ -2,27 +2,62 @@ const services = [
   {
     title: "Apresentação com IA",
     price: "R$10",
-    tag: "Mais pedido",
+    tag: "Escola / trabalho",
     icon: "▣",
-    description: "Até 6 slides com texto organizado, estrutura bonita e imagens ilustrativas.",
-    details: ["Capa + tópicos", "Design simples", "Entrega pelo chat"],
+    description: "Slides simples para escola, igreja, reunião, projeto, aniversário ou ideia pessoal.",
+    details: ["Até 6 slides", "Texto organizado", "Imagens ilustrativas"],
   },
   {
-    title: "Arte com IA",
+    title: "Arte do dia a dia",
     price: "R$5",
     tag: "Rápido",
     icon: "✦",
-    description: "Imagem personalizada estilo anime, dark, perfil, wallpaper ou ideia visual.",
-    details: ["1 imagem", "Estilo escolhido", "Ajuste simples"],
+    description: "Imagem para perfil, status, wallpaper, capa, convite simples ou mensagem especial.",
+    details: ["1 imagem", "Estilo escolhido", "Entrega pelo chat"],
+  },
+  {
+    title: "Divulgação simples",
+    price: "R$10",
+    tag: "Negócio pequeno",
+    icon: "◈",
+    description: "Arte ou texto para divulgar venda, serviço, evento, promoção, lanche ou produto.",
+    details: ["Card simples", "Texto chamativo", "Pronto para postar"],
+  },
+  {
+    title: "Convite digital",
+    price: "R$7",
+    tag: "Família / evento",
+    icon: "✉",
+    description: "Convite simples para aniversário, culto, encontro, reunião, festa ou comemoração.",
+    details: ["Tema escolhido", "Nome e data", "Formato imagem"],
+  },
+  {
+    title: "Texto pronto",
+    price: "R$5",
+    tag: "Mensagem",
+    icon: "✍",
+    description: "Bio, legenda, mensagem de aniversário, anúncio, descrição ou texto de venda.",
+    details: ["Texto revisado", "Tom escolhido", "Entrega rápida"],
   },
   {
     title: "Pack digital",
     price: "R$10",
     tag: "Combo",
-    icon: "◈",
-    description: "Pacote com imagens, wallpapers, frases ou ideias para usar no celular/rede social.",
+    icon: "◆",
+    description: "Pacote com wallpapers, frases, ideias, imagens para status ou conteúdo visual.",
     details: ["10 a 30 itens", "Tema escolhido", "Entrega organizada"],
   },
+];
+
+const examples = [
+  "Foto de perfil estilizada",
+  "Convite de aniversário",
+  "Arte para vender bolo ou lanche",
+  "Legenda para postagem",
+  "Wallpaper personalizado",
+  "Slide para apresentar uma ideia",
+  "Mensagem bonita para alguém",
+  "Card de divulgação para WhatsApp",
 ];
 
 const steps = [
@@ -43,15 +78,15 @@ export default function Home({ setPage }: any) {
           <div>
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">THKLAYUS Hub</span>
-              <span className="rounded-full border border-amber-300/25 bg-amber-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-amber-100">Serviços com IA</span>
+              <span className="rounded-full border border-amber-300/25 bg-amber-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-amber-100">Coisas do dia a dia</span>
             </div>
 
             <h2 className="mt-5 max-w-4xl text-4xl font-black leading-[1.02] tracking-[-0.06em] md:text-6xl">
-              Peça artes, slides e packs digitais sem complicação.
+              Peça artes, textos, convites e slides simples sem complicação.
             </h2>
 
             <p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-300 md:text-base">
-              Serviços simples feitos com ajuda de IA e revisão manual. Ideal para quem quer algo rápido, bonito e barato sem precisar mexer em ferramenta nenhuma.
+              Serviços digitais baratos para situações reais: perfil, status, aniversário, divulgação, escola, trabalho, venda pequena, mensagem bonita ou ideia visual.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
@@ -69,20 +104,20 @@ export default function Home({ setPage }: any) {
 
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.045] p-4 shadow-2xl shadow-black/40 backdrop-blur-xl">
             <div className="rounded-[1.6rem] border border-violet-300/20 bg-violet-500/10 p-5">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-100">Serviço principal</p>
-              <h3 className="mt-3 text-2xl font-black text-white">Apresentação simples com IA</h3>
-              <p className="mt-2 text-sm leading-6 text-zinc-300">Até 6 slides com estrutura, capa, tópicos e imagens ilustrativas.</p>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-100">Pedido comum</p>
+              <h3 className="mt-3 text-2xl font-black text-white">Arte ou texto para resolver algo agora</h3>
+              <p className="mt-2 text-sm leading-6 text-zinc-300">Convite, perfil, status, divulgação, mensagem, slide simples ou pack digital.</p>
               <div className="mt-5 flex items-end justify-between gap-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">A partir de</p>
-                  <p className="text-4xl font-black text-white">R$10</p>
+                  <p className="text-4xl font-black text-white">R$5</p>
                 </div>
                 <button onClick={() => setPage("pedidos")} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black">Pedir</button>
               </div>
             </div>
 
             <div className="mt-4 grid grid-cols-3 gap-3">
-              {[["3", "serviços"], ["R$5", "entrada"], ["IA+", "manual"]].map(([value, label]) => (
+              {[["6", "serviços"], ["R$5", "entrada"], ["IA+", "manual"]].map(([value, label]) => (
                 <div key={label} className="rounded-2xl border border-white/10 bg-black/45 p-4 text-center">
                   <p className="text-2xl font-black text-white">{value}</p>
                   <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500">{label}</p>
@@ -93,7 +128,19 @@ export default function Home({ setPage }: any) {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 shadow-2xl shadow-black/25 md:p-6">
+        <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">Exemplos do mundo real</p>
+        <h3 className="mt-2 text-3xl font-black tracking-[-0.03em]">Não é só para escola</h3>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {examples.map((item) => (
+            <button key={item} onClick={() => setPage("pedidos")} className="rounded-2xl border border-white/10 bg-black/45 p-4 text-left text-sm font-black text-zinc-200 transition hover:-translate-y-1 hover:border-violet-400/40 hover:bg-violet-500/10">
+              {item}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {services.map((service) => (
           <article key={service.title} className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.035] p-5 shadow-xl shadow-black/25 transition hover:-translate-y-1 hover:border-violet-300/35">
             <div className="pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100 bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.18),transparent_35%)]" />
@@ -155,8 +202,8 @@ export default function Home({ setPage }: any) {
         <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-violet-200 blur-3xl" />
         <div className="relative flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h3 className="text-3xl font-black tracking-[-0.03em]">Quer testar com um pedido pequeno?</h3>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-700">Comece por uma arte de R$5 ou uma apresentação simples de R$10 e acompanhe tudo pelo app.</p>
+            <h3 className="text-3xl font-black tracking-[-0.03em]">Quer resolver uma coisa simples hoje?</h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-700">Comece por uma arte, convite, texto, divulgação ou apresentação simples e acompanhe tudo pelo app.</p>
           </div>
           <button onClick={() => setPage("pedidos")} className="rounded-2xl bg-black px-6 py-3 font-black text-white">Começar pedido</button>
         </div>
