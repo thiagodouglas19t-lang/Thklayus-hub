@@ -7,7 +7,7 @@ export const apisNaPratica: CourseContent = {
   category: "Tecnologia",
   level: "intermediario",
   duration: "8 semanas • 48h",
-  price: "R$ 49,90",
+  price: "R$ 14,90",
   hero: "🔌",
   outcome: "Conseguir consumir APIs com segurança, entender respostas JSON, tratar erros, proteger chaves e integrar dados reais ou simulados em um app.",
   modules: [
