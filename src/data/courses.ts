@@ -14,12 +14,14 @@ import { apisNaPratica } from "./cursos/apisNaPratica";
 import { siteNivelEmpresa } from "./cursos/siteNivelEmpresa";
 import { iaFerramentasPrompts } from "./cursos/iaFerramentasPrompts";
 import { tecnicoEletronica } from "./cursos/tecnicoEletronica";
+import { cursosBaratos } from "./cursos/cursosBaratos";
 import type { CourseContent, Curso } from "./courseTypes";
 import { applyChapterArchitecture } from "./chapterRegistry";
 
 const chavePixAleatoria = "5e5e7367-37bb-4f7b-9de2-eaeb0d3712a2";
 
 const baseCourses: CourseContent[] = [
+  ...cursosBaratos,
   iaNaPratica,
   iaFerramentasPrompts,
   apisNaPratica,
