@@ -20,9 +20,9 @@ import Livros from "./pages/Livros";
 import Ajuda from "./pages/Ajuda";
 import Navbar from "./components/Navbar";
 
-export type Page = "home" | "cursos" | "gratis" | "livros" | "ajuda" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver" | "perfil" | "sobre" | "pagamento";
+export type Page = "home" | "login" | "cursos" | "gratis" | "livros" | "ajuda" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver" | "perfil" | "sobre" | "pagamento";
 
-const validPages: Page[] = ["home", "cursos", "gratis", "livros", "ajuda", "estudo", "pedidos", "suporte", "chat", "admin", "resolver", "perfil", "sobre", "pagamento"];
+const validPages: Page[] = ["home", "login", "cursos", "gratis", "livros", "ajuda", "estudo", "pedidos", "suporte", "chat", "admin", "resolver", "perfil", "sobre", "pagamento"];
 
 export default function App() {
   const [page, setPage] = useState<Page>("home");
@@ -33,6 +33,7 @@ export default function App() {
     const { data } = await supabase.auth.getUser();
     setUser(data.user);
     setLoading(false);
+    if (data.user && page === "login") setPage("estudo");
   }
 
   async function logout() {
@@ -45,6 +46,7 @@ export default function App() {
     loadUser();
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user && page === "login") setPage("estudo");
     });
     return () => data.subscription.unsubscribe();
   }, []);
@@ -60,7 +62,8 @@ export default function App() {
   }, []);
 
   function renderPage() {
-    const publicPages: Page[] = ["home", "cursos", "gratis", "livros", "ajuda", "resolver", "sobre", "pagamento"];
+    const publicPages: Page[] = ["home", "login", "cursos", "gratis", "livros", "ajuda", "resolver", "sobre", "pagamento"];
+    if (page === "login") return user ? <Estudo /> : <Login onLoginSuccess={loadUser} />;
     if (!user && !publicPages.includes(page)) return <Login onLoginSuccess={loadUser} />;
     if (page === "admin" && !canAccessInternalPanel(user?.email)) return <Home setPage={setPage} />;
     if (page === "home") return <Home setPage={setPage} />;
