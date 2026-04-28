@@ -46,6 +46,16 @@ const mobileBase: MenuItem[] = [
   { label: "Perfil", short: "Perfil", value: "perfil", icon: "◌" },
 ];
 
+function AppLogo() {
+  return (
+    <div className="relative grid h-11 w-11 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-amber-300 via-white to-blue-200 text-black shadow-lg shadow-amber-500/20">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.95),transparent_34%),radial-gradient(circle_at_80%_90%,rgba(59,130,246,0.35),transparent_38%)]" />
+      <span className="relative text-xl font-black">A</span>
+      <span className="absolute bottom-2 h-1 w-5 rounded-full bg-black/80" />
+    </div>
+  );
+}
+
 export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarProps) {
   const internal = canAccessInternalPanel(userEmail);
   const role = getUserRole(userEmail);
@@ -67,11 +77,11 @@ export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarPro
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 px-4 py-3 backdrop-blur-2xl">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.14),transparent_30%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.14),transparent_30%)]" />
         <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-4">
           <button onClick={() => setPage("home")} className="flex items-center gap-3 text-left active:scale-95">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-gradient-to-br from-violet-600 via-blue-500 to-sky-300 text-[13px] font-black tracking-[-0.08em] text-white shadow-lg shadow-blue-500/20">THK</div>
-            <div><h1 className="bg-gradient-to-r from-white via-blue-100 to-violet-300 bg-clip-text text-xl font-black tracking-[0.16em] text-transparent md:text-2xl">AprendaJá</h1><p className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">THKLAYUS</p></div>
+            <AppLogo />
+            <div><h1 className="bg-gradient-to-r from-white via-amber-100 to-blue-200 bg-clip-text text-xl font-black tracking-[0.08em] text-transparent md:text-2xl">AprendaJá</h1><p className="text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500">Cursos Livres</p></div>
           </button>
           <nav className="hidden max-w-[820px] gap-2 overflow-x-auto rounded-3xl border border-white/10 bg-white/[0.03] p-1.5 shadow-2xl shadow-black/50 lg:flex">{visibleMenu.map((item) => Item(item))}</nav>
           <div className="flex items-center gap-2">
