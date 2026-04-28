@@ -14,6 +14,7 @@ type Notice = {
 
 function traduzirErroAuth(message: string) {
   const texto = message.toLowerCase();
+  if (texto.includes("rate limit") || texto.includes("email rate limit") || texto.includes("too many")) return "Limite de envio de e-mail atingido. Não aperte reenviar de novo agora. Aguarde alguns minutos e tente entrar normal. Se já clicou no link do Gmail, a conta pode já estar confirmada.";
   if (texto.includes("email not confirmed") || texto.includes("not confirmed")) return "Seu e-mail ainda não foi confirmado. Abra o Gmail, toque no link de confirmação e depois volte para fazer login. Se a página do link mostrar erro, tudo bem: volte para o app e tente entrar.";
   if (texto.includes("invalid login credentials")) return "E-mail ou senha incorretos. Confira se digitou certo. Se acabou de criar a conta, confirme o e-mail antes de entrar.";
   if (texto.includes("already registered") || texto.includes("already exists")) return "Esse e-mail já tem conta. Use Entrar em vez de Criar conta.";
@@ -28,6 +29,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [contaCriada, setContaCriada] = useState(false);
+  const [bloquearReenvio, setBloquearReenvio] = useState(false);
 
   async function handleAuth() {
     setNotice(null);
@@ -48,7 +50,9 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       });
 
       if (error) {
-        setNotice({ type: "error", message: traduzirErroAuth(error.message) });
+        const mensagem = traduzirErroAuth(error.message);
+        if (error.message.toLowerCase().includes("rate limit")) setBloquearReenvio(true);
+        setNotice({ type: "error", message: mensagem });
       } else {
         setContaCriada(true);
         setModoCadastro(false);
@@ -72,6 +76,10 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
   async function reenviarConfirmacao() {
     setNotice(null);
+    if (bloquearReenvio) {
+      setNotice({ type: "info", message: "O Supabase bloqueou temporariamente novos e-mails. Aguarde alguns minutos e tente entrar normal. Não fique apertando reenviar." });
+      return;
+    }
     if (!email.trim()) {
       setNotice({ type: "error", message: "Digite seu e-mail para reenviar a confirmação." });
       return;
@@ -84,7 +92,9 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     });
     setLoading(false);
     if (error) {
-      setNotice({ type: "error", message: traduzirErroAuth(error.message) });
+      const mensagem = traduzirErroAuth(error.message);
+      if (error.message.toLowerCase().includes("rate limit") || error.message.toLowerCase().includes("too many")) setBloquearReenvio(true);
+      setNotice({ type: "error", message: mensagem });
       return;
     }
     setNotice({ type: "success", message: "Enviei outro e-mail de confirmação. Confira o Gmail, inclusive Spam/Lixo eletrônico." });
@@ -99,7 +109,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       <div className="w-full max-w-md rounded-3xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl shadow-black/50">
         <div className="mb-5 rounded-2xl border border-blue-400/20 bg-blue-500/10 p-4">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-200">AprendaJá</p>
-          <p className="mt-2 text-sm leading-6 text-blue-50/80">Se o link do Gmail abrir uma tela branca ou mostrar erro, volte para o app e tente entrar normal. Muitas vezes a conta já foi confirmada.</p>
+          <p className="mt-2 text-sm leading-6 text-blue-50/80">Se aparecer “email rate limit exceeded”, pare de reenviar e tente entrar normal depois de alguns minutos. Isso é limite temporário do envio de e-mail.</p>
         </div>
 
         <h2 className="text-3xl font-black">
@@ -162,10 +172,10 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           </button>
           <button
             onClick={reenviarConfirmacao}
-            disabled={loading}
-            className="rounded-2xl border border-blue-400/25 bg-blue-500/10 px-4 py-3 text-sm font-black text-blue-100 disabled:opacity-60"
+            disabled={loading || bloquearReenvio}
+            className="rounded-2xl border border-blue-400/25 bg-blue-500/10 px-4 py-3 text-sm font-black text-blue-100 disabled:opacity-40"
           >
-            Reenviar confirmação
+            {bloquearReenvio ? "Aguarde para reenviar" : "Reenviar confirmação"}
           </button>
         </div>
 
