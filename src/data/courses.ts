@@ -13,6 +13,7 @@ import {
 import { apisNaPratica } from "./cursos/apisNaPratica";
 import { siteNivelEmpresa } from "./cursos/siteNivelEmpresa";
 import { iaFerramentasPrompts } from "./cursos/iaFerramentasPrompts";
+import { tecnicoEletronica } from "./cursos/tecnicoEletronica";
 import type { CourseContent, Curso } from "./courseTypes";
 import { applyChapterArchitecture } from "./chapterRegistry";
 
@@ -25,6 +26,7 @@ const baseCourses: CourseContent[] = [
   siteNivelEmpresa,
   desenvolvedorWebsites,
   desenvolvedorSistemas,
+  tecnicoEletronica,
   assistenteAdministrativo,
   informaticaProfissional,
   officeProfissional,
@@ -53,9 +55,9 @@ export const cursos: Curso[] = professionalCourses.map((course, index) => ({
 export const categorias = ["Todos", "Grátis", "Pagos", ...Array.from(new Set(professionalCourses.map((curso) => curso.category)))];
 
 export const trilhas = [
-  { nome: "Formação em Tecnologia", desc: "IA, APIs, websites, sistemas e criação de soluções digitais.", cursos: ["IA na Prática", "IA, Ferramentas e Prompts Profissionais", "APIs na Prática", "Criar Site Nível Empresa", "Qualificação Técnica em Desenvolvedor de Websites", "Qualificação Técnica em Desenvolvedor de Sistemas"], icon: "💻" },
-  { nome: "Formação Administrativa", desc: "Informática, atendimento, documentos, organização e rotina profissional.", cursos: ["Assistente Administrativo Básico", "Informática Profissional do Zero", "Pacote Office Profissional"], icon: "🏢" },
-  { nome: "Criação e Serviços Digitais", desc: "Design, apresentações, precificação e venda de serviços simples.", cursos: ["Canva Básico: Crie Artes Pelo Celular", "Empreendedorismo e Serviços Digitais"], icon: "🚀" },
+  { nome: "Formacao em Tecnologia", desc: "IA, APIs, websites, sistemas e criacao de solucoes digitais.", cursos: ["IA na Pratica", "IA, Ferramentas e Prompts Profissionais", "APIs na Pratica", "Criar Site Nivel Empresa", "Qualificacao Tecnica em Desenvolvedor de Websites", "Qualificacao Tecnica em Desenvolvedor de Sistemas", "Tecnico em Eletronica • Fundamentos Completos"], icon: "💻" },
+  { nome: "Formacao Administrativa", desc: "Informatica, atendimento, documentos, organizacao e rotina profissional.", cursos: ["Assistente Administrativo Basico", "Informatica Profissional do Zero", "Pacote Office Profissional"], icon: "🏢" },
+  { nome: "Criacao e Servicos Digitais", desc: "Design, apresentacoes, precificacao e venda de servicos simples.", cursos: ["Canva Basico: Crie Artes Pelo Celular", "Empreendedorismo e Servicos Digitais"], icon: "🚀" },
   { nome: "Atendimento e Suporte", desc: "Atendimento ao cliente, tickets, pedidos e fechamento profissional.", cursos: ["Atendimento ao Cliente e Suporte"], icon: "🎧" },
 ];
 
@@ -64,8 +66,8 @@ export function modulosDoCurso(curso: CourseContent | Curso) {
   return [
     "Boas-vindas e plano de estudos",
     `Fundamentos de ${curso.titulo}`,
-    "Aulas práticas guiadas",
-    "Exercícios profissionais",
+    "Aulas praticas guiadas",
+    "Exercicios profissionais",
     `Projeto final: ${curso.resultado}`,
     "Checklist final e certificado",
   ];
