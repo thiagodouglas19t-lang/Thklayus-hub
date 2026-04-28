@@ -30,9 +30,9 @@ const menu: MenuItem[] = [
   { label: "Cursos", short: "Cursos", value: "cursos", icon: "◈" },
   { label: "Meus Cursos", short: "Meus", value: "estudo", icon: "▣" },
   { label: "Pedidos", short: "Pedidos", value: "pedidos", icon: "✦" },
+  { label: "Suporte", short: "Suporte", value: "chat", icon: "💬" },
   { label: "Ajuda", short: "Ajuda", value: "ajuda", icon: "?" },
   { label: "Livros", short: "Livros", value: "livros", icon: "📚" },
-  { label: "Suporte", short: "Suporte", value: "suporte", icon: "◇" },
   { label: "Sobre", short: "Sobre", value: "sobre", icon: "ℹ" },
   { label: "Painel ADM", short: "ADM", value: "admin", icon: "♛", internal: true },
 ];
@@ -42,7 +42,7 @@ const mobileBase: MenuItem[] = [
   { label: "Cursos", short: "Cursos", value: "cursos", icon: "◈" },
   { label: "Meus Cursos", short: "Meus", value: "estudo", icon: "▣" },
   { label: "Pedidos", short: "Pedidos", value: "pedidos", icon: "✦" },
-  { label: "Ajuda", short: "Ajuda", value: "ajuda", icon: "?" },
+  { label: "Suporte", short: "Suporte", value: "chat", icon: "💬" },
 ];
 
 function AppLogo() {
@@ -58,13 +58,13 @@ function AppLogo() {
 export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarProps) {
   const internal = canAccessInternalPanel(userEmail);
   const role = getUserRole(userEmail);
-  const visibleMenu = menu.filter((item) => (!item.internal || internal) && !(internal && item.value === "suporte"));
+  const visibleMenu = menu.filter((item) => !item.internal || internal);
   const mobileMenu = internal
-    ? [mobileBase[0], mobileBase[1], mobileBase[2], mobileBase[3], { label: "Painel ADM", short: "ADM", value: "admin" as Page, icon: "♛", internal: true }]
+    ? [mobileBase[0], mobileBase[1], mobileBase[2], mobileBase[3], mobileBase[4], { label: "Painel ADM", short: "ADM", value: "admin" as Page, icon: "♛", internal: true }]
     : mobileBase;
 
   function Item(item: MenuItem, mobile = false) {
-    const active = page === item.value;
+    const active = page === item.value || (item.value === "chat" && page === "suporte");
     const isAdmin = Boolean(item.internal);
     return (
       <button key={`${item.value}-${mobile ? "mobile" : "desktop"}`} onClick={() => setPage(item.value)} className={mobile ? `flex flex-1 flex-col items-center justify-center rounded-2xl px-1 py-2 text-[10px] font-black transition active:scale-95 ${active ? "bg-white text-black shadow-lg shadow-amber-500/20" : isAdmin ? "text-amber-200" : "text-zinc-500"}` : `group whitespace-nowrap rounded-2xl px-4 py-2.5 text-sm font-black transition active:scale-95 ${active ? "bg-white text-black shadow-[0_0_28px_rgba(245,158,11,0.22)]" : isAdmin ? "border border-amber-400/25 bg-amber-500/10 text-amber-100 hover:border-amber-300/50 hover:bg-amber-500/15" : "border border-white/10 bg-white/[0.04] text-zinc-300 hover:border-amber-400/50 hover:bg-amber-500/10 hover:text-white"}`}>
@@ -84,7 +84,7 @@ export default function Navbar({ page, setPage, userEmail, onLogout }: NavbarPro
           </button>
           <nav className="hidden max-w-[860px] gap-2 overflow-x-auto rounded-3xl border border-white/10 bg-white/[0.03] p-1.5 shadow-2xl shadow-black/50 lg:flex">{visibleMenu.map((item) => Item(item))}</nav>
           <div className="flex items-center gap-2">
-            {userEmail ? <><button onClick={() => setPage(internal ? "admin" : "perfil")} className={`hidden max-w-48 truncate rounded-2xl border px-4 py-2 text-xs font-bold md:block ${internal ? "border-amber-400/20 bg-amber-500/10 text-amber-100" : "border-white/10 bg-white/[0.04] text-zinc-400"}`}>{internal ? `${role === "dev" ? "Dono" : "ADM"} • ${userEmail}` : userEmail}</button><button onClick={onLogout} className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 transition hover:bg-red-500/20 active:scale-95">Sair</button></> : <><button onClick={() => setPage("estudo")} className="rounded-2xl bg-white px-4 py-2 text-sm font-black text-black shadow-lg shadow-amber-500/20 transition hover:scale-[1.03] active:scale-95">Entrar</button><button onClick={() => setPage("cursos")} className="hidden rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-black text-zinc-200 transition hover:bg-white/[0.08] md:block">Ver cursos</button></>}
+            {userEmail ? <><button onClick={() => setPage(internal ? "admin" : "perfil")} className={`hidden max-w-48 truncate rounded-2xl border px-4 py-2 text-xs font-bold md:block ${internal ? "border-amber-400/20 bg-amber-500/10 text-amber-100" : "border-white/10 bg-white/[0.04] text-zinc-400"}`}>{internal ? `${role === "dev" ? "Dono" : "ADM"} • ${userEmail}` : userEmail}</button><button onClick={onLogout} className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 transition hover:bg-red-500/20 active:scale-95">Sair</button></> : <><button onClick={() => setPage("login")} className="rounded-2xl bg-white px-4 py-2 text-sm font-black text-black shadow-lg shadow-amber-500/20 transition hover:scale-[1.03] active:scale-95">Entrar</button><button onClick={() => setPage("cursos")} className="hidden rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-black text-zinc-200 transition hover:bg-white/[0.08] md:block">Ver cursos</button></>}
           </div>
         </div>
       </header>
