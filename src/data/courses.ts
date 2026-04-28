@@ -15,6 +15,7 @@ import { siteNivelEmpresa } from "./cursos/siteNivelEmpresa";
 import { iaFerramentasPrompts } from "./cursos/iaFerramentasPrompts";
 import { tecnicoEletronica } from "./cursos/tecnicoEletronica";
 import { cursosBaratos } from "./cursos/cursosBaratos";
+import { organizacaoFinanceiraBasica } from "./cursos/organizacaoFinanceiraBasica";
 import type { CourseContent, Curso } from "./courseTypes";
 import { applyChapterArchitecture } from "./chapterRegistry";
 
@@ -22,6 +23,7 @@ const chavePixAleatoria = "5e5e7367-37bb-4f7b-9de2-eaeb0d3712a2";
 
 const baseCourses: CourseContent[] = [
   ...cursosBaratos,
+  organizacaoFinanceiraBasica,
   iaNaPratica,
   iaFerramentasPrompts,
   apisNaPratica,
@@ -60,7 +62,7 @@ export const trilhas = [
   { nome: "Formacao em Tecnologia", desc: "IA, APIs, websites, sistemas e criacao de solucoes digitais.", cursos: ["IA na Pratica", "IA, Ferramentas e Prompts Profissionais", "APIs na Pratica", "Criar Site Nivel Empresa", "Qualificacao Tecnica em Desenvolvedor de Websites", "Qualificacao Tecnica em Desenvolvedor de Sistemas", "Tecnico em Eletronica • Fundamentos Completos"], icon: "💻" },
   { nome: "Formacao Administrativa", desc: "Informatica, atendimento, documentos, organizacao e rotina profissional.", cursos: ["Assistente Administrativo Basico", "Informatica Profissional do Zero", "Pacote Office Profissional"], icon: "🏢" },
   { nome: "Criacao e Servicos Digitais", desc: "Design, apresentacoes, precificacao e venda de servicos simples.", cursos: ["Canva Basico: Crie Artes Pelo Celular", "Empreendedorismo e Servicos Digitais"], icon: "🚀" },
-  { nome: "Atendimento e Suporte", desc: "Atendimento ao cliente, tickets, pedidos e fechamento profissional.", cursos: ["Atendimento ao Cliente e Suporte"], icon: "🎧" },
+  { nome: "Atendimento e Suporte", desc: "Atendimento ao cliente, suporte, pedidos e fechamento profissional.", cursos: ["Atendimento ao Cliente e Suporte"], icon: "🎧" },
 ];
 
 export function modulosDoCurso(curso: CourseContent | Curso) {
