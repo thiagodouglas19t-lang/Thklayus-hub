@@ -60,6 +60,15 @@ const examples = [
   "Card de divulgação para WhatsApp",
 ];
 
+const cantDo = [
+  "Edição avançada de imagem ou montagem realista perfeita",
+  "Criar documento falso, certificado falso ou comprovante falso",
+  "Garantir imagem 100% real quando for feita por IA",
+  "Trabalhos enormes, TCC, pesquisa completa ou conteúdo acadêmico complexo",
+  "Prometer nota, aprovação, resultado financeiro ou viralização",
+  "Serviço com prazo impossível ou pedido sem explicação mínima",
+];
+
 const steps = [
   ["1", "Escolha", "Veja o serviço que combina com o que você precisa."],
   ["2", "Peça", "Abra o pedido e explique o tema, estilo ou ideia."],
@@ -78,23 +87,23 @@ export default function Home({ setPage }: any) {
           <div>
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">THKLAYUS Hub</span>
-              <span className="rounded-full border border-amber-300/25 bg-amber-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-amber-100">Coisas do dia a dia</span>
+              <span className="rounded-full border border-amber-300/25 bg-amber-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-amber-100">Me contrate</span>
             </div>
 
             <h2 className="mt-5 max-w-4xl text-4xl font-black leading-[1.02] tracking-[-0.06em] md:text-6xl">
-              Peça artes, textos, convites e slides simples sem complicação.
+              Me contrate para resolver coisas digitais simples do dia a dia.
             </h2>
 
             <p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-300 md:text-base">
-              Serviços digitais baratos para situações reais: perfil, status, aniversário, divulgação, escola, trabalho, venda pequena, mensagem bonita ou ideia visual.
+              Artes, textos, convites, divulgações, packs e apresentações simples com ajuda de IA + revisão manual. Barato, direto e sem promessa falsa.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
               <button onClick={() => setPage("pedidos")} className="rounded-2xl bg-white px-6 py-4 font-black text-black shadow-lg shadow-violet-500/25 transition hover:scale-[1.03] active:scale-95">
-                Pedir serviço
+                Me contratar
               </button>
               <button onClick={() => setPage("chat")} className="rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-4 font-black text-white transition hover:border-violet-400/40 hover:bg-violet-500/10 active:scale-95">
-                Falar no suporte
+                Tirar dúvida
               </button>
               <button onClick={() => setPage("cursos")} className="rounded-2xl border border-white/10 bg-black/35 px-6 py-4 font-black text-zinc-300 transition hover:border-amber-400/40 hover:bg-amber-500/10 active:scale-95">
                 Ver materiais
@@ -105,14 +114,14 @@ export default function Home({ setPage }: any) {
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.045] p-4 shadow-2xl shadow-black/40 backdrop-blur-xl">
             <div className="rounded-[1.6rem] border border-violet-300/20 bg-violet-500/10 p-5">
               <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-100">Pedido comum</p>
-              <h3 className="mt-3 text-2xl font-black text-white">Arte ou texto para resolver algo agora</h3>
-              <p className="mt-2 text-sm leading-6 text-zinc-300">Convite, perfil, status, divulgação, mensagem, slide simples ou pack digital.</p>
+              <h3 className="mt-3 text-2xl font-black text-white">Arte, texto, convite ou slide simples</h3>
+              <p className="mt-2 text-sm leading-6 text-zinc-300">Você explica o que precisa, eu monto com IA e ajusto manualmente dentro do possível.</p>
               <div className="mt-5 flex items-end justify-between gap-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-500">A partir de</p>
                   <p className="text-4xl font-black text-white">R$5</p>
                 </div>
-                <button onClick={() => setPage("pedidos")} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black">Pedir</button>
+                <button onClick={() => setPage("pedidos")} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black">Contratar</button>
               </div>
             </div>
 
@@ -162,12 +171,33 @@ export default function Home({ setPage }: any) {
               <div className="mt-5 flex items-center justify-between gap-3">
                 <p className="text-3xl font-black text-white">{service.price}</p>
                 <button onClick={() => setPage("pedidos")} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black shadow-lg shadow-violet-500/20 transition active:scale-95">
-                  Pedir esse
+                  Contratar
                 </button>
               </div>
             </div>
           </article>
         ))}
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="rounded-[2rem] border border-emerald-300/20 bg-emerald-500/10 p-5 md:p-6">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-100">Me contrate para</p>
+          <h3 className="mt-2 text-3xl font-black tracking-[-0.03em] text-white">Pedidos pequenos e objetivos</h3>
+          <p className="mt-3 text-sm leading-7 text-emerald-50/80">
+            Melhor para coisas simples: uma arte, um convite, um texto, uma divulgação, um slide curto ou um pack visual. Se o pedido for maior, eu aviso antes.
+          </p>
+          <button onClick={() => setPage("pedidos")} className="mt-5 rounded-2xl bg-white px-5 py-3 text-sm font-black text-black">Abrir pedido</button>
+        </div>
+
+        <div className="rounded-[2rem] border border-red-300/20 bg-red-500/10 p-5 md:p-6">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-red-100">O que eu não faço</p>
+          <h3 className="mt-2 text-3xl font-black tracking-[-0.03em] text-white">Limites claros</h3>
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            {cantDo.map((item) => (
+              <p key={item} className="rounded-2xl border border-red-200/10 bg-black/35 p-3 text-sm font-bold leading-6 text-red-50/85">✕ {item}</p>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 shadow-2xl shadow-black/25 md:p-6">
@@ -205,7 +235,7 @@ export default function Home({ setPage }: any) {
             <h3 className="text-3xl font-black tracking-[-0.03em]">Quer resolver uma coisa simples hoje?</h3>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-700">Comece por uma arte, convite, texto, divulgação ou apresentação simples e acompanhe tudo pelo app.</p>
           </div>
-          <button onClick={() => setPage("pedidos")} className="rounded-2xl bg-black px-6 py-3 font-black text-white">Começar pedido</button>
+          <button onClick={() => setPage("pedidos")} className="rounded-2xl bg-black px-6 py-3 font-black text-white">Me contratar</button>
         </div>
       </section>
     </div>
