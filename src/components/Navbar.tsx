@@ -4,6 +4,7 @@ export type Page =
   | "home"
   | "cursos"
   | "gratis"
+  | "livros"
   | "estudo"
   | "pedidos"
   | "suporte"
@@ -26,6 +27,7 @@ type MenuItem = { label: string; short: string; value: Page; icon: string; inter
 const menu: MenuItem[] = [
   { label: "Início", short: "Início", value: "home", icon: "⌂" },
   { label: "Cursos", short: "Cursos", value: "cursos", icon: "◈" },
+  { label: "Livros", short: "Livros", value: "livros", icon: "📚" },
   { label: "Meus Cursos", short: "Meus", value: "estudo", icon: "▣" },
   { label: "Pedidos", short: "Pedidos", value: "pedidos", icon: "✦" },
   { label: "Tickets", short: "Tickets", value: "suporte", icon: "◇" },
@@ -40,6 +42,7 @@ const menu: MenuItem[] = [
 const mobileBase: MenuItem[] = [
   { label: "Início", short: "Início", value: "home", icon: "⌂" },
   { label: "Cursos", short: "Cursos", value: "cursos", icon: "◈" },
+  { label: "Livros", short: "Livros", value: "livros", icon: "📚" },
   { label: "Meus Cursos", short: "Meus", value: "estudo", icon: "▣" },
   { label: "Chat", short: "Chat", value: "chat", icon: "●" },
   { label: "Tickets", short: "Tickets", value: "suporte", icon: "◇" },
