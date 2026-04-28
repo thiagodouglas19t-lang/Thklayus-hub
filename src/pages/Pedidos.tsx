@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { formatBrasiliaDateTime } from "../lib/date";
 
 type Pedido = {
   id: string;
@@ -30,12 +31,7 @@ function normalize(value?: string | null) {
 }
 
 function formatDate(value?: string) {
-  if (!value) return "Sem data";
-  try {
-    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
-  } catch {
-    return "Sem data";
-  }
+  return formatBrasiliaDateTime(value);
 }
 
 function statusInfo(pedido: Pedido) {
@@ -202,7 +198,7 @@ export default function Pedidos() {
               <article key={pedido.id} className="rounded-[2rem] border border-white/10 bg-black/35 p-5">
                 <div className="grid gap-4 md:grid-cols-[1fr_240px] md:items-center">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">{formatDate(pedido.created_at)} • Compra</p>
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">{formatDate(pedido.created_at)} BRT • Compra</p>
                     <h3 className="mt-2 text-2xl font-black text-white">{pedido.course_title || pedido.title}</h3>
                     <p className="mt-2 text-sm text-zinc-400">Valor: <span className="font-black text-white">{pedido.total_price || pedido.price || "não informado"}</span></p>
                     {pedido.comprovante_url && <a href={pedido.comprovante_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-sm font-black text-amber-200 underline">Ver comprovante enviado</a>}
@@ -252,9 +248,10 @@ export default function Pedidos() {
                 return (
                   <div key={pedido.id} className="rounded-2xl border border-zinc-800 bg-black p-4">
                     <p className="font-black">{pedido.title}</p>
+                    <p className="mt-1 text-xs font-bold text-zinc-500">{formatDate(pedido.created_at)} BRT</p>
                     <p className={`mt-2 inline-flex rounded-full border px-3 py-1 text-xs font-black uppercase ${info.className}`}>{info.label}</p>
                     <p className="mt-3 text-xs leading-5 text-zinc-500">{info.text}</p>
-                    <button onClick={() => openPage("suporte")} className="mt-3 rounded-xl border border-white/10 px-4 py-2 text-xs font-black text-zinc-300">Abrir suporte</button>
+                    <button onClick={() => openPage("chat")} className="mt-3 rounded-xl border border-white/10 px-4 py-2 text-xs font-black text-zinc-300">Abrir suporte</button>
                   </div>
                 );
               })
