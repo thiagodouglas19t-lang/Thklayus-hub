@@ -90,7 +90,7 @@ export default function App() {
         <div className="relative rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl shadow-amber-500/10 backdrop-blur-2xl">
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br from-amber-300 via-white to-blue-200 text-xl font-black text-black shadow-lg shadow-amber-500/30">A</div>
           <h1 className="mt-5 bg-gradient-to-r from-white via-amber-100 to-blue-200 bg-clip-text text-3xl font-black tracking-[0.16em] text-transparent">AprendaJá</h1>
-          <p className="mt-2 text-sm font-bold uppercase tracking-[0.18em] text-zinc-500">Cursos Livres • Carregando...</p>
+          <p className="mt-2 text-sm font-bold uppercase tracking-[0.18em] text-zinc-500">Carregando...</p>
         </div>
       </main>
     );
@@ -107,7 +107,7 @@ export default function App() {
             Logado como: <span className="normal-case tracking-normal text-zinc-300">{user.email}</span>
           </div>
         )}
-        <section className="mx-auto max-w-7xl px-4 pb-28 pt-6 md:px-6 md:pb-10 md:pt-8">{renderPage()}</section>
+        <section className="mx-auto max-w-7xl px-4 pb-44 pt-6 md:px-6 md:pb-12 md:pt-8 lg:pb-12">{renderPage()}</section>
       </div>
     </main>
   );
