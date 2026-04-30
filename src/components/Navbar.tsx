@@ -32,14 +32,12 @@ type ConfigNavItem = {
 };
 
 function AppLogo() {
-  const companyInitial = appConfig.brand.company?.charAt(0) || "T";
-
   return (
-    <div className="relative grid h-11 w-11 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-violet-400 via-white to-violet-200 text-black shadow-lg shadow-violet-500/20">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.95),transparent_34%),radial-gradient(circle_at_80%_90%,rgba(124,58,237,0.35),transparent_38%)]" />
-      <span className="relative text-xl font-black">{companyInitial}</span>
-      <span className="absolute bottom-2 h-1 w-5 rounded-full bg-black/80" />
-    </div>
+    <img
+      src="/logo-aprendaja.svg"
+      alt="AprendaJá"
+      className="h-11 w-11 rounded-2xl"
+    />
   );
 }
 
