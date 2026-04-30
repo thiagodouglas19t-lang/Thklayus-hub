@@ -5,8 +5,23 @@ type HomeProps = {
   setPage: (page: Page) => void;
 };
 
+const shareText = "Achei um app grátis com modelos e ideias pra resolver tarefa, mensagem, resumo e apresentação. Testa aí: ";
+
 export default function Home({ setPage }: HomeProps) {
-  const { brand, home, navigation, services, models } = appConfig;
+  const { brand, home, navigation, services, models, freeArea } = appConfig;
+
+  async function shareApp() {
+    const url = window.location.href;
+    const text = `${shareText}${url}`;
+
+    if (navigator.share) {
+      await navigator.share({ title: brand.name, text, url });
+      return;
+    }
+
+    await navigator.clipboard.writeText(text);
+    alert("Texto de divulgação copiado!");
+  }
 
   return (
     <div className="space-y-6 pb-4">
@@ -80,15 +95,17 @@ export default function Home({ setPage }: HomeProps) {
 
       <section className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
         <article className="rounded-[2.5rem] border border-white/10 bg-white/[0.035] p-6">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">Foco</p>
-          <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-white">{home.powerTitle}</h2>
-          <p className="mt-3 text-sm font-semibold leading-7 text-zinc-400">{home.powerText}</p>
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">Desafio grátis</p>
+          <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-white">Resolva uma coisa hoje.</h2>
+          <p className="mt-3 text-sm font-semibold leading-7 text-zinc-400">Abra o Resolver, gere uma base e copie. O objetivo é o usuário sair com algo pronto em menos de 1 minuto.</p>
+          <button onClick={() => setPage("resolver")} className="mt-5 rounded-2xl bg-violet-300 px-5 py-3 text-sm font-black text-black active:scale-95">Começar desafio</button>
         </article>
 
         <article className="rounded-[2.5rem] border border-violet-300/15 bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.2),transparent_38%),rgba(255,255,255,0.035)] p-6">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">Experiência</p>
-          <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-white">{home.feelingTitle}</h2>
-          <p className="mt-3 text-sm font-semibold leading-7 text-zinc-400">{home.feelingText}</p>
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">Crescimento</p>
+          <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-white">Compartilhe se ajudou.</h2>
+          <p className="mt-3 text-sm font-semibold leading-7 text-zinc-400">O app cresce melhor quando parece útil de verdade, não quando parece venda. Compartilhe só depois de testar.</p>
+          <button onClick={shareApp} className="mt-5 rounded-2xl border border-white/10 bg-white px-5 py-3 text-sm font-black text-black active:scale-95">Compartilhar app grátis</button>
         </article>
       </section>
 
@@ -113,6 +130,21 @@ export default function Home({ setPage }: HomeProps) {
           ))}
         </div>
       </section>
+
+      {freeArea.sharing.enabled && (
+        <section className="rounded-[2.5rem] border border-white/10 bg-black/50 p-6">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">{freeArea.sharing.eyebrow}</p>
+          <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-white">{freeArea.sharing.title}</h2>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {freeArea.sharing.messages.map((message) => (
+              <button key={message.title} onClick={() => navigator.clipboard.writeText(message.text)} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-left active:scale-[0.99]">
+                <p className="font-black text-white">{message.title}</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-zinc-500">{message.text}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {services.enabled && (
         <section className="rounded-[2.5rem] border border-white/10 bg-black/50 p-6">
