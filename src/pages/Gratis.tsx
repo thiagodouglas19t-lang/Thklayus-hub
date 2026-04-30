@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { appConfig } from "../config/appConfig";
-import { supabase } from "../lib/supabase";
 
 const dailyContents = [
   { type: "Frase pronta", title: "Mensagem para divulgar algo", text: "Oi, pessoal! Estou testando um projeto novo com conteúdos úteis e ferramentas grátis. Quem puder entrar, testar e me dar feedback já ajuda muito 🙏" },
@@ -19,21 +18,165 @@ type SmartResult = {
   title: string;
   text: string;
   suggestions: string[];
-  source?: "ia" | "rapido";
 };
 
-const quickExamples = ["mensagem pedindo desculpa", "checklist de viagem", "estrutura de apresentação", "mensagem cobrando dívida", "roteiro de reunião", "ideia de trabalho escolar", "mensagem para professor", "checklist de estudos", "ideias de status"];
+const quickExamples = [
+  "mensagem pedindo desculpa",
+  "checklist de viagem",
+  "estrutura de apresentação",
+  "mensagem cobrando dívida",
+  "roteiro de reunião",
+  "ideia de trabalho escolar",
+  "mensagem para professor",
+  "checklist de estudos",
+  "ideias de status",
+];
+
 const viralExamples = ["mensagem pedindo desculpa", "checklist de viagem", "mensagem para professor"];
 
-function todayKey() { return new Date().toISOString().slice(0, 10); }
-function getInitialStats() { const saved = localStorage.getItem("thklayus-viral-stats"); if (!saved) return { opens: 0, lastOpen: "", streak: 0, shares: 0, copies: 0 }; try { return JSON.parse(saved); } catch { return { opens: 0, lastOpen: "", streak: 0, shares: 0, copies: 0 }; } }
-function renderTemplate(template: string, topic: string) { return template.replaceAll("{topic}", topic); }
-function detectIntent(input: string): Intent { const text = input.toLowerCase(); if (text.includes("checklist") || text.includes("lista")) return "checklist"; if (text.includes("apresentação") || text.includes("estrutura") || text.includes("roteiro") || text.includes("reunião") || text.includes("trabalho")) return "estrutura"; if (text.includes("ideia") || text.includes("ideias") || text.includes("status") || text.includes("post")) return "ideia"; if (text.includes("mensagem") || text.includes("desculpa") || text.includes("cobrar") || text.includes("cobrança") || text.includes("aniversário") || text.includes("chefe") || text.includes("professor") || text.includes("cliente") || text.length <= 8) return "mensagem"; return "rascunho"; }
-function titleByIntent(intent: Intent) { if (intent === "checklist") return "Checklist pronto"; if (intent === "estrutura") return "Estrutura pronta"; if (intent === "ideia") return "Ideias prontas"; if (intent === "mensagem") return "Mensagem pronta"; return "Rascunho pronto"; }
-function fallbackResult(rawInput: string): SmartResult { const input = rawInput.trim() || "mensagem rápida"; const intent = detectIntent(input); if (intent === "mensagem") return { intent, title: "Mensagem pronta", source: "rapido", text: `Oi! Tudo bem? Passando para falar sobre ${input}.\n\nQueria resolver isso de forma simples e clara. Me responde quando puder?`, suggestions: ["mensagem pedindo desculpa", "mensagem cobrando dívida", "mensagem para professor"] }; if (intent === "checklist") return { intent, title: "Checklist pronto", source: "rapido", text: `Checklist: ${input}\n\n□ Separar o que é obrigatório\n□ Definir a primeira ação\n□ Conferir prazo ou limite\n□ Finalizar a parte principal\n□ Revisar antes de enviar`, suggestions: ["checklist de viagem", "checklist de estudo", "checklist de compras"] }; return { intent, title: titleByIntent(intent), source: "rapido", text: `Rascunho rápido: ${input}\n\n1. Objetivo principal\n2. Informações importantes\n3. Próxima ação\n\nTexto inicial:\nPreciso resolver ${input} de forma simples, direta e fácil de entender.`, suggestions: ["mensagem rápida", "checklist simples", "estrutura curta"] }; }
-function getInitialPrompt() { try { const saved = localStorage.getItem("aprendaja_quick_prompt"); return saved || ""; } catch { return ""; } }
-function saveHistory(prompt: string, result: SmartResult) { try { const saved = localStorage.getItem("aprendaja_history"); const current = saved ? JSON.parse(saved) : []; const next = [{ prompt, title: result.title, text: result.text, date: Date.now(), source: result.source }, ...current].filter((item, index, array) => array.findIndex((entry) => entry.prompt === item.prompt) === index).slice(0, 3); localStorage.setItem("aprendaja_history", JSON.stringify(next)); return next; } catch { return []; } }
-function getHistory() { try { const saved = localStorage.getItem("aprendaja_history"); return saved ? JSON.parse(saved) : []; } catch { return []; } }
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getInitialStats() {
+  const saved = localStorage.getItem("thklayus-viral-stats");
+  if (!saved) return { opens: 0, lastOpen: "", streak: 0, shares: 0, copies: 0 };
+  try {
+    return JSON.parse(saved);
+  } catch {
+    return { opens: 0, lastOpen: "", streak: 0, shares: 0, copies: 0 };
+  }
+}
+
+function renderTemplate(template: string, topic: string) {
+  return template.replaceAll("{topic}", topic);
+}
+
+function detectIntent(input: string): Intent {
+  const text = input.toLowerCase();
+
+  if (text.includes("checklist") || text.includes("lista")) return "checklist";
+  if (text.includes("apresentação") || text.includes("estrutura") || text.includes("roteiro") || text.includes("reunião") || text.includes("trabalho")) return "estrutura";
+  if (text.includes("ideia") || text.includes("ideias") || text.includes("status") || text.includes("post")) return "ideia";
+  if (text.includes("mensagem") || text.includes("desculpa") || text.includes("cobrar") || text.includes("cobrança") || text.includes("aniversário") || text.includes("chefe") || text.includes("professor") || text.includes("cliente") || text.length <= 8) return "mensagem";
+
+  return "rascunho";
+}
+
+function titleByIntent(intent: Intent) {
+  if (intent === "checklist") return "Checklist pronto";
+  if (intent === "estrutura") return "Estrutura pronta";
+  if (intent === "ideia") return "Ideias prontas";
+  if (intent === "mensagem") return "Mensagem pronta";
+  return "Rascunho pronto";
+}
+
+function buildMessage(input: string, tone: Tone) {
+  const text = input.toLowerCase();
+
+  if (text.includes("oi") || text.includes("salve") || text.includes("fala")) {
+    if (tone === "formal") return "Olá! Tudo bem? Estou entrando em contato para falar com você de forma rápida e direta.";
+    if (tone === "whatsapp") return "Oi! Tudo bem? Passando aqui rapidinho 😄";
+    return "Oi! Tudo bem? Passando aqui rapidinho.";
+  }
+
+  if (text.includes("desculpa") || text.includes("atraso")) {
+    if (tone === "formal") return "Olá! Quero pedir desculpas pelo ocorrido. Reconheço que poderia ter me organizado melhor e vou me atentar para que isso não se repita.";
+    if (tone === "whatsapp") return "Oi! Desculpa mesmo por isso. Me atrapalhei, mas já estou resolvendo para não repetir 🙏";
+    return "Oi! Desculpa pelo ocorrido. Reconheço o erro e vou me organizar melhor para isso não acontecer de novo.";
+  }
+
+  if (text.includes("cobran") || text.includes("dívida") || text.includes("divida")) {
+    if (tone === "formal") return "Olá! Tudo bem? Estou entrando em contato para lembrar sobre o valor pendente. Quando puder, me informe uma previsão de pagamento.";
+    if (tone === "whatsapp") return "Oi! Tudo bem? Passando só para lembrar daquele valor pendente. Consegue me dizer quando vai conseguir acertar?";
+    return "Oi! Passando para lembrar do valor pendente. Me avisa quando puder pagar ou combinar uma previsão.";
+  }
+
+  if (text.includes("professor")) {
+    return "Olá, professor(a). Tudo bem? Estou entrando em contato para tirar uma dúvida. Quando puder, poderia me orientar? Obrigado(a).";
+  }
+
+  return `Oi! Tudo bem? Passando para falar sobre ${input}.\n\nQueria resolver isso de forma simples e clara. Me responde quando puder?`;
+}
+
+function buildResult(rawInput: string, tone: Tone = "simples"): SmartResult {
+  const input = rawInput.trim() || "mensagem rápida";
+  const intent = detectIntent(input);
+
+  if (intent === "mensagem") {
+    return {
+      intent,
+      title: "Mensagem pronta",
+      text: buildMessage(input, tone),
+      suggestions: ["mensagem pedindo desculpa", "mensagem cobrando dívida", "mensagem para professor"],
+    };
+  }
+
+  if (intent === "checklist") {
+    return {
+      intent,
+      title: "Checklist pronto",
+      text: `Checklist: ${input}\n\n□ Separar o que é obrigatório\n□ Definir a primeira ação\n□ Conferir prazo ou limite\n□ Finalizar a parte principal\n□ Revisar antes de enviar\n□ Copiar, salvar ou compartilhar`,
+      suggestions: ["checklist de viagem", "checklist de estudo", "checklist de compras"],
+    };
+  }
+
+  if (intent === "estrutura") {
+    return {
+      intent,
+      title: "Estrutura pronta",
+      text: `Estrutura: ${input}\n\n1. Abertura\nApresente o tema de forma simples.\n\n2. Contexto\nExplique por que isso importa.\n\n3. Pontos principais\nMostre 3 ideias importantes.\n\n4. Exemplo\nUse uma situação fácil de entender.\n\n5. Fechamento\nFinalize com uma conclusão curta.`,
+      suggestions: ["estrutura de apresentação", "roteiro de reunião", "ideia de trabalho escolar"],
+    };
+  }
+
+  if (intent === "ideia") {
+    return {
+      intent,
+      title: "Ideias prontas",
+      text: `Ideias sobre ${input}\n\n1. Transforme em checklist.\n2. Faça um antes e depois.\n3. Crie uma frase curta para postar.\n4. Explique com um exemplo real.\n5. Separe em começo, meio e fim.`,
+      suggestions: ["ideias de status", "ideia de apresentação", "ideias para divulgar algo"],
+    };
+  }
+
+  return {
+    intent,
+    title: "Rascunho pronto",
+    text: `Rascunho rápido: ${input}\n\n1. Objetivo principal\n2. Informações importantes\n3. Próxima ação\n\nTexto inicial:\nPreciso resolver ${input} de forma simples, direta e fácil de entender.`,
+    suggestions: ["mensagem rápida", "checklist simples", "estrutura curta"],
+  };
+}
+
+function getInitialPrompt() {
+  try {
+    return localStorage.getItem("aprendaja_quick_prompt") || "";
+  } catch {
+    return "";
+  }
+}
+
+function saveHistory(prompt: string, result: SmartResult) {
+  try {
+    const saved = localStorage.getItem("aprendaja_history");
+    const current = saved ? JSON.parse(saved) : [];
+    const next = [{ prompt, title: result.title, text: result.text, date: Date.now() }, ...current]
+      .filter((item, index, array) => array.findIndex((entry) => entry.prompt === item.prompt) === index)
+      .slice(0, 3);
+    localStorage.setItem("aprendaja_history", JSON.stringify(next));
+    return next;
+  } catch {
+    return [];
+  }
+}
+
+function getHistory() {
+  try {
+    const saved = localStorage.getItem("aprendaja_history");
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
 
 export default function Gratis() {
   const cfg = appConfig.freeArea;
@@ -41,77 +184,122 @@ export default function Gratis() {
   const [tema, setTema] = useState(getInitialPrompt);
   const [tone, setTone] = useState<Tone>("simples");
   const [toast, setToast] = useState("");
-  const [debugError, setDebugError] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [result, setResult] = useState<SmartResult | null>(() => { const initial = getInitialPrompt(); return initial ? fallbackResult(initial) : null; });
+  const [result, setResult] = useState<SmartResult | null>(() => {
+    const initial = getInitialPrompt();
+    return initial ? buildResult(initial) : null;
+  });
   const [history, setHistory] = useState<any[]>(getHistory);
   const today = todayKey();
   const contentOfDay = useMemo(() => dailyContents[new Date().getDate() % dailyContents.length], []);
-  const liveSuggestions = useMemo(() => { const value = tema.toLowerCase().trim(); if (!value) return quickExamples.slice(0, 4); return quickExamples.filter((item) => item.toLowerCase().includes(value) || item.toLowerCase().startsWith(value.split(" ")[0])).slice(0, 4); }, [tema]);
+  const liveSuggestions = useMemo(() => {
+    const value = tema.toLowerCase().trim();
+    if (!value) return quickExamples.slice(0, 4);
+    return quickExamples.filter((item) => item.toLowerCase().includes(value) || item.toLowerCase().startsWith(value.split(" ")[0])).slice(0, 4);
+  }, [tema]);
 
-  useEffect(() => { setStats((current: any) => { if (current.lastOpen === today) return current; const next = { ...current, opens: Number(current.opens || 0) + 1, lastOpen: today, streak: Number(current.streak || 0) + 1 }; localStorage.setItem("thklayus-viral-stats", JSON.stringify(next)); return next; }); }, [today]);
-  useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(""), 2800); return () => window.clearTimeout(timer); }, [toast]);
-  function markShare() { const next = { ...stats, shares: Number(stats.shares || 0) + 1 }; setStats(next); localStorage.setItem("thklayus-viral-stats", JSON.stringify(next)); }
-  function markCopy() { const next = { ...stats, copies: Number(stats.copies || 0) + 1 }; setStats(next); localStorage.setItem("thklayus-viral-stats", JSON.stringify(next)); }
-  async function copyText(text: string, onDone?: () => void) { await navigator.clipboard.writeText(text); markCopy(); onDone?.(); setToast("Copiado! Agora é só colar onde quiser."); }
-  async function shareText(text: string) { const shareData = { title: appConfig.brand.name, text, url: window.location.origin }; if (navigator.share) { await navigator.share(shareData); markShare(); setToast("Compartilhamento aberto!"); return; } await copyText(`${text}\n${window.location.origin}`, markShare); }
+  useEffect(() => {
+    setStats((current: any) => {
+      if (current.lastOpen === today) return current;
+      const next = { ...current, opens: Number(current.opens || 0) + 1, lastOpen: today, streak: Number(current.streak || 0) + 1 };
+      localStorage.setItem("thklayus-viral-stats", JSON.stringify(next));
+      return next;
+    });
+  }, [today]);
 
-  async function generateFromPrompt(value?: string, nextTone = tone) {
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(""), 1800);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  function markShare() {
+    const next = { ...stats, shares: Number(stats.shares || 0) + 1 };
+    setStats(next);
+    localStorage.setItem("thklayus-viral-stats", JSON.stringify(next));
+  }
+
+  function markCopy() {
+    const next = { ...stats, copies: Number(stats.copies || 0) + 1 };
+    setStats(next);
+    localStorage.setItem("thklayus-viral-stats", JSON.stringify(next));
+  }
+
+  async function copyText(text: string, onDone?: () => void) {
+    await navigator.clipboard.writeText(text);
+    markCopy();
+    onDone?.();
+    setToast("Copiado! Agora é só colar onde quiser.");
+  }
+
+  async function shareText(text: string) {
+    const shareData = { title: appConfig.brand.name, text, url: window.location.origin };
+    if (navigator.share) {
+      await navigator.share(shareData);
+      markShare();
+      setToast("Compartilhamento aberto!");
+      return;
+    }
+    await copyText(`${text}\n${window.location.origin}`, markShare);
+  }
+
+  function generateFromPrompt(value?: string, nextTone = tone) {
     const prompt = (value || tema || cfg.generator.defaultTopic).trim();
-    const intent = detectIntent(prompt);
+    const nextResult = buildResult(prompt, nextTone);
     setTema(prompt);
-    setDebugError("");
-    setIsGenerating(true);
-
+    setResult(nextResult);
+    setHistory(saveHistory(prompt, nextResult));
     try {
-      const { data, error } = await supabase.functions.invoke("smart-generate", {
-        body: { prompt, tone: nextTone, mode: intent },
-      });
-
-      if (error) {
-        throw new Error(error.message || JSON.stringify(error));
-      }
-
-      const text = String(data?.text || "").trim();
-      if (!text) {
-        throw new Error(`Resposta vazia da função: ${JSON.stringify(data)}`);
-      }
-
-      const nextResult: SmartResult = {
-        intent,
-        title: titleByIntent(intent),
-        text,
-        source: "ia",
-        suggestions: quickExamples.filter((item) => item !== prompt).slice(0, 3),
-      };
-      setResult(nextResult);
-      setHistory(saveHistory(prompt, nextResult));
-      setToast("IA respondeu ✅");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      const nextResult = fallbackResult(prompt);
-      setResult(nextResult);
-      setHistory(saveHistory(prompt, nextResult));
-      setDebugError(message);
-      setToast(`IA falhou: ${message.slice(0, 90)}`);
-    } finally {
-      setIsGenerating(false);
-      try { localStorage.setItem("aprendaja_quick_prompt", prompt); } catch { /* ignore */ }
+      localStorage.setItem("aprendaja_quick_prompt", prompt);
+    } catch {
+      // ignore
     }
   }
 
-  function changeTone(nextTone: Tone) { setTone(nextTone); if (tema.trim()) generateFromPrompt(tema, nextTone); }
-  function gerarIdeias() { const assunto = tema.trim() || cfg.generator.defaultTopic; return cfg.generator.resultTemplates.map((template) => renderTemplate(template, assunto)); }
+  function changeTone(nextTone: Tone) {
+    setTone(nextTone);
+    if (tema.trim()) generateFromPrompt(tema, nextTone);
+  }
+
+  function gerarIdeias() {
+    const assunto = tema.trim() || cfg.generator.defaultTopic;
+    return cfg.generator.resultTemplates.map((template) => renderTemplate(template, assunto));
+  }
 
   return (
     <div className={`space-y-6 ${appConfig.bottomNav.safeBottomPadding}`}>
       {toast && <div className="fixed bottom-24 left-1/2 z-[90] w-[calc(100%-32px)] max-w-sm -translate-x-1/2 rounded-2xl border border-violet-300/25 bg-violet-300 px-5 py-3 text-center text-sm font-black text-black shadow-2xl shadow-violet-500/20">{toast}</div>}
-      <section className="rounded-[2.4rem] border border-violet-300/20 bg-[#030006] p-5 shadow-2xl shadow-violet-950/20 md:p-7"><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">IA inteligente</p><span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-black text-zinc-400">{Number(stats.copies || 0)} cópias neste aparelho</span></div><h2 className="mt-2 text-4xl font-black tracking-[-0.06em] text-white md:text-5xl">Escreva o que você quer mandar ou fazer.</h2><p className="mt-3 text-sm font-semibold leading-7 text-zinc-500">A IA cria uma resposta curta, natural e pronta para copiar.</p><div className="mt-5 rounded-[2rem] border border-white/10 bg-black/70 p-2"><div className="grid gap-2 md:grid-cols-[1fr_auto]"><input value={tema} onChange={(e) => setTema(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") generateFromPrompt(); }} placeholder="Ex: mensagem pedindo desculpa, checklist de viagem..." className="min-h-14 rounded-[1.35rem] border border-white/10 bg-white/[0.04] px-5 text-base font-bold text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-300/60" autoFocus /><button disabled={isGenerating} onClick={() => generateFromPrompt()} className="min-h-14 rounded-[1.35rem] bg-white px-6 text-sm font-black text-black shadow-xl shadow-violet-500/25 active:scale-95 disabled:opacity-60">{isGenerating ? "Gerando..." : "Gerar com IA"}</button></div></div><div className="mt-4 flex flex-wrap gap-2">{liveSuggestions.map((item) => <button key={item} onClick={() => generateFromPrompt(item)} className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-black text-zinc-300 hover:border-violet-300/40 hover:text-white">{item}</button>)}</div><div className="mt-4 flex flex-wrap gap-2">{(["simples", "formal", "whatsapp"] as Tone[]).map((item) => <button key={item} onClick={() => changeTone(item)} className={`rounded-full px-4 py-2 text-xs font-black capitalize transition ${tone === item ? "bg-violet-300 text-black" : "border border-white/10 bg-white/[0.04] text-zinc-400"}`}>{item}</button>)}</div>{debugError && <div className="mt-4 rounded-2xl border border-red-400/30 bg-red-500/10 p-4 text-xs font-bold leading-6 text-red-100">Erro IA: {debugError}</div>}</section>
-      {result && <section className="rounded-[2.4rem] border border-white/10 bg-white p-5 text-black shadow-2xl shadow-black/40 md:p-7"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-500">Resultado pronto {result.source === "ia" ? "• IA" : "• modo rápido"}</p><h3 className="mt-2 text-3xl font-black tracking-[-0.04em]">{result.title}</h3></div><span className="rounded-full bg-black px-3 py-1 text-xs font-black text-white">{result.intent}</span></div><button onClick={() => copyText(result.text)} className="mt-5 w-full rounded-[2rem] border border-zinc-200 bg-zinc-50 p-5 text-left transition active:scale-[0.99]"><pre className="whitespace-pre-wrap font-sans text-base font-semibold leading-8 text-zinc-800">{result.text}</pre></button><div className="sticky bottom-28 mt-5"><button onClick={() => copyText(result.text)} className="w-full rounded-3xl bg-black px-6 py-5 text-lg font-black text-white shadow-2xl shadow-violet-500/20 active:scale-95">Copiar agora</button></div><button onClick={() => shareText(`Usei o AprendaJá e gerei isso em segundos:\n\n${result.text}`)} className="mt-3 w-full rounded-3xl border border-zinc-200 bg-white px-6 py-4 text-sm font-black text-black active:scale-95">Compartilhar resultado</button><div className="mt-4 flex flex-wrap gap-2">{result.suggestions.map((item) => <button key={item} onClick={() => generateFromPrompt(item)} className="rounded-full border border-zinc-200 px-4 py-2 text-xs font-black text-zinc-700">{item}</button>)}</div></section>}
+
+      <section className="rounded-[2.4rem] border border-violet-300/20 bg-[#030006] p-5 shadow-2xl shadow-violet-950/20 md:p-7">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">Ferramenta rápida</p>
+          <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-black text-zinc-400">{Number(stats.copies || 0)} cópias neste aparelho</span>
+        </div>
+        <h2 className="mt-2 text-4xl font-black tracking-[-0.06em] text-white md:text-5xl">Escreva o que você quer mandar ou fazer.</h2>
+        <p className="mt-3 text-sm font-semibold leading-7 text-zinc-500">O app cria uma base rápida para copiar, adaptar e usar.</p>
+        <div className="mt-5 rounded-[2rem] border border-white/10 bg-black/70 p-2">
+          <div className="grid gap-2 md:grid-cols-[1fr_auto]">
+            <input value={tema} onChange={(e) => setTema(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") generateFromPrompt(); }} placeholder="Ex: mensagem pedindo desculpa, checklist de viagem..." className="min-h-14 rounded-[1.35rem] border border-white/10 bg-white/[0.04] px-5 text-base font-bold text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-300/60" autoFocus />
+            <button onClick={() => generateFromPrompt()} className="min-h-14 rounded-[1.35rem] bg-white px-6 text-sm font-black text-black shadow-xl shadow-violet-500/25 active:scale-95">Gerar modelo</button>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {liveSuggestions.map((item) => <button key={item} onClick={() => generateFromPrompt(item)} className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-black text-zinc-300 hover:border-violet-300/40 hover:text-white">{item}</button>)}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {(["simples", "formal", "whatsapp"] as Tone[]).map((item) => <button key={item} onClick={() => changeTone(item)} className={`rounded-full px-4 py-2 text-xs font-black capitalize transition ${tone === item ? "bg-violet-300 text-black" : "border border-white/10 bg-white/[0.04] text-zinc-400"}`}>{item}</button>)}
+        </div>
+      </section>
+
+      {result && <section className="rounded-[2.4rem] border border-white/10 bg-white p-5 text-black shadow-2xl shadow-black/40 md:p-7"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-500">Resultado pronto</p><h3 className="mt-2 text-3xl font-black tracking-[-0.04em]">{result.title}</h3></div><span className="rounded-full bg-black px-3 py-1 text-xs font-black text-white">{result.intent}</span></div><button onClick={() => copyText(result.text)} className="mt-5 w-full rounded-[2rem] border border-zinc-200 bg-zinc-50 p-5 text-left transition active:scale-[0.99]"><pre className="whitespace-pre-wrap font-sans text-base font-semibold leading-8 text-zinc-800">{result.text}</pre></button><div className="sticky bottom-28 mt-5"><button onClick={() => copyText(result.text)} className="w-full rounded-3xl bg-black px-6 py-5 text-lg font-black text-white shadow-2xl shadow-violet-500/20 active:scale-95">Copiar agora</button></div><button onClick={() => shareText(`Usei o AprendaJá e gerei isso em segundos:\n\n${result.text}`)} className="mt-3 w-full rounded-3xl border border-zinc-200 bg-white px-6 py-4 text-sm font-black text-black active:scale-95">Compartilhar resultado</button><div className="mt-4 flex flex-wrap gap-2">{result.suggestions.map((item) => <button key={item} onClick={() => generateFromPrompt(item)} className="rounded-full border border-zinc-200 px-4 py-2 text-xs font-black text-zinc-700">{item}</button>)}</div></section>}
+
       <section className="rounded-[2rem] border border-violet-300/20 bg-violet-500/10 p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.22em] text-violet-200">Teste rápido</p><h3 className="mt-2 text-2xl font-black text-white">Mostre para alguém em 10 segundos.</h3></div><button onClick={() => shareText(`Testa esse app grátis: digita uma situação e ele cria uma mensagem, checklist ou estrutura pronta. ${window.location.origin}`)} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black">Compartilhar app</button></div><div className="mt-4 grid gap-2 md:grid-cols-3">{viralExamples.map((item) => <button key={item} onClick={() => generateFromPrompt(item)} className="rounded-2xl border border-white/10 bg-black/35 p-4 text-left text-sm font-black text-white">{item}</button>)}</div></section>
-      {history.length > 0 && <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-5"><p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-500">Últimos usados</p><div className="mt-4 grid gap-3 md:grid-cols-3">{history.map((item) => <button key={item.date} onClick={() => { setTema(item.prompt); setResult({ intent: detectIntent(item.prompt), title: item.title, text: item.text, suggestions: [], source: item.source || "rapido" }); }} className="rounded-2xl border border-white/10 bg-black/45 p-4 text-left"><p className="text-sm font-black text-white">{item.prompt}</p><p className="mt-2 line-clamp-2 text-xs font-semibold leading-5 text-zinc-500">{item.title}</p></button>)}</div></section>}
+
+      {history.length > 0 && <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-5"><p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-500">Últimos usados</p><div className="mt-4 grid gap-3 md:grid-cols-3">{history.map((item) => <button key={item.date} onClick={() => { setTema(item.prompt); setResult({ intent: detectIntent(item.prompt), title: item.title, text: item.text, suggestions: [] }); }} className="rounded-2xl border border-white/10 bg-black/45 p-4 text-left"><p className="text-sm font-black text-white">{item.prompt}</p><p className="mt-2 line-clamp-2 text-xs font-semibold leading-5 text-zinc-500">{item.title}</p></button>)}</div></section>}
+
       <section className="grid gap-4 lg:grid-cols-[1fr_0.8fr]"><article className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-5 md:p-6"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">{cfg.daily.eyebrow}</p><h3 className="mt-3 text-3xl font-black text-white">{contentOfDay.title}</h3><span className="mt-3 inline-flex rounded-full border border-violet-300/20 bg-violet-500/10 px-3 py-1 text-xs font-black text-violet-100">{contentOfDay.type || cfg.daily.category}</span></div><button title="Copiar" onClick={() => copyText(contentOfDay.text)} className="rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-lg font-black text-white transition hover:bg-white hover:text-black">⧉</button></div><p className="mt-5 whitespace-pre-wrap rounded-3xl border border-white/10 bg-black/45 p-5 text-base leading-8 text-zinc-200">{contentOfDay.text}</p><div className="mt-4 flex flex-wrap gap-3"><button onClick={() => copyText(contentOfDay.text)} className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-zinc-200">{cfg.daily.copyLabel}</button><button onClick={() => shareText(contentOfDay.text)} className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-black">{cfg.daily.shareLabel}</button></div></article>{cfg.streak.enabled && <article className="rounded-[2rem] border border-white/10 bg-black/45 p-5 md:p-6"><p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-500">{cfg.streak.eyebrow}</p><h3 className="mt-3 text-3xl font-black text-white">🔥 {cfg.streak.title}</h3><p className="mt-3 text-sm leading-7 text-zinc-400">{cfg.streak.text}</p><div className="mt-5 space-y-3">{cfg.streak.items.map((tip) => <p key={tip} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm font-bold leading-6 text-zinc-300">✓ {tip}</p>)}</div></article>}</section>
+
       <section className="rounded-[2rem] border border-white/10 bg-zinc-950 p-5 md:p-6"><p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">{cfg.generator.eyebrow}</p><h3 className="mt-2 text-3xl font-black text-white">{cfg.generator.title}</h3><p className="mt-2 text-sm leading-6 text-zinc-500">{cfg.generator.helper}</p><div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]"><input value={tema} onChange={(e) => setTema(e.target.value)} placeholder={cfg.generator.inputPlaceholder} className="rounded-3xl border border-zinc-800 bg-black px-5 py-4 text-base font-bold text-white outline-none focus:border-violet-300/40" /><button onClick={() => copyText(gerarIdeias().join("\n"))} className="rounded-2xl bg-white px-5 py-3 font-black text-black">{cfg.generator.actionLabel}</button></div><div className="mt-5 grid gap-3 md:grid-cols-2">{gerarIdeias().map((idea) => <div key={idea} className="rounded-2xl border border-zinc-800 bg-black p-4 text-sm font-bold text-zinc-300">{idea}</div>)}</div></section>
+
       {cfg.ads.enabled && <section className="rounded-[2rem] border border-white/10 bg-black/45 p-5 md:p-6"><p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-500">{cfg.ads.eyebrow}</p><div className="mx-auto mt-3 grid h-[90px] max-w-[728px] place-items-center rounded-xl border border-dashed border-white/15 bg-white/[0.025] text-center"><div><p className="font-black text-zinc-300">{cfg.ads.title}</p><p className="mt-1 text-sm text-zinc-600">{cfg.ads.description}</p></div></div></section>}
     </div>
   );
