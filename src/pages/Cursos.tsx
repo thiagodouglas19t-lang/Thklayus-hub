@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import ModalPix from "../components/ModalPix";
 import { professionalCourses, type CourseContent } from "../data/courses";
+import { quickCategories, quickKits } from "../data/quickKits";
 
 const chavePix = "5e5e7367-37bb-4f7b-9de2-eaeb0d3712a2";
 const levelLabel: Record<string, string> = { iniciante: "Iniciante", intermediario: "Intermediário", avancado: "Avançado" };
@@ -35,21 +36,50 @@ export default function Cursos() {
   const [cursoSelecionado, setCursoSelecionado] = useState<CourseContent | null>(null);
   const [cursoDetalhes, setCursoDetalhes] = useState<CourseContent | null>(null);
   const [categoria, setCategoria] = useState("Todos");
+  const [quickCategory, setQuickCategory] = useState("Hoje");
   const [busca, setBusca] = useState("");
-  const cursoDestaque = professionalCourses.find((course) => course.id === "canva-para-vender") ?? professionalCourses[0];
   const categorias = useMemo(() => ["Todos", "Grátis", ...Array.from(new Set(professionalCourses.map((course) => course.category)))], []);
+  const quickFiltrados = useMemo(() => quickCategory === "Hoje" ? quickKits : quickKits.filter((item) => item.category === quickCategory), [quickCategory]);
   const cursosFiltrados = useMemo(() => { const termo = busca.toLowerCase().trim(); return professionalCourses.filter((course) => { const matchCategoria = categoria === "Todos" || (categoria === "Grátis" && course.free) || course.category === categoria; const matchBusca = !termo || `${course.id} ${course.title} ${course.subtitle} ${course.category} ${course.level}`.toLowerCase().includes(termo); return matchCategoria && matchBusca; }); }, [categoria, busca]);
   function comprarOuAcessar(course: CourseContent) { if (abrirEstudoGratis(course)) return; setCursoSelecionado(course); }
+  async function copiarTexto(text: string) { await navigator.clipboard.writeText(text); }
 
   return (
     <div className="space-y-7">
       <section className="relative overflow-hidden rounded-[3rem] border border-violet-300/15 bg-[#030006] px-6 py-10 text-center shadow-2xl shadow-violet-950/30 md:px-10 md:py-14">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.34),transparent_34%),radial-gradient(circle_at_12%_18%,rgba(124,58,237,0.22),transparent_30%),radial-gradient(circle_at_85%_45%,rgba(255,255,255,0.07),transparent_26%)]" />
         <div className="relative mx-auto max-w-4xl">
-          <div className="flex justify-center"><span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">Biblioteca de modelos</span></div>
-          <h2 className="mt-7 text-5xl font-black leading-[0.95] tracking-[-0.08em] text-white md:text-7xl">Modelos prontos para copiar e adaptar.</h2>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-zinc-300 md:text-lg">Encontre estruturas para apresentação, textos, organização, artes e ideias. Cursos ficam como extras secundários para quem quiser se aprofundar.</p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"><button onClick={() => document.getElementById("modelos-lista")?.scrollIntoView({ behavior: "smooth" })} className="w-full rounded-3xl bg-white px-8 py-5 text-lg font-black text-black shadow-2xl shadow-violet-500/30 transition hover:scale-[1.03] active:scale-95 sm:w-auto">Ver modelos</button><button onClick={() => window.dispatchEvent(new CustomEvent("thklayus-open-page", { detail: "gratis" }))} className="w-full rounded-3xl border border-white/10 bg-white/[0.04] px-8 py-5 text-lg font-black text-zinc-200 transition hover:border-violet-300/35 hover:bg-violet-500/10 active:scale-95 sm:w-auto">Feed grátis</button></div>
+          <div className="flex justify-center"><span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">Kit rápido da vida real</span></div>
+          <h2 className="mt-7 text-5xl font-black leading-[0.95] tracking-[-0.08em] text-white md:text-7xl">Resolva mensagens, escola e tarefas em segundos.</h2>
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-zinc-300 md:text-lg">Escolha uma situação, copie um modelo pronto e adapte do seu jeito. WhatsApp, escola, trabalho, dinheiro, ideias e organização.</p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"><button onClick={() => document.getElementById("kits-rapidos")?.scrollIntoView({ behavior: "smooth" })} className="w-full rounded-3xl bg-white px-8 py-5 text-lg font-black text-black shadow-2xl shadow-violet-500/30 transition hover:scale-[1.03] active:scale-95 sm:w-auto">Ver modelos rápidos</button><button onClick={() => window.dispatchEvent(new CustomEvent("thklayus-open-page", { detail: "pedidos" }))} className="w-full rounded-3xl border border-white/10 bg-white/[0.04] px-8 py-5 text-lg font-black text-zinc-200 transition hover:border-violet-300/35 hover:bg-violet-500/10 active:scale-95 sm:w-auto">Pedir ajuda</button></div>
+        </div>
+      </section>
+
+      <section id="kits-rapidos" className="space-y-4 rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-4 md:p-6">
+        <div>
+          <p className="text-sm font-black uppercase tracking-[0.2em] text-violet-300">Resolver rápido</p>
+          <h2 className="mt-2 text-3xl font-black text-white">Abra, copie e use agora</h2>
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {quickCategories.map((cat) => (
+            <button key={cat} onClick={() => setQuickCategory(cat)} className={`whitespace-nowrap rounded-2xl px-4 py-2 text-sm font-black transition active:scale-95 ${quickCategory === cat ? "bg-violet-300 text-black" : "border border-white/10 bg-black/40 text-zinc-300"}`}>{cat}</button>
+          ))}
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {quickFiltrados.slice(0, 18).map((item) => (
+            <article key={item.id} className="rounded-[2rem] border border-white/10 bg-black/45 p-5 shadow-xl shadow-black/20">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-300">{item.category}</p>
+                  <h3 className="mt-2 text-2xl font-black leading-tight text-white">{item.title}</h3>
+                </div>
+                <button onClick={() => copiarTexto(item.text)} className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-black active:scale-95">Copiar</button>
+              </div>
+              <p className="mt-3 text-sm font-semibold text-zinc-500">{item.description}</p>
+              <p className="mt-4 whitespace-pre-line rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-4 text-sm font-semibold leading-7 text-zinc-200">{item.text}</p>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -60,7 +90,7 @@ export default function Cursos() {
       <section id="modelos-lista" className="rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl">
         <div className="grid gap-3 lg:grid-cols-[1fr_auto]"><input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar modelo, tema ou categoria..." className="min-h-12 rounded-2xl border border-white/10 bg-black/45 px-4 text-sm font-bold text-white outline-none placeholder:text-zinc-600 focus:border-violet-300/40" /><div className="flex gap-2 overflow-x-auto pb-1">{categorias.map((item) => <button key={item} onClick={() => setCategoria(item)} className={`whitespace-nowrap rounded-2xl px-4 py-2.5 text-sm font-black transition active:scale-95 ${categoria === item ? "bg-white text-black" : "border border-white/10 bg-black/35 text-zinc-400 hover:text-white"}`}>{item}</button>)}</div></div>
       </section>
-      <div className="flex items-end justify-between gap-4"><div><p className="text-sm font-black uppercase tracking-[0.2em] text-violet-300">Modelos e extras</p><h2 className="mt-2 text-3xl font-black text-white">Escolha uma base para começar</h2></div><p className="text-sm font-bold text-zinc-500">{cursosFiltrados.length} itens</p></div>
+      <div className="flex items-end justify-between gap-4"><div><p className="text-sm font-black uppercase tracking-[0.2em] text-violet-300">Cursos e extras</p><h2 className="mt-2 text-3xl font-black text-white">Conteúdo extra para aprofundar</h2></div><p className="text-sm font-bold text-zinc-500">{cursosFiltrados.length} itens</p></div>
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {cursosFiltrados.map((course) => (
