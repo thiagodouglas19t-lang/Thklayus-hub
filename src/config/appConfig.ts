@@ -7,16 +7,22 @@ export const appConfig = {
   },
 
   product: {
-    currentDirection: "hub-gratuito-utilidade-rapida",
-    promise: "Entrar travado, escolher uma situação, copiar uma base gratuita e adaptar.",
+    currentDirection: "hub-gratuito-com-servicos-simples",
+    promise: "Entrar travado, resolver de graça e pedir ajuda paga só quando precisar.",
     mainUserAction: "Resolver grátis",
-    secondaryUserAction: "Ver modelos grátis",
-    monetizationMode: "free_first",
+    secondaryUserAction: "Pedir trabalho pronto",
+    monetizationMode: "free_first_with_simple_services",
+    monthGoal: {
+      enabled: true,
+      target: "R$ 1.000 em 30 dias",
+      strategy: "modelos grátis puxam usuários; serviços simples convertem pedidos rápidos",
+      focus: "vender entregas pequenas e rápidas, não curso grande",
+    },
     avoid: [
       "parecer loja de curso",
       "parecer que tudo é pago",
-      "mostrar páginas demais de uma vez",
-      "encher a tela com opções sem prioridade",
+      "vender coisa difícil de entregar",
+      "prometer resultado impossível",
       "forçar cadastro antes do usuário entender valor",
     ],
     pillars: [
@@ -31,8 +37,8 @@ export const appConfig = {
         page: "cursos",
       },
       {
-        title: "Ajuda opcional",
-        description: "Só pedir apoio extra quando o modelo gratuito não for suficiente.",
+        title: "Trabalho pronto",
+        description: "Pedir slide, resumo, arte ou apresentação pronta quando precisar de algo melhor.",
         page: "pedidos",
       },
       {
@@ -63,7 +69,7 @@ export const appConfig = {
       { id: "home", label: "Início", icon: "⌂" },
       { id: "resolver", label: "Grátis", icon: "✦" },
       { id: "cursos", label: "Modelos", icon: "◇" },
-      { id: "gratis", label: "Ideias", icon: "💡" },
+      { id: "pedidos", label: "Pedir", icon: "⚡" },
       { id: "estudo", label: "Meus", icon: "□" },
       { id: "admin", label: "ADM", icon: "♛" },
     ],
@@ -72,23 +78,23 @@ export const appConfig = {
   navigation: {
     primaryAction: "Resolver grátis",
     modelsAction: "Ver modelos grátis",
-    helpAction: "Ajuda opcional",
+    helpAction: "Pedir trabalho pronto",
     accountAction: "Meus itens",
   },
 
   home: {
     eyebrow: "Grátis para escola, WhatsApp, trabalho e organização",
-    title: "Resolva uma tarefa sem pagar e sem começar do zero.",
+    title: "Resolva de graça. Se quiser melhor, peça pronto.",
     subtitle:
-      "Escolha uma situação, pegue uma base gratuita e adapte com suas palavras. O app serve para mensagem, apresentação, checklist, divulgação, resumo e ideia rápida.",
+      "Use modelos gratuitos para começar rápido. Se precisar de slide, resumo, arte ou apresentação mais caprichada, peça um trabalho pronto pelo app.",
     primaryAction: "Resolver grátis",
-    helper: "Primeiro o usuário resolve de graça. Ajuda extra só aparece como opção secundária.",
-    powerTitle: "O app é gratuito primeiro.",
+    helper: "Primeiro o usuário recebe valor grátis. Depois, se quiser economizar tempo, pode pedir ajuda paga.",
+    powerTitle: "Grátis primeiro, serviço depois.",
     powerText:
-      "O foco principal é entregar valor grátis: abrir, copiar, adaptar e sair com algo pronto. Serviços e extras não devem dominar a experiência.",
-    feelingTitle: "Simples, leve e útil.",
+      "O app atrai pessoas com utilidade gratuita e converte pedidos simples para quem quer algo pronto, bonito e entregue com mais cuidado.",
+    feelingTitle: "Rápido de entender. Fácil de comprar.",
     feelingText:
-      "A pessoa entende o app em poucos segundos e usa sem sentir que caiu em uma loja.",
+      "Nada de curso gigante agora. A meta é vender entregas pequenas: slides, resumos, artes e organização de trabalhos.",
     features: [
       {
         title: "Grátis de verdade",
@@ -96,13 +102,13 @@ export const appConfig = {
         icon: "⚡",
       },
       {
-        title: "Modelos úteis",
-        desc: "Conteúdo pronto para adaptar, não texto gigante sem direção.",
-        icon: "◇",
+        title: "Trabalho pronto",
+        desc: "Quem quiser algo melhor pode pedir slide, resumo, arte ou apresentação.",
+        icon: "📦",
       },
       {
-        title: "Ajuda discreta",
-        desc: "Serviços ficam como opção secundária, não como foco da tela.",
+        title: "Entrega simples",
+        desc: "Foco em pedidos pequenos para vender rápido e entregar sem travar.",
         icon: "✦",
       },
     ],
@@ -124,7 +130,7 @@ export const appConfig = {
     inputPlaceholder: "Ex: trabalho de escola sobre tecnologia",
     copyLabel: "Copiar grátis",
     copiedLabel: "Copiado!",
-    helpCta: "Preciso de ajuda extra",
+    helpCta: "Quero esse trabalho pronto",
     types: [
       { id: "apresentacao", name: "Apresentação", icon: "🎤" },
       { id: "resumo", name: "Resumo", icon: "📝" },
@@ -202,15 +208,21 @@ export const appConfig = {
     title: "Modelos gratuitos para adaptar",
     subtitle: "Use bases simples para começar tarefas sem pensar do zero.",
     quickTitle: "Resolver rápido grátis",
-    extrasTitle: "Extras opcionais",
+    extrasTitle: "Serviços rápidos",
     paidExtrasLabel: "Opcional",
   },
 
   services: {
-    enabled: false,
-    title: "Ajuda extra opcional.",
-    subtitle: "Aparece só quando o usuário realmente precisar de apoio além dos modelos grátis.",
-    primaryAction: "Pedir ajuda extra",
+    enabled: true,
+    title: "Quer que eu faça pronto pra você?",
+    subtitle: "Peça um slide, resumo, arte ou apresentação pronta. A parte grátis continua liberada; isso é só para quem quer economizar tempo.",
+    primaryAction: "Pedir agora",
+    offers: [
+      { title: "Resumo simples", price: "R$ 5", description: "Resumo organizado e pronto para adaptar." },
+      { title: "Slides simples", price: "R$ 10", description: "Estrutura de apresentação com capa, tópicos e conclusão." },
+      { title: "Apresentação caprichada", price: "R$ 15", description: "Texto + organização visual + roteiro de fala." },
+      { title: "Arte simples", price: "R$ 10", description: "Imagem/post simples para divulgação." },
+    ],
   },
 
   admin: {
