@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 type Tribe = "estudante" | "freelancer";
 type Vibe = "simples" | "formal" | "direto";
@@ -105,11 +105,15 @@ const tribeCopy: Record<Tribe, { title: string; desc: string; icon: string }> = 
   freelancer: { title: "Freelancer", desc: "Cobrança, proposta e preço.", icon: "💼" },
 };
 
+const priorityIds = ["cobrar-cliente", "professor-entrega", "proposta-servico", "resumo-escolar", "preco-servico"];
+
 export default function Modelos() {
   const [tribe, setTribe] = useState<Tribe>("freelancer");
   const [vibe, setVibe] = useState<Vibe>("simples");
   const [busca, setBusca] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string>("cobrar-cliente");
+  const resultRef = useRef<HTMLDivElement | null>(null);
 
   const filtrados = useMemo(() => {
     const termo = busca.toLowerCase().trim();
@@ -119,6 +123,9 @@ export default function Modelos() {
       return matchTribe && matchBusca;
     });
   }, [tribe, busca]);
+
+  const selected = templates.find((item) => item.id === selectedId && item.tribe === tribe) ?? filtrados[0] ?? templates[0];
+  const selectedText = selected.variants[vibe];
 
   async function copiar(id: string, text: string) {
     await navigator.clipboard.writeText(text);
@@ -130,20 +137,44 @@ export default function Modelos() {
     window.dispatchEvent(new CustomEvent("thklayus-open-page", { detail: "pedidos" }));
   }
 
+  function escolherPraMim() {
+    const pool = templates.filter((item) => priorityIds.includes(item.id));
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    const vibePick = vibes[Math.floor(Math.random() * vibes.length)].id;
+    setTribe(pick.tribe);
+    setSelectedId(pick.id);
+    setVibe(vibePick);
+    setBusca("");
+    window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+  }
+
   return (
     <div className="space-y-5">
       <section className="relative overflow-hidden rounded-[2.5rem] border border-violet-300/15 bg-[#030006] px-6 py-8 text-center shadow-2xl shadow-violet-950/30 md:px-10 md:py-12">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.32),transparent_34%),radial-gradient(circle_at_12%_18%,rgba(124,58,237,0.20),transparent_30%)]" />
         <div className="relative mx-auto max-w-4xl">
-          <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">Drafta • Beta</span>
-          <h1 className="mt-5 text-4xl font-black leading-[0.95] tracking-[-0.07em] text-white md:text-6xl">Copie modelos prontos.</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm font-semibold leading-7 text-zinc-400 md:text-base">Escolha uma vibe e copie uma base útil em segundos.</p>
+          <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">Drafta • Interativo</span>
+          <h1 className="mt-5 text-4xl font-black leading-[0.95] tracking-[-0.07em] text-white md:text-6xl">Não sabe o que usar?</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-sm font-semibold leading-7 text-zinc-400 md:text-base">Clique e o Drafta escolhe um modelo útil para você copiar agora.</p>
+          <button onClick={escolherPraMim} className="mt-6 rounded-2xl bg-white px-7 py-4 text-sm font-black text-black shadow-[0_0_38px_rgba(124,58,237,0.28)] transition hover:scale-[1.02] active:scale-95">Escolhe pra mim ✦</button>
         </div>
+      </section>
+
+      <section ref={resultRef} className="rounded-[2rem] border border-violet-300/25 bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.22),transparent_35%),rgba(255,255,255,0.04)] p-4 md:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-300">Sugestão agora • {selected.tag} • {vibes.find((v) => v.id === vibe)?.label}</p>
+            <h2 className="mt-2 text-3xl font-black tracking-[-0.06em] text-white">{selected.title}</h2>
+            <p className="mt-1 text-sm font-semibold text-zinc-500">{selected.description}</p>
+          </div>
+          <button onClick={() => copiar(selected.id, selectedText)} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black active:scale-95">{copied === selected.id ? "Copiado" : "Copiar e usar"}</button>
+        </div>
+        <p className="mt-4 whitespace-pre-line rounded-[1.4rem] border border-white/10 bg-black/45 p-4 text-sm font-semibold leading-7 text-zinc-200">{selectedText}</p>
       </section>
 
       <section className="grid gap-3 md:grid-cols-2">
         {(["freelancer", "estudante"] as Tribe[]).map((item) => (
-          <button key={item} onClick={() => setTribe(item)} className={`rounded-[1.7rem] border p-4 text-left transition active:scale-[0.99] ${tribe === item ? "border-violet-300 bg-violet-300 text-black shadow-2xl shadow-violet-500/20" : "border-white/10 bg-white/[0.035] text-white hover:border-violet-300/35"}`}>
+          <button key={item} onClick={() => { setTribe(item); setSelectedId(item === "freelancer" ? "cobrar-cliente" : "professor-entrega"); }} className={`rounded-[1.7rem] border p-4 text-left transition active:scale-[0.99] ${tribe === item ? "border-violet-300 bg-violet-300 text-black shadow-2xl shadow-violet-500/20" : "border-white/10 bg-white/[0.035] text-white hover:border-violet-300/35"}`}>
             <p className="text-3xl">{tribeCopy[item].icon}</p>
             <h2 className="mt-2 text-2xl font-black tracking-[-0.05em]">{tribeCopy[item].title}</h2>
             <p className={`mt-1 text-sm font-semibold leading-5 ${tribe === item ? "text-black/65" : "text-zinc-500"}`}>{tribeCopy[item].desc}</p>
@@ -163,20 +194,21 @@ export default function Modelos() {
       <section className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filtrados.map((item) => {
           const text = item.variants[vibe];
-          const isPriority = item.id === "cobrar-cliente" || item.id === "professor-entrega";
+          const isPriority = priorityIds.includes(item.id);
+          const isSelected = selected.id === item.id;
           return (
-            <article key={item.id} className={`group min-w-0 rounded-[1.8rem] border bg-black/45 p-4 shadow-xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-300/35 ${isPriority ? "border-violet-300/30" : "border-white/10"}`}>
+            <article key={item.id} onClick={() => setSelectedId(item.id)} className={`group min-w-0 cursor-pointer rounded-[1.8rem] border bg-black/45 p-4 shadow-xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-300/35 ${isSelected ? "border-violet-300 bg-violet-500/10" : isPriority ? "border-violet-300/30" : "border-white/10"}`}>
               <div className="flex min-w-0 items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-300">{item.tag} • {vibes.find((v) => v.id === vibe)?.label}</p>
                   <h3 className="mt-2 text-xl font-black leading-tight text-white md:text-2xl">{item.title}</h3>
                 </div>
-                <button onClick={() => copiar(item.id, text)} className="shrink-0 rounded-2xl bg-white px-4 py-3 text-sm font-black text-black active:scale-95">{copied === item.id ? "Copiado" : "Copiar"}</button>
+                <button onClick={(e) => { e.stopPropagation(); copiar(item.id, text); }} className="shrink-0 rounded-2xl bg-white px-4 py-3 text-sm font-black text-black active:scale-95">{copied === item.id ? "Copiado" : "Copiar"}</button>
               </div>
               <p className="mt-2 text-sm font-semibold text-zinc-500">{item.description}</p>
-              <p className="mt-3 max-h-[250px] overflow-auto whitespace-pre-line rounded-[1.3rem] border border-white/10 bg-white/[0.035] p-4 text-sm font-semibold leading-7 text-zinc-200">{text}</p>
+              <p className="mt-3 max-h-[190px] overflow-auto whitespace-pre-line rounded-[1.3rem] border border-white/10 bg-white/[0.035] p-4 text-sm font-semibold leading-7 text-zinc-200">{text}</p>
               {item.paidHint && (
-                <button onClick={pedirPronto} className="mt-3 w-full rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-3 text-left text-xs font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">
+                <button onClick={(e) => { e.stopPropagation(); pedirPronto(); }} className="mt-3 w-full rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-3 text-left text-xs font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">
                   {item.paidHint} <span className="text-violet-300">Pedir agora →</span>
                 </button>
               )}
