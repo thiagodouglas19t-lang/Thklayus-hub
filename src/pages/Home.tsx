@@ -16,9 +16,8 @@ export default function Home({ setPage }: { setPage: (page: any) => void }) {
           <div className="flex justify-center"><span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">THKLAYUS Hub • grátis</span></div>
           <h1 className="mt-7 text-5xl font-black leading-[0.95] tracking-[-0.08em] text-white md:text-7xl">Resolva tarefas rápidas com modelos prontos.</h1>
           <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-zinc-300 md:text-lg">Comece apresentações, organize ideias, escreva mensagens melhores e monte checklists sem perder tempo pensando do zero.</p>
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div className="mt-9 flex justify-center">
             <button onClick={() => setPage("gratis")} className="w-full rounded-3xl bg-white px-8 py-5 text-lg font-black text-black shadow-2xl shadow-violet-500/30 transition hover:scale-[1.03] active:scale-95 sm:w-auto">Resolver agora</button>
-            <button onClick={() => setPage("cursos")} className="w-full rounded-3xl border border-white/10 bg-white/[0.04] px-8 py-5 text-lg font-black text-zinc-200 transition hover:border-violet-300/35 hover:bg-violet-500/10 active:scale-95 sm:w-auto">Ver modelos</button>
           </div>
           <p className="mt-5 text-sm font-semibold text-zinc-500">Escolha um problema pequeno, pegue uma base e adapte.</p>
         </div>
@@ -29,10 +28,7 @@ export default function Home({ setPage }: { setPage: (page: any) => void }) {
       </section>
 
       <section className="rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-5 md:p-7">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div><p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">Comece por aqui</p><h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">Qual tarefa você quer resolver?</h2></div>
-          <button onClick={() => setPage("gratis")} className="rounded-2xl bg-white px-5 py-3 font-black text-black">Abrir tudo</button>
-        </div>
+        <div><p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">Comece por aqui</p><h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">Qual tarefa você quer resolver?</h2></div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {contentIdeas.map((item) => <button key={item} onClick={() => setPage("gratis")} className="rounded-3xl border border-white/10 bg-black/45 p-5 text-left font-black text-zinc-100 transition hover:-translate-y-1 hover:border-violet-300/40 hover:bg-violet-500/10">{item}<p className="mt-2 text-xs font-semibold leading-5 text-zinc-500">Abrir uma base pronta para adaptar.</p></button>)}
         </div>
@@ -40,7 +36,7 @@ export default function Home({ setPage }: { setPage: (page: any) => void }) {
 
       <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
         <div className="rounded-[2.5rem] border border-violet-300/20 bg-violet-500/10 p-6"><p className="text-xs font-black uppercase tracking-[0.22em] text-violet-100">Uso real</p><h2 className="mt-2 text-3xl font-black text-white">Para quando você trava.</h2><p className="mt-3 text-sm leading-7 text-violet-50/80">O app não é sobre copiar por copiar. É sobre sair do zero rápido quando você precisa escrever, organizar ou começar algo.</p></div>
-        <div className="rounded-[2.5rem] border border-white/10 bg-white p-6 text-black"><p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-500">Ação rápida</p><h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Pegue uma base e resolva.</h2><p className="mt-3 text-sm leading-7 text-zinc-700">Escolha uma tarefa, adapte o modelo e use no seu contexto.</p><button onClick={() => setPage("gratis")} className="mt-5 rounded-2xl bg-black px-5 py-3 font-black text-white">Abrir feed grátis</button></div>
+        <div className="rounded-[2.5rem] border border-white/10 bg-white p-6 text-black"><p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-500">Ação rápida</p><h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Pegue uma base e resolva.</h2><p className="mt-3 text-sm leading-7 text-zinc-700">Escolha uma tarefa acima, adapte o modelo e use no seu contexto.</p></div>
       </section>
     </div>
   );
