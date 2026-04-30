@@ -18,14 +18,7 @@ export const appConfig = {
       strategy: "utilidade diária atrai usuários; pedidos prontos aparecem como extra opcional",
       focus: "vender entregas pequenas e rápidas, sem curso e sem certificado",
     },
-    avoid: [
-      "parecer loja de curso",
-      "mostrar certificado",
-      "parecer que tudo é pago",
-      "vender coisa difícil de entregar",
-      "prometer resultado impossível",
-      "forçar cadastro antes do usuário entender valor",
-    ],
+    avoid: ["parecer loja de curso", "mostrar certificado", "parecer que tudo é pago", "vender coisa difícil de entregar", "prometer resultado impossível", "forçar cadastro antes do usuário entender valor"],
     pillars: [
       { title: "Painel diário", description: "Checklist, foco, notas, decisões, preço e metas.", page: "hub" },
       { title: "Resolver tarefa", description: "Gerar base para mensagem, resumo, apresentação e checklist.", page: "resolver" },
@@ -48,7 +41,7 @@ export const appConfig = {
 
   bottomNav: {
     enabled: true,
-    showAdminTab: false,
+    showAdminTab: true,
     safeBottomPadding: "pb-28",
     items: [
       { id: "home", label: "Início", icon: "⌂" },
@@ -56,29 +49,22 @@ export const appConfig = {
       { id: "resolver", label: "Resolver", icon: "✦" },
       { id: "cursos", label: "Modelos", icon: "◇" },
       { id: "pedidos", label: "Pedir", icon: "⚡" },
+      { id: "admin", label: "Dono", icon: "♛" },
     ],
   },
 
-  navigation: {
-    primaryAction: "Abrir painel",
-    modelsAction: "Ver modelos",
-    helpAction: "Pedir trabalho pronto",
-    accountAction: "Meus itens",
-  },
+  navigation: { primaryAction: "Abrir painel", modelsAction: "Ver modelos", helpAction: "Pedir trabalho pronto", accountAction: "Meus itens" },
 
   home: {
     eyebrow: "Sem IA • sem curso • uso diário",
     title: "Um painel simples para organizar e resolver coisas rápidas.",
-    subtitle:
-      "Use para decidir o que fazer agora, criar checklist, guardar notas, calcular preço, montar base de texto e pedir algo pronto se quiser economizar tempo.",
+    subtitle: "Use para decidir o que fazer agora, criar checklist, guardar notas, calcular preço, montar base de texto e pedir algo pronto se quiser economizar tempo.",
     primaryAction: "Abrir painel",
     helper: "O app não é curso. Não é certificado. É uma caixa de ferramentas rápida para o dia a dia.",
     powerTitle: "O que dá pra fazer aqui?",
-    powerText:
-      "Você abre, escolhe uma ferramenta e sai com uma ação: tarefa marcada, texto copiado, plano feito, preço calculado ou ideia salva.",
+    powerText: "Você abre, escolhe uma ferramenta e sai com uma ação: tarefa marcada, texto copiado, plano feito, preço calculado ou ideia salva.",
     feelingTitle: "Entendeu em 5 segundos.",
-    feelingText:
-      "O app foi reorganizado para não parecer loja nem curso. Primeiro vem utilidade. Depois, se precisar, serviço pronto.",
+    feelingText: "O app foi reorganizado para não parecer loja nem curso. Primeiro vem utilidade. Depois, se precisar, serviço pronto.",
     features: [
       { title: "Painel diário", desc: "Checklist, foco, notas e progresso em um lugar só.", icon: "◈" },
       { title: "Resolver rápido", desc: "Bases prontas para mensagem, resumo, apresentação e organização.", icon: "✦" },
@@ -116,13 +102,7 @@ export const appConfig = {
       resultTemplates: ["3 ideias de post sobre {topic}", "Uma frase curta para divulgar {topic}", "Um checklist simples para organizar {topic}", "Uma mensagem de WhatsApp explicando {topic}"],
     },
     daily: { eyebrow: "Ideia do dia", title: "Ideia de conteúdo", category: "Criatividade", text: "Poste uma lista com 5 coisas que você faria diferente se começasse seu projeto hoje.", copyLabel: "Copiar", shareLabel: "Compartilhar" },
-    streak: {
-      enabled: true,
-      eyebrow: "Voltar todo dia",
-      title: "Sequência diária",
-      text: "Cada visita conta no seu aparelho. Volte para pegar uma ideia nova quando precisar.",
-      items: ["Abra quando travar em uma tarefa pequena.", "Adapte os modelos com suas palavras.", "Compartilhe só se o app realmente te ajudou.", "Conteúdo simples ganha quando é útil e rápido."],
-    },
+    streak: { enabled: true, eyebrow: "Voltar todo dia", title: "Sequência diária", text: "Cada visita conta no seu aparelho. Volte para pegar uma ideia nova quando precisar.", items: ["Abra quando travar em uma tarefa pequena.", "Adapte os modelos com suas palavras.", "Compartilhe só se o app realmente te ajudou.", "Conteúdo simples ganha quando é útil e rápido."] },
     ads: { enabled: false, eyebrow: "Novidades futuras", title: "Espaço reservado", description: "Este espaço será usado apenas quando fizer sentido para a experiência.", placeholder: "Conteúdo futuro" },
     sharing: {
       enabled: true,
@@ -137,13 +117,7 @@ export const appConfig = {
     },
   },
 
-  models: {
-    title: "Modelos prontos para adaptar",
-    subtitle: "Use bases simples para começar tarefas sem pensar do zero.",
-    quickTitle: "Modelos rápidos",
-    extrasTitle: "Serviços rápidos",
-    paidExtrasLabel: "Opcional",
-  },
+  models: { title: "Modelos prontos para adaptar", subtitle: "Use bases simples para começar tarefas sem pensar do zero.", quickTitle: "Modelos rápidos", extrasTitle: "Serviços rápidos", paidExtrasLabel: "Opcional" },
 
   services: {
     enabled: true,
@@ -161,7 +135,7 @@ export const appConfig = {
   admin: {
     enabled: true,
     showCourseQuality: false,
-    showManualRelease: false,
+    showManualRelease: true,
     showQueue: true,
     showHiddenFilter: true,
     qualityTitle: "Validação de qualidade",
