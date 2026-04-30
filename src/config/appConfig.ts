@@ -2,35 +2,37 @@ export const appConfig = {
   brand: {
     name: "AprendaJá",
     company: "THKLAYUS",
-    subtitle: "Utilidade rápida",
-    tagline: "Resolva tarefas rápidas com modelos prontos.",
+    subtitle: "Grátis e rápido",
+    tagline: "Resolva tarefas rápidas com modelos gratuitos.",
   },
 
   product: {
-    currentDirection: "hub-utilidade-rapida",
-    promise: "Entrar travado, escolher uma situação, copiar uma base e adaptar.",
-    mainUserAction: "Resolver agora",
-    secondaryUserAction: "Ver modelos",
+    currentDirection: "hub-gratuito-utilidade-rapida",
+    promise: "Entrar travado, escolher uma situação, copiar uma base gratuita e adaptar.",
+    mainUserAction: "Resolver grátis",
+    secondaryUserAction: "Ver modelos grátis",
+    monetizationMode: "free_first",
     avoid: [
       "parecer loja de curso",
+      "parecer que tudo é pago",
       "mostrar páginas demais de uma vez",
       "encher a tela com opções sem prioridade",
       "forçar cadastro antes do usuário entender valor",
     ],
     pillars: [
       {
-        title: "Resolver",
+        title: "Resolver grátis",
         description: "Gerar uma base rápida para apresentação, resumo, mensagem, ideia ou checklist.",
         page: "resolver",
       },
       {
-        title: "Modelos",
+        title: "Modelos grátis",
         description: "Copiar modelos prontos organizados por situação real.",
         page: "cursos",
       },
       {
-        title: "Ajuda",
-        description: "Pedir apoio extra quando o modelo pronto não for suficiente.",
+        title: "Ajuda opcional",
+        description: "Só pedir apoio extra quando o modelo gratuito não for suficiente.",
         page: "pedidos",
       },
       {
@@ -59,38 +61,38 @@ export const appConfig = {
     safeBottomPadding: "pb-28",
     items: [
       { id: "home", label: "Início", icon: "⌂" },
-      { id: "resolver", label: "Resolver", icon: "✦" },
+      { id: "resolver", label: "Grátis", icon: "✦" },
       { id: "cursos", label: "Modelos", icon: "◇" },
-      { id: "pedidos", label: "Ajuda", icon: "●" },
+      { id: "gratis", label: "Ideias", icon: "💡" },
       { id: "estudo", label: "Meus", icon: "□" },
       { id: "admin", label: "ADM", icon: "♛" },
     ],
   },
 
   navigation: {
-    primaryAction: "Resolver agora",
-    modelsAction: "Ver modelos",
-    helpAction: "Pedir ajuda",
+    primaryAction: "Resolver grátis",
+    modelsAction: "Ver modelos grátis",
+    helpAction: "Ajuda opcional",
     accountAction: "Meus itens",
   },
 
   home: {
-    eyebrow: "Para escola, WhatsApp, trabalho e organização",
-    title: "Resolva uma tarefa sem começar do zero.",
+    eyebrow: "Grátis para escola, WhatsApp, trabalho e organização",
+    title: "Resolva uma tarefa sem pagar e sem começar do zero.",
     subtitle:
-      "Escolha uma situação, pegue uma base pronta e adapte com suas palavras. O app serve para mensagem, apresentação, checklist, divulgação, resumo e ideia rápida.",
-    primaryAction: "Resolver agora",
-    helper: "Uma ação principal por vez. Primeiro resolva. Depois aprofunde se precisar.",
-    powerTitle: "O app não é só de curso.",
+      "Escolha uma situação, pegue uma base gratuita e adapte com suas palavras. O app serve para mensagem, apresentação, checklist, divulgação, resumo e ideia rápida.",
+    primaryAction: "Resolver grátis",
+    helper: "Primeiro o usuário resolve de graça. Ajuda extra só aparece como opção secundária.",
+    powerTitle: "O app é gratuito primeiro.",
     powerText:
-      "Cursos e extras podem existir, mas a experiência principal é utilidade rápida: abrir, copiar, adaptar e sair com algo pronto.",
-    feelingTitle: "Menos bagunça. Mais direção.",
+      "O foco principal é entregar valor grátis: abrir, copiar, adaptar e sair com algo pronto. Serviços e extras não devem dominar a experiência.",
+    feelingTitle: "Simples, leve e útil.",
     feelingText:
-      "Tudo fica organizado em poucas áreas para o usuário entender o valor antes de comprar qualquer coisa.",
+      "A pessoa entende o app em poucos segundos e usa sem sentir que caiu em uma loja.",
     features: [
       {
-        title: "Começa rápido",
-        desc: "O usuário vê valor antes de precisar criar conta ou pagar.",
+        title: "Grátis de verdade",
+        desc: "O usuário consegue resolver tarefas sem comprar nada.",
         icon: "⚡",
       },
       {
@@ -99,8 +101,8 @@ export const appConfig = {
         icon: "◇",
       },
       {
-        title: "Ajuda opcional",
-        desc: "Quando o modelo não basta, o usuário pode pedir suporte ou serviço extra.",
+        title: "Ajuda discreta",
+        desc: "Serviços ficam como opção secundária, não como foco da tela.",
         icon: "✦",
       },
     ],
@@ -112,16 +114,17 @@ export const appConfig = {
       "Divulgar algo",
       "Ter ideia quando travar",
     ],
-    categoryHint: "Cada botão leva para uma base pronta para adaptar.",
+    categoryHint: "Cada botão abre uma base gratuita para adaptar.",
   },
 
   resolver: {
-    title: "Resolver agora",
-    subtitle: "Gere uma base simples para copiar e adaptar.",
+    title: "Resolver grátis",
+    subtitle: "Gere uma base simples para copiar e adaptar sem pagar.",
     inputLabel: "Tema ou situação",
     inputPlaceholder: "Ex: trabalho de escola sobre tecnologia",
-    copyLabel: "Copiar resultado",
+    copyLabel: "Copiar grátis",
     copiedLabel: "Copiado!",
+    helpCta: "Preciso de ajuda extra",
     types: [
       { id: "apresentacao", name: "Apresentação", icon: "🎤" },
       { id: "resumo", name: "Resumo", icon: "📝" },
@@ -132,11 +135,11 @@ export const appConfig = {
 
   freeArea: {
     generator: {
-      eyebrow: "Gerador simples",
+      eyebrow: "Gerador grátis",
       title: "Gerar ideias para qualquer tema",
       helper: "Digite um tema e crie opções rápidas para adaptar.",
       inputPlaceholder: "Digite um tema...",
-      actionLabel: "Gerar ideias",
+      actionLabel: "Gerar ideias grátis",
       defaultTopic: "meu projeto",
       tags: ["escola", "dinheiro", "status", "WhatsApp", "apresentação", "arte", "organização", "família"],
       resultTemplates: [
@@ -147,7 +150,7 @@ export const appConfig = {
       ],
     },
     daily: {
-      eyebrow: "Conteúdo do dia",
+      eyebrow: "Conteúdo grátis do dia",
       title: "Ideia de conteúdo",
       category: "Criatividade",
       text: "Poste uma lista com 5 coisas que você faria diferente se começasse seu projeto hoje.",
@@ -174,7 +177,7 @@ export const appConfig = {
       placeholder: "Conteúdo futuro",
     },
     sharing: {
-      enabled: false,
+      enabled: true,
       showAfterVisits: 3,
       eyebrow: "Convite leve",
       title: "Compartilhe se o app ajudou",
@@ -185,29 +188,29 @@ export const appConfig = {
         },
         {
           title: "Divulgação leve",
-          text: "Tô apoiando um projeto pequeno. Se puder, entra e compartilha com alguém. Isso ajuda demais.",
+          text: "Tô apoiando um projeto pequeno e gratuito. Se puder, entra e compartilha com alguém. Isso ajuda demais.",
         },
         {
           title: "Status pronto",
-          text: "Projeto novo no ar 🚀 tem modelos e ideias rápidas para o dia a dia.",
+          text: "Projeto gratuito novo no ar 🚀 tem modelos e ideias rápidas para o dia a dia.",
         },
       ],
     },
   },
 
   models: {
-    title: "Modelos prontos para adaptar",
+    title: "Modelos gratuitos para adaptar",
     subtitle: "Use bases simples para começar tarefas sem pensar do zero.",
-    quickTitle: "Resolver rápido",
-    extrasTitle: "Conteúdo extra para aprofundar",
-    paidExtrasLabel: "Extra opcional",
+    quickTitle: "Resolver rápido grátis",
+    extrasTitle: "Extras opcionais",
+    paidExtrasLabel: "Opcional",
   },
 
   services: {
-    enabled: true,
-    title: "Peça ajuda quando precisar.",
-    subtitle: "Serviços são apoio extra. O foco principal continua sendo modelos grátis.",
-    primaryAction: "Enviar pedido",
+    enabled: false,
+    title: "Ajuda extra opcional.",
+    subtitle: "Aparece só quando o usuário realmente precisar de apoio além dos modelos grátis.",
+    primaryAction: "Pedir ajuda extra",
   },
 
   admin: {
