@@ -106,6 +106,15 @@ const tribeCopy: Record<Tribe, { title: string; desc: string; icon: string }> = 
 };
 
 const priorityIds = ["cobrar-cliente", "professor-entrega", "proposta-servico", "resumo-escolar", "preco-servico"];
+const toastMessages = ["Pronto para colar!", "Copiado. Agora é só colar e enviar.", "Sucesso! Resolveu rápido."];
+
+function safeReadNumber(key: string) {
+  try {
+    return Number(localStorage.getItem(key) || 0);
+  } catch {
+    return 0;
+  }
+}
 
 export default function Modelos() {
   const [tribe, setTribe] = useState<Tribe>("freelancer");
@@ -113,6 +122,8 @@ export default function Modelos() {
   const [busca, setBusca] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string>("cobrar-cliente");
+  const [toast, setToast] = useState("");
+  const [copyCount, setCopyCount] = useState(() => safeReadNumber("drafta_copy_count"));
   const resultRef = useRef<HTMLDivElement | null>(null);
 
   const filtrados = useMemo(() => {
@@ -127,10 +138,24 @@ export default function Modelos() {
   const selected = templates.find((item) => item.id === selectedId && item.tribe === tribe) ?? filtrados[0] ?? templates[0];
   const selectedText = selected.variants[vibe];
 
+  function showToast(message?: string) {
+    const next = message ?? toastMessages[Math.floor(Math.random() * toastMessages.length)];
+    setToast(next);
+    window.setTimeout(() => setToast(""), 1800);
+  }
+
   async function copiar(id: string, text: string) {
-    await navigator.clipboard.writeText(text);
-    setCopied(id);
-    setTimeout(() => setCopied(null), 1400);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(id);
+      const nextCount = copyCount + 1;
+      setCopyCount(nextCount);
+      localStorage.setItem("drafta_copy_count", String(nextCount));
+      showToast();
+      setTimeout(() => setCopied(null), 1400);
+    } catch {
+      showToast("Seu navegador bloqueou a cópia. Segure o texto e copie manualmente.");
+    }
   }
 
   function pedirPronto() {
@@ -145,18 +170,25 @@ export default function Modelos() {
     setSelectedId(pick.id);
     setVibe(vibePick);
     setBusca("");
+    showToast("Escolhi uma base pra você.");
     window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
   }
 
   return (
     <div className="space-y-5">
+      {toast && <div className="fixed bottom-24 left-1/2 z-[80] w-[calc(100%-32px)] max-w-md -translate-x-1/2 rounded-2xl border border-violet-300/20 bg-violet-500 px-4 py-3 text-center text-sm font-black text-white shadow-2xl shadow-violet-500/30">{toast}</div>}
+
       <section className="relative overflow-hidden rounded-[2.5rem] border border-violet-300/15 bg-[#030006] px-6 py-8 text-center shadow-2xl shadow-violet-950/30 md:px-10 md:py-12">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.32),transparent_34%),radial-gradient(circle_at_12%_18%,rgba(124,58,237,0.20),transparent_30%)]" />
         <div className="relative mx-auto max-w-4xl">
-          <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">Drafta • Interativo</span>
-          <h1 className="mt-5 text-4xl font-black leading-[0.95] tracking-[-0.07em] text-white md:text-6xl">Não sabe o que usar?</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm font-semibold leading-7 text-zinc-400 md:text-base">Clique e o Drafta escolhe um modelo útil para você copiar agora.</p>
-          <button onClick={escolherPraMim} className="mt-6 rounded-2xl bg-white px-7 py-4 text-sm font-black text-black shadow-[0_0_38px_rgba(124,58,237,0.28)] transition hover:scale-[1.02] active:scale-95">Escolhe pra mim ✦</button>
+          <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">Drafta • pronto para usar</span>
+          <h1 className="mt-5 text-4xl font-black leading-[0.95] tracking-[-0.07em] text-white md:text-6xl">Copie sem começar do zero.</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-sm font-semibold leading-7 text-zinc-400 md:text-base">Clique no botão, copie uma base pronta e cole onde precisar.</p>
+          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            <button onClick={escolherPraMim} className="rounded-2xl bg-white px-7 py-4 text-sm font-black text-black shadow-[0_0_38px_rgba(124,58,237,0.28)] transition hover:scale-[1.02] active:scale-95">Escolhe pra mim ✦</button>
+            <button onClick={() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })} className="rounded-2xl border border-white/10 bg-white/[0.035] px-7 py-4 text-sm font-black text-zinc-300 transition hover:border-violet-300/35 active:scale-95">Ver sugestão</button>
+          </div>
+          <p className="mt-4 text-xs font-bold text-zinc-500">Você já economizou tempo em {copyCount} {copyCount === 1 ? "modelo" : "modelos"}.</p>
         </div>
       </section>
 
