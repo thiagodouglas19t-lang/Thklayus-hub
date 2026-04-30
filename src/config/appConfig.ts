@@ -1,16 +1,16 @@
 export const appConfig = {
   brand: {
-    name: "AprendaJá",
+    name: "Drafta",
     company: "THKLAYUS",
     subtitle: "Painel diário",
-    tagline: "Organize, resolva e copie coisas úteis em segundos.",
+    tagline: "Bases prontas para resolver tarefas em segundos.",
   },
 
   product: {
     currentDirection: "painel-diario-sem-ia",
-    promise: "Entrar, entender em 5 segundos e sair com uma ação pronta.",
+    promise: "Entrar, entender em 5 segundos e sair com uma base pronta.",
     mainUserAction: "Abrir painel",
-    secondaryUserAction: "Resolver tarefa",
+    secondaryUserAction: "Draftar tarefa",
     monetizationMode: "utility_first_optional_services",
     monthGoal: {
       enabled: true,
@@ -21,7 +21,7 @@ export const appConfig = {
     avoid: ["parecer loja de curso", "mostrar certificado", "parecer que tudo é pago", "vender coisa difícil de entregar", "prometer resultado impossível", "forçar cadastro antes do usuário entender valor"],
     pillars: [
       { title: "Painel diário", description: "Checklist, foco, notas, decisões, preço e metas.", page: "hub" },
-      { title: "Resolver tarefa", description: "Gerar base para mensagem, resumo, apresentação e checklist.", page: "resolver" },
+      { title: "Draftar tarefa", description: "Gerar base para mensagem, resumo, apresentação e checklist.", page: "resolver" },
       { title: "Modelos prontos", description: "Copiar modelos úteis organizados por situação real.", page: "cursos" },
       { title: "Pedido pronto", description: "Pedir slide, resumo, arte ou apresentação pronta quando quiser economizar tempo.", page: "pedidos" },
     ],
@@ -46,7 +46,7 @@ export const appConfig = {
     items: [
       { id: "home", label: "Início", icon: "⌂" },
       { id: "hub", label: "Painel", icon: "◈" },
-      { id: "resolver", label: "Resolver", icon: "✦" },
+      { id: "resolver", label: "Draftar", icon: "✦" },
       { id: "cursos", label: "Modelos", icon: "◇" },
       { id: "pedidos", label: "Pedir", icon: "⚡" },
       { id: "admin", label: "Dono", icon: "♛" },
@@ -57,25 +57,25 @@ export const appConfig = {
 
   home: {
     eyebrow: "Sem IA • sem curso • uso diário",
-    title: "Um painel simples para organizar e resolver coisas rápidas.",
-    subtitle: "Use para decidir o que fazer agora, criar checklist, guardar notas, calcular preço, montar base de texto e pedir algo pronto se quiser economizar tempo.",
+    title: "Bases prontas para resolver tarefas em segundos.",
+    subtitle: "Use para decidir o que fazer agora, criar checklist, guardar notas, calcular preço, draftar textos e pedir algo pronto se quiser economizar tempo.",
     primaryAction: "Abrir painel",
-    helper: "O app não é curso. Não é certificado. É uma caixa de ferramentas rápida para o dia a dia.",
+    helper: "O Drafta não é curso. Não é certificado. É uma caixa de ferramentas rápida para o dia a dia.",
     powerTitle: "O que dá pra fazer aqui?",
     powerText: "Você abre, escolhe uma ferramenta e sai com uma ação: tarefa marcada, texto copiado, plano feito, preço calculado ou ideia salva.",
     feelingTitle: "Entendeu em 5 segundos.",
     feelingText: "O app foi reorganizado para não parecer loja nem curso. Primeiro vem utilidade. Depois, se precisar, serviço pronto.",
     features: [
       { title: "Painel diário", desc: "Checklist, foco, notas e progresso em um lugar só.", icon: "◈" },
-      { title: "Resolver rápido", desc: "Bases prontas para mensagem, resumo, apresentação e organização.", icon: "✦" },
+      { title: "Draftar rápido", desc: "Bases prontas para mensagem, resumo, apresentação e organização.", icon: "✦" },
       { title: "Pedido opcional", desc: "Se quiser algo pronto, dá para pedir sem confundir o app inteiro.", icon: "⚡" },
     ],
-    categories: ["Organizar meu dia", "Decidir o que fazer", "Criar checklist", "Guardar uma ideia", "Calcular preço", "Resolver uma tarefa"],
+    categories: ["Organizar meu dia", "Decidir o que fazer", "Criar checklist", "Guardar uma ideia", "Calcular preço", "Draftar uma tarefa"],
     categoryHint: "Cada botão leva para uma ferramenta clara e rápida.",
   },
 
   resolver: {
-    title: "Resolver tarefa",
+    title: "Draftar tarefa",
     subtitle: "Gere uma base simples para copiar e adaptar sem pagar.",
     inputLabel: "Tema ou situação",
     inputPlaceholder: "Ex: trabalho de escola sobre tecnologia",
@@ -110,9 +110,9 @@ export const appConfig = {
       eyebrow: "Convite leve",
       title: "Compartilhe se o app ajudou",
       messages: [
-        { title: "Manda para alguém que precisa", text: "Achei um app simples pra organizar tarefa, criar checklist e resolver coisas rápidas. Testa aí e me fala se presta 😄" },
+        { title: "Manda para alguém que precisa", text: "Achei o Drafta, um app simples pra organizar tarefa, criar checklist e resolver coisas rápidas. Testa aí e me fala se presta 😄" },
         { title: "Divulgação leve", text: "Tô apoiando um projeto pequeno e gratuito. Se puder, entra e compartilha com alguém. Isso ajuda demais." },
-        { title: "Status pronto", text: "Projeto gratuito novo no ar 🚀 painel simples pra organizar e resolver tarefas rápidas." },
+        { title: "Status pronto", text: "Projeto gratuito novo no ar 🚀 Drafta: bases prontas para resolver tarefas em segundos." },
       ],
     },
   },
@@ -122,7 +122,7 @@ export const appConfig = {
   services: {
     enabled: true,
     title: "Quer que eu faça pronto pra você?",
-    subtitle: "Peça um slide, resumo, arte ou apresentação pronta. O app continua sendo um painel gratuito; isso é só para quem quer economizar tempo.",
+    subtitle: "Peça um slide, resumo, arte ou apresentação pronta. O Drafta continua sendo um painel gratuito; isso é só para quem quer economizar tempo.",
     primaryAction: "Pedir agora",
     offers: [
       { title: "Resumo simples", price: "R$ 5", description: "Resumo organizado e pronto para adaptar." },
