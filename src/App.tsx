@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "./lib/supabase";
 import { canAccessInternalPanel } from "./lib/roles";
+import { appConfig } from "./config/appConfig";
 
 import Home from "./pages/Home";
 import Cursos from "./pages/Cursos";
@@ -86,10 +87,10 @@ export default function App() {
   if (loading) {
     return (
       <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black text-white">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_10%,rgba(245,158,11,0.24),transparent_35%),radial-gradient(circle_at_70%_80%,rgba(56,189,248,0.14),transparent_35%)]" />
-        <div className="relative rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl shadow-amber-500/10 backdrop-blur-2xl">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br from-amber-300 via-white to-blue-200 text-xl font-black text-black shadow-lg shadow-amber-500/30">A</div>
-          <h1 className="mt-5 bg-gradient-to-r from-white via-amber-100 to-blue-200 bg-clip-text text-3xl font-black tracking-[0.16em] text-transparent">AprendaJá</h1>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_10%,rgba(124,58,237,0.24),transparent_35%),radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.14),transparent_35%)]" />
+        <div className="relative rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl shadow-violet-500/10 backdrop-blur-2xl">
+          <img src="/logo-aprendaja.svg" alt="AprendaJá" className="mx-auto h-16 w-16 rounded-3xl" />
+          <h1 className="mt-5 bg-gradient-to-r from-white via-violet-100 to-violet-300 bg-clip-text text-3xl font-black tracking-[0.16em] text-transparent">AprendaJá</h1>
           <p className="mt-2 text-sm font-bold uppercase tracking-[0.18em] text-zinc-500">Carregando...</p>
         </div>
       </main>
@@ -98,13 +99,13 @@ export default function App() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(245,158,11,0.16),transparent_32%),radial-gradient(circle_at_90%_15%,rgba(56,189,248,0.12),transparent_28%),linear-gradient(to_bottom,rgba(255,255,255,0.04),transparent_18%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(124,58,237,0.16),transparent_32%),radial-gradient(circle_at_90%_15%,rgba(168,85,247,0.12),transparent_28%),linear-gradient(to_bottom,rgba(255,255,255,0.04),transparent_18%)]" />
       <div className="pointer-events-none fixed inset-0 opacity-[0.035] [background-image:linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] [background-size:42px_42px]" />
       <div className="relative z-10">
         <Navbar page={page} setPage={setPage} userEmail={user?.email} onLogout={logout} />
-        {user && (
+        {user && appConfig.header.showLoggedEmailBar && (
           <div className="border-b border-white/10 bg-black/45 px-4 py-2 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-500 backdrop-blur-xl">
-            Logado como: <span className="normal-case tracking-normal text-zinc-300">{user.email}</span>
+            {appConfig.header.loggedEmailLabel}: <span className="normal-case tracking-normal text-zinc-300">{user.email}</span>
           </div>
         )}
         <section className="mx-auto max-w-7xl px-4 pb-44 pt-6 md:px-6 md:pb-12 md:pt-8 lg:pb-12">{renderPage()}</section>
