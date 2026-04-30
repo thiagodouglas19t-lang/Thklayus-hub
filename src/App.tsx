@@ -19,11 +19,12 @@ import Sobre from "./pages/Sobre";
 import Pagamento from "./pages/Pagamento";
 import Livros from "./pages/Livros";
 import Ajuda from "./pages/Ajuda";
+import Hub from "./pages/Hub";
 import Navbar from "./components/Navbar";
 
-export type Page = "home" | "login" | "cursos" | "gratis" | "livros" | "ajuda" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver" | "perfil" | "sobre" | "pagamento";
+export type Page = "home" | "login" | "cursos" | "gratis" | "livros" | "ajuda" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver" | "perfil" | "sobre" | "pagamento" | "hub";
 
-const validPages: Page[] = ["home", "login", "cursos", "gratis", "livros", "ajuda", "estudo", "pedidos", "suporte", "chat", "admin", "resolver", "perfil", "sobre", "pagamento"];
+const validPages: Page[] = ["home", "login", "cursos", "gratis", "livros", "ajuda", "estudo", "pedidos", "suporte", "chat", "admin", "resolver", "perfil", "sobre", "pagamento", "hub"];
 
 export default function App() {
   const [page, setPage] = useState<Page>("home");
@@ -63,7 +64,7 @@ export default function App() {
   }, []);
 
   function renderPage() {
-    const publicPages: Page[] = ["home", "login", "cursos", "gratis", "livros", "ajuda", "resolver", "sobre", "pagamento"];
+    const publicPages: Page[] = ["home", "login", "cursos", "gratis", "livros", "ajuda", "resolver", "sobre", "pagamento", "hub"];
     if (page === "login") return user ? <Estudo /> : <Login onLoginSuccess={loadUser} />;
     if (!user && !publicPages.includes(page)) return <Login onLoginSuccess={loadUser} />;
     if (page === "admin" && !canAccessInternalPanel(user?.email)) return <Home setPage={setPage} />;
@@ -73,6 +74,7 @@ export default function App() {
     if (page === "livros") return <Livros />;
     if (page === "ajuda") return <Ajuda />;
     if (page === "resolver") return <Resolver />;
+    if (page === "hub") return <Hub />;
     if (page === "perfil") return <Perfil />;
     if (page === "sobre") return <Sobre />;
     if (page === "pagamento") return <Pagamento />;
