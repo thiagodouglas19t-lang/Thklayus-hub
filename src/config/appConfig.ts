@@ -2,24 +2,25 @@ export const appConfig = {
   brand: {
     name: "AprendaJá",
     company: "THKLAYUS",
-    subtitle: "Grátis e rápido",
-    tagline: "Resolva tarefas rápidas com modelos gratuitos.",
+    subtitle: "Painel diário",
+    tagline: "Organize, resolva e copie coisas úteis em segundos.",
   },
 
   product: {
-    currentDirection: "hub-gratuito-com-servicos-simples",
-    promise: "Entrar travado, resolver de graça e pedir ajuda paga só quando precisar.",
-    mainUserAction: "Resolver grátis",
-    secondaryUserAction: "Pedir trabalho pronto",
-    monetizationMode: "free_first_with_simple_services",
+    currentDirection: "painel-diario-sem-ia",
+    promise: "Entrar, entender em 5 segundos e sair com uma ação pronta.",
+    mainUserAction: "Abrir painel",
+    secondaryUserAction: "Resolver tarefa",
+    monetizationMode: "utility_first_optional_services",
     monthGoal: {
       enabled: true,
       target: "R$ 1.000 em 30 dias",
-      strategy: "modelos grátis puxam usuários; serviços simples convertem pedidos rápidos",
-      focus: "vender entregas pequenas e rápidas, não curso grande",
+      strategy: "utilidade diária atrai usuários; pedidos prontos aparecem como extra opcional",
+      focus: "vender entregas pequenas e rápidas, sem curso e sem certificado",
     },
     avoid: [
       "parecer loja de curso",
+      "mostrar certificado",
       "parecer que tudo é pago",
       "vender coisa difícil de entregar",
       "prometer resultado impossível",
@@ -27,24 +28,24 @@ export const appConfig = {
     ],
     pillars: [
       {
-        title: "Resolver grátis",
-        description: "Gerar uma base rápida para apresentação, resumo, mensagem, ideia ou checklist.",
+        title: "Painel diário",
+        description: "Checklist, foco, notas, decisões, preço e metas.",
+        page: "hub",
+      },
+      {
+        title: "Resolver tarefa",
+        description: "Gerar base para mensagem, resumo, apresentação e checklist.",
         page: "resolver",
       },
       {
-        title: "Modelos grátis",
-        description: "Copiar modelos prontos organizados por situação real.",
+        title: "Modelos prontos",
+        description: "Copiar modelos úteis organizados por situação real.",
         page: "cursos",
       },
       {
-        title: "Trabalho pronto",
-        description: "Pedir slide, resumo, arte ou apresentação pronta quando precisar de algo melhor.",
+        title: "Pedido pronto",
+        description: "Pedir slide, resumo, arte ou apresentação pronta quando quiser economizar tempo.",
         page: "pedidos",
-      },
-      {
-        title: "Meus itens",
-        description: "Guardar acessos, conteúdos liberados e histórico do usuário.",
-        page: "estudo",
       },
     ],
   },
@@ -67,70 +68,70 @@ export const appConfig = {
     safeBottomPadding: "pb-28",
     items: [
       { id: "home", label: "Início", icon: "⌂" },
-      { id: "resolver", label: "Grátis", icon: "✦" },
+      { id: "hub", label: "Painel", icon: "◈" },
+      { id: "resolver", label: "Resolver", icon: "✦" },
       { id: "cursos", label: "Modelos", icon: "◇" },
       { id: "pedidos", label: "Pedir", icon: "⚡" },
-      { id: "estudo", label: "Meus", icon: "□" },
       { id: "admin", label: "ADM", icon: "♛" },
     ],
   },
 
   navigation: {
-    primaryAction: "Resolver grátis",
-    modelsAction: "Ver modelos grátis",
+    primaryAction: "Abrir painel",
+    modelsAction: "Ver modelos",
     helpAction: "Pedir trabalho pronto",
     accountAction: "Meus itens",
   },
 
   home: {
-    eyebrow: "Grátis para escola, WhatsApp, trabalho e organização",
-    title: "Resolva de graça. Se quiser melhor, peça pronto.",
+    eyebrow: "Sem IA • sem curso • uso diário",
+    title: "Um painel simples para organizar e resolver coisas rápidas.",
     subtitle:
-      "Use modelos gratuitos para começar rápido. Se precisar de slide, resumo, arte ou apresentação mais caprichada, peça um trabalho pronto pelo app.",
-    primaryAction: "Resolver grátis",
-    helper: "Primeiro o usuário recebe valor grátis. Depois, se quiser economizar tempo, pode pedir ajuda paga.",
-    powerTitle: "Grátis primeiro, serviço depois.",
+      "Use para decidir o que fazer agora, criar checklist, guardar notas, calcular preço, montar base de texto e pedir algo pronto se quiser economizar tempo.",
+    primaryAction: "Abrir painel",
+    helper: "O app não é curso. Não é certificado. É uma caixa de ferramentas rápida para o dia a dia.",
+    powerTitle: "O que dá pra fazer aqui?",
     powerText:
-      "O app atrai pessoas com utilidade gratuita e converte pedidos simples para quem quer algo pronto, bonito e entregue com mais cuidado.",
-    feelingTitle: "Rápido de entender. Fácil de comprar.",
+      "Você abre, escolhe uma ferramenta e sai com uma ação: tarefa marcada, texto copiado, plano feito, preço calculado ou ideia salva.",
+    feelingTitle: "Entendeu em 5 segundos.",
     feelingText:
-      "Nada de curso gigante agora. A meta é vender entregas pequenas: slides, resumos, artes e organização de trabalhos.",
+      "O app foi reorganizado para não parecer loja nem curso. Primeiro vem utilidade. Depois, se precisar, serviço pronto.",
     features: [
       {
-        title: "Grátis de verdade",
-        desc: "O usuário consegue resolver tarefas sem comprar nada.",
-        icon: "⚡",
+        title: "Painel diário",
+        desc: "Checklist, foco, notas e progresso em um lugar só.",
+        icon: "◈",
       },
       {
-        title: "Trabalho pronto",
-        desc: "Quem quiser algo melhor pode pedir slide, resumo, arte ou apresentação.",
-        icon: "📦",
-      },
-      {
-        title: "Entrega simples",
-        desc: "Foco em pedidos pequenos para vender rápido e entregar sem travar.",
+        title: "Resolver rápido",
+        desc: "Bases prontas para mensagem, resumo, apresentação e organização.",
         icon: "✦",
+      },
+      {
+        title: "Pedido opcional",
+        desc: "Se quiser algo pronto, dá para pedir sem confundir o app inteiro.",
+        icon: "⚡",
       },
     ],
     categories: [
-      "Responder mensagem",
-      "Começar apresentação",
-      "Fazer resumo",
-      "Montar checklist",
-      "Divulgar algo",
-      "Ter ideia quando travar",
+      "Organizar meu dia",
+      "Decidir o que fazer",
+      "Criar checklist",
+      "Guardar uma ideia",
+      "Calcular preço",
+      "Resolver uma tarefa",
     ],
-    categoryHint: "Cada botão abre uma base gratuita para adaptar.",
+    categoryHint: "Cada botão leva para uma ferramenta clara e rápida.",
   },
 
   resolver: {
-    title: "Resolver grátis",
+    title: "Resolver tarefa",
     subtitle: "Gere uma base simples para copiar e adaptar sem pagar.",
     inputLabel: "Tema ou situação",
     inputPlaceholder: "Ex: trabalho de escola sobre tecnologia",
-    copyLabel: "Copiar grátis",
+    copyLabel: "Copiar",
     copiedLabel: "Copiado!",
-    helpCta: "Quero esse trabalho pronto",
+    helpCta: "Quero isso pronto",
     types: [
       { id: "apresentacao", name: "Apresentação", icon: "🎤" },
       { id: "resumo", name: "Resumo", icon: "📝" },
@@ -141,11 +142,11 @@ export const appConfig = {
 
   freeArea: {
     generator: {
-      eyebrow: "Gerador grátis",
+      eyebrow: "Gerador simples",
       title: "Gerar ideias para qualquer tema",
       helper: "Digite um tema e crie opções rápidas para adaptar.",
       inputPlaceholder: "Digite um tema...",
-      actionLabel: "Gerar ideias grátis",
+      actionLabel: "Gerar ideias",
       defaultTopic: "meu projeto",
       tags: ["escola", "dinheiro", "status", "WhatsApp", "apresentação", "arte", "organização", "família"],
       resultTemplates: [
@@ -156,7 +157,7 @@ export const appConfig = {
       ],
     },
     daily: {
-      eyebrow: "Conteúdo grátis do dia",
+      eyebrow: "Ideia do dia",
       title: "Ideia de conteúdo",
       category: "Criatividade",
       text: "Poste uma lista com 5 coisas que você faria diferente se começasse seu projeto hoje.",
@@ -190,7 +191,7 @@ export const appConfig = {
       messages: [
         {
           title: "Manda para alguém que precisa",
-          text: "Achei um app grátis com modelos e ideias para resolver tarefas rápidas. Testa aí e me fala se presta 😄",
+          text: "Achei um app simples pra organizar tarefa, criar checklist e resolver coisas rápidas. Testa aí e me fala se presta 😄",
         },
         {
           title: "Divulgação leve",
@@ -198,16 +199,16 @@ export const appConfig = {
         },
         {
           title: "Status pronto",
-          text: "Projeto gratuito novo no ar 🚀 tem modelos e ideias rápidas para o dia a dia.",
+          text: "Projeto gratuito novo no ar 🚀 painel simples pra organizar e resolver tarefas rápidas.",
         },
       ],
     },
   },
 
   models: {
-    title: "Modelos gratuitos para adaptar",
+    title: "Modelos prontos para adaptar",
     subtitle: "Use bases simples para começar tarefas sem pensar do zero.",
-    quickTitle: "Resolver rápido grátis",
+    quickTitle: "Modelos rápidos",
     extrasTitle: "Serviços rápidos",
     paidExtrasLabel: "Opcional",
   },
@@ -215,7 +216,7 @@ export const appConfig = {
   services: {
     enabled: true,
     title: "Quer que eu faça pronto pra você?",
-    subtitle: "Peça um slide, resumo, arte ou apresentação pronta. A parte grátis continua liberada; isso é só para quem quer economizar tempo.",
+    subtitle: "Peça um slide, resumo, arte ou apresentação pronta. O app continua sendo um painel gratuito; isso é só para quem quer economizar tempo.",
     primaryAction: "Pedir agora",
     offers: [
       { title: "Resumo simples", price: "R$ 5", description: "Resumo organizado e pronto para adaptar." },
@@ -227,11 +228,11 @@ export const appConfig = {
 
   admin: {
     enabled: true,
-    showCourseQuality: true,
+    showCourseQuality: false,
     showManualRelease: true,
     showQueue: true,
     showHiddenFilter: true,
-    qualityTitle: "Validação de qualidade dos conteúdos",
+    qualityTitle: "Validação de qualidade",
     manualReleaseTitle: "Liberar item manualmente",
     queueTitle: "Fila de atendimento",
   },
