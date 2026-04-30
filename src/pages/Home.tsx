@@ -1,119 +1,112 @@
-import { useState } from "react";
-import { appConfig } from "../config/appConfig";
+import { useMemo, useState } from "react";
+import { feedCategories, feedItems, getTodayItems, type FeedCategory, type FeedItem } from "../lib/feedItems";
 
 export default function Home({ setPage }: { setPage: (page: any) => void }) {
-  const [quickPrompt, setQuickPrompt] = useState("");
-  const home = appConfig.home;
+  const [active, setActive] = useState<FeedCategory>("Hoje");
+  const [toast, setToast] = useState("");
 
-  function startSolving(value?: string) {
-    const prompt = value?.trim() || quickPrompt.trim();
+  const items = useMemo(() => {
+    if (active === "Hoje") return getTodayItems();
+    return feedItems.filter((item) => item.category === active);
+  }, [active]);
 
-    if (prompt) {
-      try {
-        localStorage.setItem("aprendaja_quick_prompt", prompt);
-      } catch {
-        // localStorage can fail in private mode. The app still opens the resolver.
-      }
+  async function copyItem(item: FeedItem) {
+    await navigator.clipboard.writeText(item.content);
+    setToast("Copiado. Agora é só colar onde quiser.");
+    window.setTimeout(() => setToast(""), 1600);
+  }
+
+  function openResolver(item: FeedItem) {
+    try {
+      localStorage.setItem("aprendaja_quick_prompt", item.title);
+    } catch {
+      // ignore
     }
-
     setPage("gratis");
   }
 
   return (
-    <div className="space-y-7">
-      <section className="relative overflow-hidden rounded-[3rem] border border-violet-300/15 bg-[#020003] px-5 py-8 text-center shadow-2xl shadow-violet-950/30 md:px-10 md:py-14">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.38),transparent_34%),radial-gradient(circle_at_15%_15%,rgba(124,58,237,0.22),transparent_30%),radial-gradient(circle_at_85%_40%,rgba(255,255,255,0.08),transparent_26%)]" />
-        <div className="pointer-events-none absolute left-1/2 top-24 h-44 w-80 -translate-x-1/2 rounded-full bg-violet-500/20 blur-3xl" />
+    <div className="space-y-6 pb-4">
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 z-[90] w-[calc(100%-32px)] max-w-sm -translate-x-1/2 rounded-2xl bg-violet-300 px-5 py-3 text-center text-sm font-black text-black shadow-2xl shadow-violet-500/20">
+          {toast}
+        </div>
+      )}
 
-        <div className="relative mx-auto max-w-4xl">
-          <div className="flex justify-center">
-            <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">
-              {home.eyebrow}
-            </span>
-          </div>
+      <section className="relative overflow-hidden rounded-[2.6rem] border border-violet-300/15 bg-[#030006] p-5 shadow-2xl shadow-violet-950/30 md:p-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(168,85,247,0.36),transparent_34%),radial-gradient(circle_at_85%_20%,rgba(124,58,237,0.18),transparent_28%)]" />
+        <div className="relative">
+          <span className="inline-flex rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">
+            Novo formato
+          </span>
 
-          <h1 className="mt-7 text-5xl font-black leading-[0.92] tracking-[-0.08em] text-white md:text-7xl">
-            {home.title}
+          <h1 className="mt-5 max-w-3xl text-5xl font-black leading-[0.92] tracking-[-0.08em] text-white md:text-7xl">
+            Mural rápido de coisas prontas.
           </h1>
 
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-zinc-300 md:text-lg">
-            {home.subtitle}
+          <p className="mt-5 max-w-2xl text-base font-semibold leading-8 text-zinc-400 md:text-lg">
+            Abra, escolha um card útil, copie e use. Sem IA, sem API, sem erro.
           </p>
 
-          <div className="mx-auto mt-8 max-w-2xl rounded-[2rem] border border-white/10 bg-black/55 p-2 shadow-2xl shadow-black/50 backdrop-blur">
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                value={quickPrompt}
-                onChange={(event) => setQuickPrompt(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") startSolving();
-                }}
-                placeholder="Ex: mensagem pedindo desculpa, checklist de viagem..."
-                className="min-h-14 flex-1 rounded-[1.35rem] border border-white/10 bg-white/[0.04] px-5 text-sm font-bold text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-300/60 focus:bg-white/[0.07]"
-              />
-
-              <button
-                onClick={() => startSolving()}
-                className="min-h-14 rounded-[1.35rem] bg-white px-6 text-sm font-black text-black shadow-xl shadow-violet-500/25 transition hover:scale-[1.02] active:scale-95 sm:min-w-40"
-              >
-                {home.primaryAction}
-              </button>
-            </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button onClick={() => setActive("Hoje")} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black active:scale-95">
+              Ver cards de hoje
+            </button>
+            <button onClick={() => setPage("gratis")} className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-black text-white active:scale-95">
+              Abrir ferramenta antiga
+            </button>
           </div>
-
-          <p className="mt-4 text-sm font-semibold text-zinc-500">{home.helper}</p>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        {home.features.map((item) => (
-          <article
-            key={item.title}
-            className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-6 shadow-xl shadow-black/20"
+      <section className="flex gap-2 overflow-x-auto pb-1">
+        {feedCategories.map((category) => (
+          <button
+            key={category}
+            onClick={() => setActive(category)}
+            className={`shrink-0 rounded-2xl px-4 py-3 text-sm font-black transition active:scale-95 ${
+              active === category ? "bg-violet-300 text-black" : "border border-white/10 bg-white/[0.04] text-zinc-400"
+            }`}
           >
-            <p className="text-3xl">{item.icon}</p>
-            <h3 className="mt-4 text-2xl font-black text-white">{item.title}</h3>
-            <p className="mt-2 text-sm font-semibold leading-6 text-zinc-500">{item.desc}</p>
-          </article>
+            {category}
+          </button>
         ))}
       </section>
 
-      <section className="rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-5 md:p-7">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">Atalhos de 1 toque</p>
-          <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white">
-            Sem pensar. Só escolha uma situação.
-          </h2>
-        </div>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {items.map((item) => (
+          <article key={item.id} className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-5 shadow-xl shadow-black/20">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="rounded-full border border-violet-300/20 bg-violet-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-violet-200">
+                  {item.category}
+                </span>
+                <h2 className="mt-4 text-2xl font-black tracking-[-0.04em] text-white">{item.title}</h2>
+              </div>
+              <button onClick={() => copyItem(item)} className="rounded-2xl bg-white px-3 py-2 text-sm font-black text-black active:scale-95">
+                Copiar
+              </button>
+            </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {home.categories.map((item) => (
-            <button
-              key={item}
-              onClick={() => startSolving(item)}
-              className="rounded-3xl border border-white/10 bg-black/45 p-5 text-left font-black text-zinc-100 transition hover:-translate-y-1 hover:border-violet-300/40 hover:bg-violet-500/10 active:scale-[0.98]"
-            >
-              {item}
-              <p className="mt-2 text-xs font-semibold leading-5 text-zinc-500">
-                {home.categoryHint}
-              </p>
+            <p className="mt-3 text-sm font-semibold leading-6 text-zinc-500">{item.description}</p>
+
+            <button onClick={() => copyItem(item)} className="mt-5 w-full rounded-3xl border border-white/10 bg-black/45 p-4 text-left active:scale-[0.99]">
+              <pre className="line-clamp-6 whitespace-pre-wrap font-sans text-sm font-bold leading-6 text-zinc-300">{item.content}</pre>
             </button>
-          ))}
-        </div>
-      </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-        <div className="rounded-[2.5rem] border border-violet-300/20 bg-violet-500/10 p-6">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-100">{home.powerTitle}</p>
-          <h2 className="mt-2 text-3xl font-black text-white">Para quando você trava.</h2>
-          <p className="mt-3 text-sm leading-7 text-violet-50/80">{home.powerText}</p>
-        </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {item.tags.map((tag) => (
+                <span key={tag} className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-bold text-zinc-500">
+                  #{tag}
+                </span>
+              ))}
+            </div>
 
-        <div className="rounded-[2.5rem] border border-white/10 bg-white p-6 text-black">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-500">Sensação final</p>
-          <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">{home.feelingTitle}</h2>
-          <p className="mt-3 text-sm leading-7 text-zinc-700">{home.feelingText}</p>
-        </div>
+            <button onClick={() => openResolver(item)} className="mt-4 w-full rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-3 text-sm font-black text-violet-100 active:scale-95">
+              Adaptar esse modelo
+            </button>
+          </article>
+        ))}
       </section>
     </div>
   );
