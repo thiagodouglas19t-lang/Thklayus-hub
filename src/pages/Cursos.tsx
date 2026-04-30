@@ -9,6 +9,7 @@ type Template = {
   title: string;
   description: string;
   tag: string;
+  paidHint?: string;
   variants: Record<Vibe, string>;
 };
 
@@ -25,6 +26,7 @@ const templates: Template[] = [
     title: "Mensagem para professor",
     description: "Entregar trabalho, explicar atraso ou pedir consideração sem parecer bagunçado.",
     tag: "Escola",
+    paidHint: "Sem tempo para arrumar o trabalho? Peça pronto.",
     variants: {
       simples: "Oi, professor! Estou enviando meu trabalho sobre [tema]. Tive um pouco de dificuldade com [motivo], mas organizei o melhor que consegui. Obrigado pela atenção.",
       formal: "Prezado professor, segue em anexo meu trabalho sobre [tema]. Agradeço pelas aulas e fico à disposição caso seja necessário corrigir ou complementar alguma parte.",
@@ -37,6 +39,7 @@ const templates: Template[] = [
     title: "Resumo com cara de trabalho",
     description: "Estrutura curta para começar um resumo sem ficar genérico.",
     tag: "Resumo",
+    paidHint: "Quer o resumo completo? Peça pronto.",
     variants: {
       simples: "Resumo sobre [tema]\n\n[tema] é importante porque ajuda a entender melhor [contexto]. Os pontos principais são: [ponto 1], [ponto 2] e [ponto 3]. Concluindo, esse assunto mostra que [conclusão simples].",
       formal: "O presente resumo aborda [tema], destacando seus principais conceitos, aplicações e relevância. Inicialmente, observa-se que [explicação]. Em seguida, percebe-se a importância de [ponto central]. Portanto, [tema] contribui para uma compreensão mais ampla de [contexto].",
@@ -49,6 +52,7 @@ const templates: Template[] = [
     title: "Roteiro de apresentação",
     description: "Base para falar na frente da turma sem travar.",
     tag: "Apresentação",
+    paidHint: "Quer o slide montado? Peça pronto.",
     variants: {
       simples: "Bom dia/boa tarde. Hoje vou apresentar sobre [tema]. Primeiro, vou explicar o que é. Depois, vou mostrar os pontos principais e um exemplo. Para finalizar, vou fazer uma conclusão rápida. Obrigado pela atenção.",
       formal: "Cumprimento a todos. Nesta apresentação, abordarei o tema [tema], explicando seu conceito, sua importância e seus principais impactos. Ao final, apresentarei uma breve conclusão com os pontos mais relevantes.",
@@ -61,6 +65,7 @@ const templates: Template[] = [
     title: "Introdução de trabalho",
     description: "Começo pronto para trabalho escolar ficar mais organizado.",
     tag: "Trabalho",
+    paidHint: "Sem tempo para terminar? Peça pronto.",
     variants: {
       simples: "Este trabalho fala sobre [tema]. O objetivo é explicar de forma simples o que é, por que é importante e como aparece no dia a dia. Também serão apresentados exemplos para facilitar o entendimento.",
       formal: "O presente trabalho tem como objetivo analisar [tema], destacando seus principais aspectos, sua relevância e suas aplicações. A proposta é apresentar uma visão clara e organizada sobre o assunto.",
@@ -83,11 +88,12 @@ const templates: Template[] = [
     id: "proposta-servico",
     tribe: "freelancer",
     title: "Proposta de serviço premium",
-    description: "Esqueleto para responder cliente com segurança e parecer profissional.",
+    description: "Responder cliente com segurança e parecer profissional.",
     tag: "Venda",
+    paidHint: "Quer ajuda para fechar o valor? Peça uma revisão rápida.",
     variants: {
-      simples: "Oi, [nome]! Vi que você precisa de [serviço].\n\nMinha entrega foca em resolver [problema] de forma prática, organizada e sem enrolação.\n\nO que está incluso:\n• [entrega 1]\n• [entrega 2]\n• Ajuste simples se precisar\n\nPrazo: [prazo]\nInvestimento: R$ [valor]\n\nSe estiver tudo certo, posso começar hoje.",
-      formal: "Prezado(a) [nome], tudo bem?\n\nProponho uma solução de [serviço] personalizada para sua necessidade. O objetivo central é otimizar [problema], garantindo uma entrega organizada, clara e profissional.\n\nEscopo da entrega:\n• [entrega principal]\n• [detalhe importante]\n• [formato de entrega]\n\nPrazo estimado: [prazo]\nInvestimento: R$ [valor]\n\nApós sua confirmação, inicio a produção e mantenho você informado(a) sobre o andamento.",
+      simples: "Oi, [nome]! Vi que você precisa de [serviço].\n\nMinha entrega foca em resolver [problema] de forma prática, organizada e sem enrolação.\n\nIncluso: [entrega 1], [entrega 2] e ajuste simples.\nPrazo: [prazo]\nInvestimento: R$ [valor]\n\nSe estiver tudo certo, posso começar hoje.",
+      formal: "Prezado(a) [nome], tudo bem?\n\nProponho uma solução de [serviço] para otimizar [problema] com uma entrega clara e profissional.\n\nEscopo: [entrega principal], [detalhe importante] e [formato de entrega].\nPrazo: [prazo]\nInvestimento: R$ [valor]\n\nApós sua confirmação, inicio a produção e mantenho você informado(a).",
       direto: "Olá, [nome]. Vi que você precisa de [serviço].\n\nEu resolvo [problema] com uma entrega direta e pronta para uso.\n\nValor: R$ [valor]\nPrazo: [prazo]\nInclui: [entrega]\n\nPosso começar na [data]. Podemos fechar?",
     },
   },
@@ -95,8 +101,9 @@ const templates: Template[] = [
     id: "cobrar-cliente",
     tribe: "freelancer",
     title: "Cobrar cliente sem vergonha",
-    description: "Mensagem para cobrar pagamento ou resposta sem parecer chato.",
+    description: "Cobrar pagamento ou resposta sem parecer chato.",
     tag: "Cliente",
+    paidHint: "Ainda com medo de cobrar? Peça uma mensagem personalizada.",
     variants: {
       simples: "Oi! Passando só para lembrar sobre [pagamento/resposta] do serviço de [serviço]. Quando puder, me dá um retorno para eu organizar por aqui. Obrigado!",
       formal: "Olá, [nome]. Tudo bem? Gostaria de confirmar o andamento referente a [pagamento/resposta] do serviço de [serviço]. Fico no aguardo para dar continuidade da melhor forma.",
@@ -109,9 +116,10 @@ const templates: Template[] = [
     title: "Calcular preço de serviço",
     description: "Fórmula simples para não cobrar baixo demais.",
     tag: "Preço",
+    paidHint: "Na dúvida do valor? Peça uma precificação rápida.",
     variants: {
-      simples: "Preço sugerido:\n\n(Horas de trabalho × valor da hora) + complexidade + urgência\n\nExemplo:\n2h × R$10 = R$20\nComplexidade: +R$5\nUrgência: +R$5\nTotal: R$30",
-      formal: "Fórmula de precificação:\n\nValor base = horas estimadas × valor/hora\nAdicional de complexidade = 20% do valor base\nTaxa de urgência = valor extra definido conforme prazo\n\nPreço final = base + complexidade + urgência.",
+      simples: "Preço sugerido:\n\n(Horas × valor da hora) + complexidade + urgência\n\nExemplo:\n2h × R$10 = R$20\nComplexidade: +R$5\nUrgência: +R$5\nTotal: R$30",
+      formal: "Fórmula de precificação:\n\nValor base = horas estimadas × valor/hora\nComplexidade = 20% do valor base\nUrgência = adicional conforme prazo\n\nPreço final = base + complexidade + urgência.",
       direto: "Cobrança rápida:\nPouco trabalho: R$5 a R$10\nMédio: R$15 a R$25\nUrgente ou caprichado: R$30+\n\nNunca cobre menos que seu tempo vale.",
     },
   },
@@ -142,8 +150,8 @@ const templates: Template[] = [
 ];
 
 const tribeCopy: Record<Tribe, { title: string; desc: string; icon: string }> = {
-  estudante: { title: "Estudante", desc: "Resumo, apresentação, professor e plano de estudo.", icon: "🎓" },
-  freelancer: { title: "Freelancer", desc: "Proposta, preço, cliente, divulgação e meta.", icon: "💼" },
+  estudante: { title: "Estudante", desc: "Resumo, apresentação, professor e estudo.", icon: "🎓" },
+  freelancer: { title: "Freelancer", desc: "Proposta, preço, cliente e divulgação.", icon: "💼" },
 };
 
 export default function Cursos() {
@@ -172,31 +180,31 @@ export default function Cursos() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[3rem] border border-violet-300/15 bg-[#030006] px-6 py-10 text-center shadow-2xl shadow-violet-950/30 md:px-10 md:py-14">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.34),transparent_34%),radial-gradient(circle_at_12%_18%,rgba(124,58,237,0.22),transparent_30%)]" />
+    <div className="space-y-5">
+      <section className="relative overflow-hidden rounded-[2.5rem] border border-violet-300/15 bg-[#030006] px-6 py-8 text-center shadow-2xl shadow-violet-950/30 md:px-10 md:py-12">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.32),transparent_34%),radial-gradient(circle_at_12%_18%,rgba(124,58,237,0.20),transparent_30%)]" />
         <div className="relative mx-auto max-w-4xl">
-          <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">Beta • Estudante & Freelancer</span>
-          <h1 className="mt-7 text-5xl font-black leading-[0.95] tracking-[-0.08em] text-white md:text-7xl">Templates com borogodó.</h1>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-zinc-300 md:text-lg">Escolha sua tribo, escolha a vibe e copie um modelo com personalidade. Nada de curso. Nada de texto genérico.</p>
+          <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">Drafta • Beta</span>
+          <h1 className="mt-5 text-4xl font-black leading-[0.95] tracking-[-0.07em] text-white md:text-6xl">Copie uma base pronta.</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-sm font-semibold leading-7 text-zinc-400 md:text-base">Escolha sua tribo, selecione a vibe e copie um texto útil em segundos.</p>
         </div>
       </section>
 
       <section className="grid gap-3 md:grid-cols-2">
         {(["estudante", "freelancer"] as Tribe[]).map((item) => (
-          <button key={item} onClick={() => setTribe(item)} className={`rounded-[2rem] border p-5 text-left transition active:scale-[0.99] ${tribe === item ? "border-violet-300 bg-violet-300 text-black shadow-2xl shadow-violet-500/20" : "border-white/10 bg-white/[0.035] text-white hover:border-violet-300/35"}`}>
-            <p className="text-4xl">{tribeCopy[item].icon}</p>
-            <h2 className="mt-3 text-3xl font-black tracking-[-0.06em]">{tribeCopy[item].title}</h2>
-            <p className={`mt-2 text-sm font-semibold leading-6 ${tribe === item ? "text-black/65" : "text-zinc-500"}`}>{tribeCopy[item].desc}</p>
+          <button key={item} onClick={() => setTribe(item)} className={`rounded-[1.7rem] border p-4 text-left transition active:scale-[0.99] ${tribe === item ? "border-violet-300 bg-violet-300 text-black shadow-2xl shadow-violet-500/20" : "border-white/10 bg-white/[0.035] text-white hover:border-violet-300/35"}`}>
+            <p className="text-3xl">{tribeCopy[item].icon}</p>
+            <h2 className="mt-2 text-2xl font-black tracking-[-0.05em]">{tribeCopy[item].title}</h2>
+            <p className={`mt-1 text-sm font-semibold leading-5 ${tribe === item ? "text-black/65" : "text-zinc-500"}`}>{tribeCopy[item].desc}</p>
           </button>
         ))}
       </section>
 
-      <section className="rounded-[2.5rem] border border-white/10 bg-white/[0.035] p-4 md:p-5">
+      <section className="sticky top-[74px] z-20 rounded-[2rem] border border-white/10 bg-black/75 p-3 backdrop-blur-2xl md:top-[86px]">
         <div className="grid gap-3 lg:grid-cols-[1fr_auto]">
-          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar modelo..." className="min-h-12 rounded-2xl border border-white/10 bg-black/45 px-4 text-sm font-bold text-white outline-none placeholder:text-zinc-600 focus:border-violet-300/40" />
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {vibes.map((item) => <button key={item.id} onClick={() => setVibe(item.id)} className={`whitespace-nowrap rounded-2xl px-4 py-2.5 text-sm font-black transition active:scale-95 ${vibe === item.id ? "bg-white text-black" : "border border-white/10 bg-black/35 text-zinc-400 hover:text-white"}`}>{item.label}</button>)}
+          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar modelo..." className="min-h-12 rounded-2xl border border-white/10 bg-black/55 px-4 text-sm font-bold text-white outline-none placeholder:text-zinc-600 focus:border-violet-300/40" />
+          <div className="grid grid-cols-3 gap-2">
+            {vibes.map((item) => <button key={item.id} onClick={() => setVibe(item.id)} className={`rounded-2xl px-4 py-3 text-sm font-black transition active:scale-95 ${vibe === item.id ? "bg-white text-black" : "border border-white/10 bg-black/35 text-zinc-400 hover:text-white"}`}>{item.label}</button>)}
           </div>
         </div>
       </section>
@@ -204,22 +212,23 @@ export default function Cursos() {
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filtrados.map((item) => {
           const text = item.variants[vibe];
+          const isPriority = item.id === "cobrar-cliente" || item.id === "professor-entrega";
           return (
-            <article key={item.id} className="group rounded-[2rem] border border-white/10 bg-black/45 p-5 shadow-xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-300/35">
+            <article key={item.id} className={`group rounded-[1.8rem] border bg-black/45 p-4 shadow-xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-300/35 ${isPriority ? "border-violet-300/30" : "border-white/10"}`}>
               <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-300">{item.tag} • {vibes.find((v) => v.id === vibe)?.label}</p>
-                  <h3 className="mt-2 text-2xl font-black leading-tight text-white">{item.title}</h3>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-300">{item.tag} • {vibes.find((v) => v.id === vibe)?.label}</p>
+                  <h3 className="mt-2 text-xl font-black leading-tight text-white md:text-2xl">{item.title}</h3>
                 </div>
-                <button onClick={() => copiar(item.id, text)} className="rounded-2xl bg-white px-4 py-3 text-sm font-black text-black active:scale-95">{copied === item.id ? "Copiado" : "Copiar"}</button>
+                <button onClick={() => copiar(item.id, text)} className="shrink-0 rounded-2xl bg-white px-4 py-3 text-sm font-black text-black active:scale-95">{copied === item.id ? "Copiado" : "Copiar"}</button>
               </div>
-              <p className="mt-3 text-sm font-semibold text-zinc-500">{item.description}</p>
-              <p className="mt-4 whitespace-pre-line rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-4 text-sm font-semibold leading-7 text-zinc-200">{text}</p>
-              <div className="mt-4 rounded-2xl border border-violet-300/15 bg-violet-500/10 p-4">
-                <p className="text-sm font-black text-violet-100">Sem tempo para preencher?</p>
-                <p className="mt-1 text-xs font-semibold leading-5 text-violet-100/70">Peça pronto e economize tempo.</p>
-                <button onClick={pedirPronto} className="mt-3 rounded-xl bg-violet-300 px-4 py-2 text-xs font-black text-black active:scale-95">Pedir pronto</button>
-              </div>
+              <p className="mt-2 text-sm font-semibold text-zinc-500">{item.description}</p>
+              <p className="mt-3 max-h-[260px] overflow-auto whitespace-pre-line rounded-[1.3rem] border border-white/10 bg-white/[0.035] p-4 text-sm font-semibold leading-7 text-zinc-200">{text}</p>
+              {item.paidHint && (
+                <button onClick={pedirPronto} className="mt-3 w-full rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-3 text-left text-xs font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">
+                  {item.paidHint} <span className="text-violet-300">Pedir agora →</span>
+                </button>
+              )}
             </article>
           );
         })}
