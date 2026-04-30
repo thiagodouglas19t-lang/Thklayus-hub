@@ -35,6 +35,47 @@ export const appConfig = {
     modelsAction: "Ver modelos",
   },
 
+  home: {
+    eyebrow: "Para rua, escola e trabalho",
+    title: "Resolva uma tarefa em poucos segundos.",
+    subtitle:
+      "Abra, escolha o que precisa e pegue uma base pronta para adaptar. Serve para mensagem, apresentação, checklist, divulgação e ideias quando você trava.",
+    primaryAction: "Resolver agora",
+    helper: "Sem manual. Sem enrolação. Escolha uma tarefa e comece.",
+    powerTitle: "Poder de tempo",
+    powerText:
+      "O AprendaJá não tenta fazer mil coisas. Ele te ajuda a sair do zero rápido quando você precisa escrever, organizar ou começar algo.",
+    feelingTitle: "Feche o app mais aliviado.",
+    feelingText:
+      "A missão é simples: você entra travado, pega uma base, adapta e sai com algo pronto para usar.",
+    features: [
+      {
+        title: "Funciona no improviso",
+        desc: "Use na fila, na escola, em casa ou antes de uma reunião.",
+        icon: "⚡",
+      },
+      {
+        title: "Começa em segundos",
+        desc: "Sem cadastro gigante e sem tutorial complicado para entender.",
+        icon: "◈",
+      },
+      {
+        title: "Dá direção",
+        desc: "Você ganha uma base clara para adaptar ao seu caso.",
+        icon: "✍️",
+      },
+    ],
+    categories: [
+      "Responder mensagem",
+      "Começar apresentação",
+      "Organizar tarefa",
+      "Montar checklist",
+      "Divulgar algo",
+      "Ter ideia quando travar",
+    ],
+    categoryHint: "Abrir uma base pronta para adaptar.",
+  },
+
   freeArea: {
     generator: {
       eyebrow: "Gerador simples",
