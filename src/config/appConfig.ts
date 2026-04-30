@@ -27,26 +27,10 @@ export const appConfig = {
       "forçar cadastro antes do usuário entender valor",
     ],
     pillars: [
-      {
-        title: "Painel diário",
-        description: "Checklist, foco, notas, decisões, preço e metas.",
-        page: "hub",
-      },
-      {
-        title: "Resolver tarefa",
-        description: "Gerar base para mensagem, resumo, apresentação e checklist.",
-        page: "resolver",
-      },
-      {
-        title: "Modelos prontos",
-        description: "Copiar modelos úteis organizados por situação real.",
-        page: "cursos",
-      },
-      {
-        title: "Pedido pronto",
-        description: "Pedir slide, resumo, arte ou apresentação pronta quando quiser economizar tempo.",
-        page: "pedidos",
-      },
+      { title: "Painel diário", description: "Checklist, foco, notas, decisões, preço e metas.", page: "hub" },
+      { title: "Resolver tarefa", description: "Gerar base para mensagem, resumo, apresentação e checklist.", page: "resolver" },
+      { title: "Modelos prontos", description: "Copiar modelos úteis organizados por situação real.", page: "cursos" },
+      { title: "Pedido pronto", description: "Pedir slide, resumo, arte ou apresentação pronta quando quiser economizar tempo.", page: "pedidos" },
     ],
   },
 
@@ -64,7 +48,7 @@ export const appConfig = {
 
   bottomNav: {
     enabled: true,
-    showAdminTab: true,
+    showAdminTab: false,
     safeBottomPadding: "pb-28",
     items: [
       { id: "home", label: "Início", icon: "⌂" },
@@ -72,7 +56,6 @@ export const appConfig = {
       { id: "resolver", label: "Resolver", icon: "✦" },
       { id: "cursos", label: "Modelos", icon: "◇" },
       { id: "pedidos", label: "Pedir", icon: "⚡" },
-      { id: "admin", label: "ADM", icon: "♛" },
     ],
   },
 
@@ -97,30 +80,11 @@ export const appConfig = {
     feelingText:
       "O app foi reorganizado para não parecer loja nem curso. Primeiro vem utilidade. Depois, se precisar, serviço pronto.",
     features: [
-      {
-        title: "Painel diário",
-        desc: "Checklist, foco, notas e progresso em um lugar só.",
-        icon: "◈",
-      },
-      {
-        title: "Resolver rápido",
-        desc: "Bases prontas para mensagem, resumo, apresentação e organização.",
-        icon: "✦",
-      },
-      {
-        title: "Pedido opcional",
-        desc: "Se quiser algo pronto, dá para pedir sem confundir o app inteiro.",
-        icon: "⚡",
-      },
+      { title: "Painel diário", desc: "Checklist, foco, notas e progresso em um lugar só.", icon: "◈" },
+      { title: "Resolver rápido", desc: "Bases prontas para mensagem, resumo, apresentação e organização.", icon: "✦" },
+      { title: "Pedido opcional", desc: "Se quiser algo pronto, dá para pedir sem confundir o app inteiro.", icon: "⚡" },
     ],
-    categories: [
-      "Organizar meu dia",
-      "Decidir o que fazer",
-      "Criar checklist",
-      "Guardar uma ideia",
-      "Calcular preço",
-      "Resolver uma tarefa",
-    ],
+    categories: ["Organizar meu dia", "Decidir o que fazer", "Criar checklist", "Guardar uma ideia", "Calcular preço", "Resolver uma tarefa"],
     categoryHint: "Cada botão leva para uma ferramenta clara e rápida.",
   },
 
@@ -149,58 +113,26 @@ export const appConfig = {
       actionLabel: "Gerar ideias",
       defaultTopic: "meu projeto",
       tags: ["escola", "dinheiro", "status", "WhatsApp", "apresentação", "arte", "organização", "família"],
-      resultTemplates: [
-        "3 ideias de post sobre {topic}",
-        "Uma frase curta para divulgar {topic}",
-        "Um checklist simples para organizar {topic}",
-        "Uma mensagem de WhatsApp explicando {topic}",
-      ],
+      resultTemplates: ["3 ideias de post sobre {topic}", "Uma frase curta para divulgar {topic}", "Um checklist simples para organizar {topic}", "Uma mensagem de WhatsApp explicando {topic}"],
     },
-    daily: {
-      eyebrow: "Ideia do dia",
-      title: "Ideia de conteúdo",
-      category: "Criatividade",
-      text: "Poste uma lista com 5 coisas que você faria diferente se começasse seu projeto hoje.",
-      copyLabel: "Copiar",
-      shareLabel: "Compartilhar",
-    },
+    daily: { eyebrow: "Ideia do dia", title: "Ideia de conteúdo", category: "Criatividade", text: "Poste uma lista com 5 coisas que você faria diferente se começasse seu projeto hoje.", copyLabel: "Copiar", shareLabel: "Compartilhar" },
     streak: {
       enabled: true,
       eyebrow: "Voltar todo dia",
       title: "Sequência diária",
       text: "Cada visita conta no seu aparelho. Volte para pegar uma ideia nova quando precisar.",
-      items: [
-        "Abra quando travar em uma tarefa pequena.",
-        "Adapte os modelos com suas palavras.",
-        "Compartilhe só se o app realmente te ajudou.",
-        "Conteúdo simples ganha quando é útil e rápido.",
-      ],
+      items: ["Abra quando travar em uma tarefa pequena.", "Adapte os modelos com suas palavras.", "Compartilhe só se o app realmente te ajudou.", "Conteúdo simples ganha quando é útil e rápido."],
     },
-    ads: {
-      enabled: false,
-      eyebrow: "Novidades futuras",
-      title: "Espaço reservado",
-      description: "Este espaço será usado apenas quando fizer sentido para a experiência.",
-      placeholder: "Conteúdo futuro",
-    },
+    ads: { enabled: false, eyebrow: "Novidades futuras", title: "Espaço reservado", description: "Este espaço será usado apenas quando fizer sentido para a experiência.", placeholder: "Conteúdo futuro" },
     sharing: {
       enabled: true,
       showAfterVisits: 3,
       eyebrow: "Convite leve",
       title: "Compartilhe se o app ajudou",
       messages: [
-        {
-          title: "Manda para alguém que precisa",
-          text: "Achei um app simples pra organizar tarefa, criar checklist e resolver coisas rápidas. Testa aí e me fala se presta 😄",
-        },
-        {
-          title: "Divulgação leve",
-          text: "Tô apoiando um projeto pequeno e gratuito. Se puder, entra e compartilha com alguém. Isso ajuda demais.",
-        },
-        {
-          title: "Status pronto",
-          text: "Projeto gratuito novo no ar 🚀 painel simples pra organizar e resolver tarefas rápidas.",
-        },
+        { title: "Manda para alguém que precisa", text: "Achei um app simples pra organizar tarefa, criar checklist e resolver coisas rápidas. Testa aí e me fala se presta 😄" },
+        { title: "Divulgação leve", text: "Tô apoiando um projeto pequeno e gratuito. Se puder, entra e compartilha com alguém. Isso ajuda demais." },
+        { title: "Status pronto", text: "Projeto gratuito novo no ar 🚀 painel simples pra organizar e resolver tarefas rápidas." },
       ],
     },
   },
@@ -229,7 +161,7 @@ export const appConfig = {
   admin: {
     enabled: true,
     showCourseQuality: false,
-    showManualRelease: true,
+    showManualRelease: false,
     showQueue: true,
     showHiddenFilter: true,
     qualityTitle: "Validação de qualidade",
