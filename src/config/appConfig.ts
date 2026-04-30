@@ -2,8 +2,43 @@ export const appConfig = {
   brand: {
     name: "AprendaJá",
     company: "THKLAYUS",
-    subtitle: "Hub gratuito",
+    subtitle: "Utilidade rápida",
     tagline: "Resolva tarefas rápidas com modelos prontos.",
+  },
+
+  product: {
+    currentDirection: "hub-utilidade-rapida",
+    promise: "Entrar travado, escolher uma situação, copiar uma base e adaptar.",
+    mainUserAction: "Resolver agora",
+    secondaryUserAction: "Ver modelos",
+    avoid: [
+      "parecer loja de curso",
+      "mostrar páginas demais de uma vez",
+      "encher a tela com opções sem prioridade",
+      "forçar cadastro antes do usuário entender valor",
+    ],
+    pillars: [
+      {
+        title: "Resolver",
+        description: "Gerar uma base rápida para apresentação, resumo, mensagem, ideia ou checklist.",
+        page: "resolver",
+      },
+      {
+        title: "Modelos",
+        description: "Copiar modelos prontos organizados por situação real.",
+        page: "cursos",
+      },
+      {
+        title: "Ajuda",
+        description: "Pedir apoio extra quando o modelo pronto não for suficiente.",
+        page: "pedidos",
+      },
+      {
+        title: "Meus itens",
+        description: "Guardar acessos, conteúdos liberados e histórico do usuário.",
+        page: "estudo",
+      },
+    ],
   },
 
   header: {
@@ -14,6 +49,8 @@ export const appConfig = {
     showLoggedEmailBar: false,
     loggedEmailLabel: "Logado como",
     logoutLabel: "Sair",
+    loginLabel: "Entrar",
+    freeExploreLabel: "Explorar grátis",
   },
 
   bottomNav: {
@@ -22,9 +59,9 @@ export const appConfig = {
     safeBottomPadding: "pb-28",
     items: [
       { id: "home", label: "Início", icon: "⌂" },
-      { id: "pedidos", label: "Serviços", icon: "✦" },
-      { id: "chat", label: "Suporte", icon: "●" },
+      { id: "resolver", label: "Resolver", icon: "✦" },
       { id: "cursos", label: "Modelos", icon: "◇" },
+      { id: "pedidos", label: "Ajuda", icon: "●" },
       { id: "estudo", label: "Meus", icon: "□" },
       { id: "admin", label: "ADM", icon: "♛" },
     ],
@@ -33,47 +70,64 @@ export const appConfig = {
   navigation: {
     primaryAction: "Resolver agora",
     modelsAction: "Ver modelos",
+    helpAction: "Pedir ajuda",
+    accountAction: "Meus itens",
   },
 
   home: {
-    eyebrow: "Para rua, escola e trabalho",
-    title: "Resolva uma tarefa em poucos segundos.",
+    eyebrow: "Para escola, WhatsApp, trabalho e organização",
+    title: "Resolva uma tarefa sem começar do zero.",
     subtitle:
-      "Abra, escolha o que precisa e pegue uma base pronta para adaptar. Serve para mensagem, apresentação, checklist, divulgação e ideias quando você trava.",
+      "Escolha uma situação, pegue uma base pronta e adapte com suas palavras. O app serve para mensagem, apresentação, checklist, divulgação, resumo e ideia rápida.",
     primaryAction: "Resolver agora",
-    helper: "Sem manual. Sem enrolação. Escolha uma tarefa e comece.",
-    powerTitle: "Poder de tempo",
+    helper: "Uma ação principal por vez. Primeiro resolva. Depois aprofunde se precisar.",
+    powerTitle: "O app não é só de curso.",
     powerText:
-      "O AprendaJá não tenta fazer mil coisas. Ele te ajuda a sair do zero rápido quando você precisa escrever, organizar ou começar algo.",
-    feelingTitle: "Feche o app mais aliviado.",
+      "Cursos e extras podem existir, mas a experiência principal é utilidade rápida: abrir, copiar, adaptar e sair com algo pronto.",
+    feelingTitle: "Menos bagunça. Mais direção.",
     feelingText:
-      "A missão é simples: você entra travado, pega uma base, adapta e sai com algo pronto para usar.",
+      "Tudo fica organizado em poucas áreas para o usuário entender o valor antes de comprar qualquer coisa.",
     features: [
       {
-        title: "Funciona no improviso",
-        desc: "Use na fila, na escola, em casa ou antes de uma reunião.",
+        title: "Começa rápido",
+        desc: "O usuário vê valor antes de precisar criar conta ou pagar.",
         icon: "⚡",
       },
       {
-        title: "Começa em segundos",
-        desc: "Sem cadastro gigante e sem tutorial complicado para entender.",
-        icon: "◈",
+        title: "Modelos úteis",
+        desc: "Conteúdo pronto para adaptar, não texto gigante sem direção.",
+        icon: "◇",
       },
       {
-        title: "Dá direção",
-        desc: "Você ganha uma base clara para adaptar ao seu caso.",
-        icon: "✍️",
+        title: "Ajuda opcional",
+        desc: "Quando o modelo não basta, o usuário pode pedir suporte ou serviço extra.",
+        icon: "✦",
       },
     ],
     categories: [
       "Responder mensagem",
       "Começar apresentação",
-      "Organizar tarefa",
+      "Fazer resumo",
       "Montar checklist",
       "Divulgar algo",
       "Ter ideia quando travar",
     ],
-    categoryHint: "Abrir uma base pronta para adaptar.",
+    categoryHint: "Cada botão leva para uma base pronta para adaptar.",
+  },
+
+  resolver: {
+    title: "Resolver agora",
+    subtitle: "Gere uma base simples para copiar e adaptar.",
+    inputLabel: "Tema ou situação",
+    inputPlaceholder: "Ex: trabalho de escola sobre tecnologia",
+    copyLabel: "Copiar resultado",
+    copiedLabel: "Copiado!",
+    types: [
+      { id: "apresentacao", name: "Apresentação", icon: "🎤" },
+      { id: "resumo", name: "Resumo", icon: "📝" },
+      { id: "ideias", name: "Ideias", icon: "💡" },
+      { id: "roteiro", name: "Roteiro", icon: "🧭" },
+    ],
   },
 
   freeArea: {
@@ -144,6 +198,8 @@ export const appConfig = {
   models: {
     title: "Modelos prontos para adaptar",
     subtitle: "Use bases simples para começar tarefas sem pensar do zero.",
+    quickTitle: "Resolver rápido",
+    extrasTitle: "Conteúdo extra para aprofundar",
     paidExtrasLabel: "Extra opcional",
   },
 
