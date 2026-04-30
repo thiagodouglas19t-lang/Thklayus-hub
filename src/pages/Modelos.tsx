@@ -116,6 +116,15 @@ function safeReadNumber(key: string) {
   }
 }
 
+function safeReadList(key: string) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function Modelos() {
   const [tribe, setTribe] = useState<Tribe>("freelancer");
   const [vibe, setVibe] = useState<Vibe>("simples");
@@ -124,7 +133,10 @@ export default function Modelos() {
   const [selectedId, setSelectedId] = useState<string>("cobrar-cliente");
   const [toast, setToast] = useState("");
   const [copyCount, setCopyCount] = useState(() => safeReadNumber("drafta_copy_count"));
+  const [favorites, setFavorites] = useState<string[]>(() => safeReadList("drafta_favorites"));
   const resultRef = useRef<HTMLDivElement | null>(null);
+
+  const favoriteModels = useMemo(() => favorites.map((id) => templates.find((item) => item.id === id)).filter(Boolean) as Template[], [favorites]);
 
   const filtrados = useMemo(() => {
     const termo = busca.toLowerCase().trim();
@@ -137,11 +149,25 @@ export default function Modelos() {
 
   const selected = templates.find((item) => item.id === selectedId && item.tribe === tribe) ?? filtrados[0] ?? templates[0];
   const selectedText = selected.variants[vibe];
+  const selectedIsFavorite = favorites.includes(selected.id);
 
   function showToast(message?: string) {
     const next = message ?? toastMessages[Math.floor(Math.random() * toastMessages.length)];
     setToast(next);
     window.setTimeout(() => setToast(""), 1800);
+  }
+
+  function selectTemplate(item: Template) {
+    setTribe(item.tribe);
+    setSelectedId(item.id);
+    window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+  }
+
+  function toggleFavorite(id: string) {
+    const next = favorites.includes(id) ? favorites.filter((item) => item !== id) : [id, ...favorites].slice(0, 6);
+    setFavorites(next);
+    localStorage.setItem("drafta_favorites", JSON.stringify(next));
+    showToast(next.includes(id) ? "Salvo nos seus atalhos." : "Removido dos atalhos.");
   }
 
   async function copiar(id: string, text: string) {
@@ -184,13 +210,25 @@ export default function Modelos() {
           <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">Drafta • pronto para usar</span>
           <h1 className="mt-5 text-4xl font-black leading-[0.95] tracking-[-0.07em] text-white md:text-6xl">Copie sem começar do zero.</h1>
           <p className="mx-auto mt-4 max-w-2xl text-sm font-semibold leading-7 text-zinc-400 md:text-base">Clique no botão, copie uma base pronta e cole onde precisar.</p>
-          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-            <button onClick={escolherPraMim} className="rounded-2xl bg-white px-7 py-4 text-sm font-black text-black shadow-[0_0_38px_rgba(124,58,237,0.28)] transition hover:scale-[1.02] active:scale-95">Escolhe pra mim ✦</button>
-            <button onClick={() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })} className="rounded-2xl border border-white/10 bg-white/[0.035] px-7 py-4 text-sm font-black text-zinc-300 transition hover:border-violet-300/35 active:scale-95">Ver sugestão</button>
-          </div>
+          <button onClick={escolherPraMim} className="mt-6 rounded-2xl bg-white px-7 py-4 text-sm font-black text-black shadow-[0_0_38px_rgba(124,58,237,0.28)] transition hover:scale-[1.02] active:scale-95">Escolhe pra mim ✦</button>
           <p className="mt-4 text-xs font-bold text-zinc-500">Você já economizou tempo em {copyCount} {copyCount === 1 ? "modelo" : "modelos"}.</p>
         </div>
       </section>
+
+      {favoriteModels.length > 0 && (
+        <section className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Meus atalhos</p>
+              <h2 className="mt-1 text-2xl font-black text-white">Favoritos salvos</h2>
+            </div>
+            <span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs font-black text-violet-200">{favoriteModels.length}/6</span>
+          </div>
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+            {favoriteModels.map((item) => <button key={item.id} onClick={() => selectTemplate(item)} className="min-w-[190px] rounded-2xl border border-violet-300/20 bg-black/35 p-3 text-left active:scale-95"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-300">{item.tag}</p><p className="mt-1 text-sm font-black text-white">{item.title}</p></button>)}
+          </div>
+        </section>
+      )}
 
       <section ref={resultRef} className="rounded-[2rem] border border-violet-300/25 bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.22),transparent_35%),rgba(255,255,255,0.04)] p-4 md:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -199,7 +237,10 @@ export default function Modelos() {
             <h2 className="mt-2 text-3xl font-black tracking-[-0.06em] text-white">{selected.title}</h2>
             <p className="mt-1 text-sm font-semibold text-zinc-500">{selected.description}</p>
           </div>
-          <button onClick={() => copiar(selected.id, selectedText)} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black active:scale-95">{copied === selected.id ? "Copiado" : "Copiar e usar"}</button>
+          <div className="flex gap-2">
+            <button onClick={() => toggleFavorite(selected.id)} className={`rounded-2xl border px-4 py-3 text-sm font-black active:scale-95 ${selectedIsFavorite ? "border-violet-300 bg-violet-300 text-black" : "border-white/10 bg-white/[0.04] text-zinc-200"}`}>{selectedIsFavorite ? "★ Salvo" : "☆ Salvar"}</button>
+            <button onClick={() => copiar(selected.id, selectedText)} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black active:scale-95">{copied === selected.id ? "Copiado" : "Copiar e usar"}</button>
+          </div>
         </div>
         <p className="mt-4 whitespace-pre-line rounded-[1.4rem] border border-white/10 bg-black/45 p-4 text-sm font-semibold leading-7 text-zinc-200">{selectedText}</p>
       </section>
@@ -228,6 +269,7 @@ export default function Modelos() {
           const text = item.variants[vibe];
           const isPriority = priorityIds.includes(item.id);
           const isSelected = selected.id === item.id;
+          const isFavorite = favorites.includes(item.id);
           return (
             <article key={item.id} onClick={() => setSelectedId(item.id)} className={`group min-w-0 cursor-pointer rounded-[1.8rem] border bg-black/45 p-4 shadow-xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-300/35 ${isSelected ? "border-violet-300 bg-violet-500/10" : isPriority ? "border-violet-300/30" : "border-white/10"}`}>
               <div className="flex min-w-0 items-start justify-between gap-3">
@@ -235,12 +277,13 @@ export default function Modelos() {
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-300">{item.tag} • {vibes.find((v) => v.id === vibe)?.label}</p>
                   <h3 className="mt-2 text-xl font-black leading-tight text-white md:text-2xl">{item.title}</h3>
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); copiar(item.id, text); }} className="shrink-0 rounded-2xl bg-white px-4 py-3 text-sm font-black text-black active:scale-95">{copied === item.id ? "Copiado" : "Copiar"}</button>
+                <button onClick={(e) => { e.stopPropagation(); toggleFavorite(item.id); }} className={`shrink-0 rounded-2xl border px-3 py-2 text-xs font-black active:scale-95 ${isFavorite ? "border-violet-300 bg-violet-300 text-black" : "border-white/10 bg-white/[0.04] text-zinc-300"}`}>{isFavorite ? "★" : "☆"}</button>
               </div>
               <p className="mt-2 text-sm font-semibold text-zinc-500">{item.description}</p>
               <p className="mt-3 max-h-[190px] overflow-auto whitespace-pre-line rounded-[1.3rem] border border-white/10 bg-white/[0.035] p-4 text-sm font-semibold leading-7 text-zinc-200">{text}</p>
+              <button onClick={(e) => { e.stopPropagation(); copiar(item.id, text); }} className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-black active:scale-95">{copied === item.id ? "Copiado" : "Copiar"}</button>
               {item.paidHint && (
-                <button onClick={(e) => { e.stopPropagation(); pedirPronto(); }} className="mt-3 w-full rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-3 text-left text-xs font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">
+                <button onClick={(e) => { e.stopPropagation(); pedirPronto(); }} className="mt-2 w-full rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-3 text-left text-xs font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">
                   {item.paidHint} <span className="text-violet-300">Pedir agora →</span>
                 </button>
               )}
