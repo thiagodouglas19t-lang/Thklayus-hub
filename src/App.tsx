@@ -5,7 +5,7 @@ import { canAccessInternalPanel } from "./lib/roles";
 import { appConfig } from "./config/appConfig";
 
 import Home from "./pages/Home";
-import Cursos from "./pages/Cursos";
+import Modelos from "./pages/Modelos";
 import Gratis from "./pages/Gratis";
 import Estudo from "./pages/EstudoComAcesso";
 import Pedidos from "./pages/Pedidos";
@@ -22,9 +22,9 @@ import Ajuda from "./pages/Ajuda";
 import Hub from "./pages/Hub";
 import Navbar from "./components/Navbar";
 
-export type Page = "home" | "login" | "cursos" | "gratis" | "livros" | "ajuda" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver" | "perfil" | "sobre" | "pagamento" | "hub";
+export type Page = "home" | "login" | "modelos" | "cursos" | "gratis" | "livros" | "ajuda" | "estudo" | "pedidos" | "suporte" | "chat" | "admin" | "resolver" | "perfil" | "sobre" | "pagamento" | "hub";
 
-const validPages: Page[] = ["home", "login", "cursos", "gratis", "livros", "ajuda", "estudo", "pedidos", "suporte", "chat", "admin", "resolver", "perfil", "sobre", "pagamento", "hub"];
+const validPages: Page[] = ["home", "login", "modelos", "cursos", "gratis", "livros", "ajuda", "estudo", "pedidos", "suporte", "chat", "admin", "resolver", "perfil", "sobre", "pagamento", "hub"];
 
 export default function App() {
   const [page, setPage] = useState<Page>("home");
@@ -57,6 +57,7 @@ export default function App() {
     function openPage(event: Event) {
       const customEvent = event as CustomEvent<Page>;
       const nextPage = customEvent.detail;
+      if (nextPage === "cursos") return setPage("modelos");
       if (validPages.includes(nextPage)) setPage(nextPage);
     }
     window.addEventListener("thklayus-open-page", openPage);
@@ -64,12 +65,12 @@ export default function App() {
   }, []);
 
   function renderPage() {
-    const publicPages: Page[] = ["home", "login", "cursos", "gratis", "livros", "ajuda", "resolver", "sobre", "pagamento", "hub"];
+    const publicPages: Page[] = ["home", "login", "modelos", "cursos", "gratis", "livros", "ajuda", "resolver", "sobre", "pagamento", "hub"];
     if (page === "login") return user ? <Estudo /> : <Login onLoginSuccess={loadUser} />;
     if (!user && !publicPages.includes(page)) return <Login onLoginSuccess={loadUser} />;
     if (page === "admin" && !canAccessInternalPanel(user?.email)) return <Home setPage={setPage} />;
     if (page === "home") return <Home setPage={setPage} />;
-    if (page === "cursos") return <Cursos />;
+    if (page === "modelos" || page === "cursos") return <Modelos />;
     if (page === "gratis") return <Gratis />;
     if (page === "livros") return <Livros />;
     if (page === "ajuda") return <Ajuda />;
@@ -91,8 +92,8 @@ export default function App() {
       <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_10%,rgba(124,58,237,0.24),transparent_35%),radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.14),transparent_35%)]" />
         <div className="relative rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl shadow-violet-500/10 backdrop-blur-2xl">
-          <img src="/logo-aprendaja.svg" alt="AprendaJá" className="mx-auto h-16 w-16 rounded-3xl" />
-          <h1 className="mt-5 bg-gradient-to-r from-white via-violet-100 to-violet-300 bg-clip-text text-3xl font-black tracking-[0.16em] text-transparent">AprendaJá</h1>
+          <img src="/logo-aprendaja.svg" alt="Drafta" className="mx-auto h-16 w-16 rounded-3xl" />
+          <h1 className="mt-5 bg-gradient-to-r from-white via-violet-100 to-violet-300 bg-clip-text text-3xl font-black tracking-[0.16em] text-transparent">Drafta</h1>
           <p className="mt-2 text-sm font-bold uppercase tracking-[0.18em] text-zinc-500">Carregando...</p>
         </div>
       </main>
