@@ -86,9 +86,9 @@ const templates: Template[] = [
     description: "Esqueleto para responder cliente com segurança e parecer profissional.",
     tag: "Venda",
     variants: {
-      simples: "Oi! Posso fazer [serviço] para você.\n\nO que está incluso:\n• [entrega 1]\n• [entrega 2]\n• Ajuste simples se precisar\n\nPrazo: [prazo]\nValor: R$ [valor]\n\nSe estiver tudo certo, posso começar hoje.",
-      formal: "Olá, [nome]. Tudo bem?\n\nSegue minha proposta para [serviço]:\n\nEscopo:\n• [entrega principal]\n• [detalhe importante]\n• [formato de entrega]\n\nPrazo estimado: [prazo]\nInvestimento: R$ [valor]\n\nApós confirmação, inicio a produção e mantenho você informado sobre o andamento.",
-      direto: "Faço [serviço].\nValor: R$ [valor].\nPrazo: [prazo].\nInclui: [entrega].\nSe confirmar agora, começo hoje.",
+      simples: "Oi, [nome]! Vi que você precisa de [serviço].\n\nMinha entrega foca em resolver [problema] de forma prática, organizada e sem enrolação.\n\nO que está incluso:\n• [entrega 1]\n• [entrega 2]\n• Ajuste simples se precisar\n\nPrazo: [prazo]\nInvestimento: R$ [valor]\n\nSe estiver tudo certo, posso começar hoje.",
+      formal: "Prezado(a) [nome], tudo bem?\n\nProponho uma solução de [serviço] personalizada para sua necessidade. O objetivo central é otimizar [problema], garantindo uma entrega organizada, clara e profissional.\n\nEscopo da entrega:\n• [entrega principal]\n• [detalhe importante]\n• [formato de entrega]\n\nPrazo estimado: [prazo]\nInvestimento: R$ [valor]\n\nApós sua confirmação, inicio a produção e mantenho você informado(a) sobre o andamento.",
+      direto: "Olá, [nome]. Vi que você precisa de [serviço].\n\nEu resolvo [problema] com uma entrega direta e pronta para uso.\n\nValor: R$ [valor]\nPrazo: [prazo]\nInclui: [entrega]\n\nPosso começar na [data]. Podemos fechar?",
     },
   },
   {
