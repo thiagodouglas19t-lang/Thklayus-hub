@@ -187,7 +187,21 @@ export const appConfig = {
     enabled: true,
     title: "Pedidos e suporte",
     subtitle: "Peça ajuda, acompanhe seu pedido ou mande uma tarefa para ser feita.",
-    primaryAction: "Abrir pedido",
+    primaryAction: "Enviar meu pedido",
+    trustTitle: "Como funciona",
+    trustItems: [
+      "Você envia o pedido pelo app.",
+      "O ADM analisa e responde pelo suporte.",
+      "O valor é combinado antes de começar.",
+      "Seu pedido fica salvo para acompanhar.",
+    ],
+    examplesTitle: "Exemplos de pedidos",
+    examples: [
+      "Preciso de um resumo sobre tecnologia.",
+      "Quero 5 slides sobre meio ambiente.",
+      "Preciso de uma apresentação simples para escola.",
+      "Quero uma arte simples para divulgar algo.",
+    ],
     statuses: {
       open: "Aberto",
       review: "Em análise",
