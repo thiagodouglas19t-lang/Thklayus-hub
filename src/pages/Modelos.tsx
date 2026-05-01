@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { appConfig } from "../config/appConfig";
 
 type Tribe = "estudante" | "freelancer";
 type Vibe = "simples" | "formal" | "direto";
@@ -107,6 +108,8 @@ const tribeCopy: Record<Tribe, { title: string; desc: string; icon: string }> = 
 
 const priorityIds = ["cobrar-cliente", "professor-entrega", "proposta-servico", "resumo-escolar", "preco-servico"];
 const toastMessages = ["Pronto para colar!", "Copiado. Agora é só colar e enviar.", "Sucesso! Resolveu rápido."];
+const STORAGE_COPY_COUNT = "aprendaja_copy_count";
+const STORAGE_FAVORITES = "aprendaja_favorites";
 
 function safeReadNumber(key: string) {
   try {
@@ -126,14 +129,15 @@ function safeReadList(key: string) {
 }
 
 export default function Modelos() {
+  const { brand, models } = appConfig;
   const [tribe, setTribe] = useState<Tribe>("freelancer");
   const [vibe, setVibe] = useState<Vibe>("simples");
   const [busca, setBusca] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string>("cobrar-cliente");
   const [toast, setToast] = useState("");
-  const [copyCount, setCopyCount] = useState(() => safeReadNumber("drafta_copy_count"));
-  const [favorites, setFavorites] = useState<string[]>(() => safeReadList("drafta_favorites"));
+  const [copyCount, setCopyCount] = useState(() => safeReadNumber(STORAGE_COPY_COUNT));
+  const [favorites, setFavorites] = useState<string[]>(() => safeReadList(STORAGE_FAVORITES));
   const resultRef = useRef<HTMLDivElement | null>(null);
 
   const favoriteModels = useMemo(() => favorites.map((id) => templates.find((item) => item.id === id)).filter(Boolean) as Template[], [favorites]);
@@ -166,7 +170,7 @@ export default function Modelos() {
   function toggleFavorite(id: string) {
     const next = favorites.includes(id) ? favorites.filter((item) => item !== id) : [id, ...favorites].slice(0, 6);
     setFavorites(next);
-    localStorage.setItem("drafta_favorites", JSON.stringify(next));
+    localStorage.setItem(STORAGE_FAVORITES, JSON.stringify(next));
     showToast(next.includes(id) ? "Salvo nos seus atalhos." : "Removido dos atalhos.");
   }
 
@@ -176,7 +180,7 @@ export default function Modelos() {
       setCopied(id);
       const nextCount = copyCount + 1;
       setCopyCount(nextCount);
-      localStorage.setItem("drafta_copy_count", String(nextCount));
+      localStorage.setItem(STORAGE_COPY_COUNT, String(nextCount));
       showToast();
       setTimeout(() => setCopied(null), 1400);
     } catch {
@@ -207,9 +211,9 @@ export default function Modelos() {
       <section className="relative overflow-hidden rounded-[2.5rem] border border-violet-300/15 bg-[#030006] px-6 py-8 text-center shadow-2xl shadow-violet-950/30 md:px-10 md:py-12">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.32),transparent_34%),radial-gradient(circle_at_12%_18%,rgba(124,58,237,0.20),transparent_30%)]" />
         <div className="relative mx-auto max-w-4xl">
-          <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">Drafta • pronto para usar</span>
-          <h1 className="mt-5 text-4xl font-black leading-[0.95] tracking-[-0.07em] text-white md:text-6xl">Copie sem começar do zero.</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm font-semibold leading-7 text-zinc-400 md:text-base">Clique no botão, copie uma base pronta e cole onde precisar.</p>
+          <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">{brand.name} • pronto para usar</span>
+          <h1 className="mt-5 text-4xl font-black leading-[0.95] tracking-[-0.07em] text-white md:text-6xl">{models.title}</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-sm font-semibold leading-7 text-zinc-400 md:text-base">{models.subtitle}</p>
           <button onClick={escolherPraMim} className="mt-6 rounded-2xl bg-white px-7 py-4 text-sm font-black text-black shadow-[0_0_38px_rgba(124,58,237,0.28)] transition hover:scale-[1.02] active:scale-95">Escolhe pra mim ✦</button>
           <p className="mt-4 text-xs font-bold text-zinc-500">Você já economizou tempo em {copyCount} {copyCount === 1 ? "modelo" : "modelos"}.</p>
         </div>
@@ -243,6 +247,11 @@ export default function Modelos() {
           </div>
         </div>
         <p className="mt-4 whitespace-pre-line rounded-[1.4rem] border border-white/10 bg-black/45 p-4 text-sm font-semibold leading-7 text-zinc-200">{selectedText}</p>
+        {selected.paidHint && (
+          <button onClick={pedirPronto} className="mt-4 w-full rounded-2xl border border-violet-300/25 bg-violet-500/10 px-4 py-4 text-sm font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">
+            {selected.paidHint} <span className="text-violet-300">Pedir ajuda →</span>
+          </button>
+        )}
       </section>
 
       <section className="grid gap-3 md:grid-cols-2">
