@@ -5,16 +5,14 @@ type Tipo = "apresentacao" | "resumo" | "ideias" | "roteiro" | "mensagem" | "che
 type Tom = "simples" | "caprichado" | "direto";
 type Modo = "normal" | "melhorado" | "formal" | "simples" | "alternativo";
 
-const tipos = [
-  { id: "apresentacao", nome: "Apresentação", icon: "🎤", desc: "Slides prontos" },
-  { id: "resumo", nome: "Resumo", icon: "📝", desc: "Texto organizado" },
+type TipoCard = { id: Tipo; nome: string; icon: string; desc: string };
+
+const tiposExtra: TipoCard[] = [
   { id: "ideias", nome: "Ideias", icon: "💡", desc: "Opções rápidas" },
   { id: "roteiro", nome: "Roteiro", icon: "🧭", desc: "Fala guiada" },
-  { id: "mensagem", nome: "Mensagem", icon: "💬", desc: "WhatsApp melhor" },
-  { id: "checklist", nome: "Checklist", icon: "✅", desc: "Passo a passo" },
   { id: "divulgacao", nome: "Divulgação", icon: "📣", desc: "Post ou status" },
   { id: "pedido", nome: "Pedido", icon: "📦", desc: "Solicitação clara" },
-] as const;
+];
 
 const tons = [
   { id: "simples", label: "Simples" },
@@ -67,6 +65,12 @@ function openPage(page: string) {
 }
 
 export default function Resolver() {
+  const resolverConfig = appConfig.resolver;
+  const tipos: TipoCard[] = [
+    ...resolverConfig.types.map((item) => ({ id: item.id as Tipo, nome: item.name, icon: item.icon, desc: item.name === "Apresentação" ? "Slides prontos" : item.name === "Resumo" ? "Texto organizado" : item.name === "Mensagem" ? "WhatsApp melhor" : "Passo a passo" })),
+    ...tiposExtra,
+  ];
+
   const [tipo, setTipo] = useState<Tipo>("apresentacao");
   const [tema, setTema] = useState("");
   const [tom, setTom] = useState<Tom>("simples");
@@ -81,6 +85,10 @@ export default function Resolver() {
     setTimeout(() => setCopied(false), 1600);
   }
 
+  function pedirAjuda() {
+    openPage("pedidos");
+  }
+
   return (
     <div className="space-y-6">
       <section className="relative overflow-hidden rounded-[3rem] border border-violet-300/15 bg-[#030006] p-6 shadow-2xl shadow-violet-950/25 md:p-10">
@@ -88,22 +96,22 @@ export default function Resolver() {
         <div className="relative grid gap-7 lg:grid-cols-[1fr_0.75fr] lg:items-end">
           <div>
             <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">
-              {appConfig.resolver.title}
+              {resolverConfig.title}
             </span>
             <h1 className="mt-6 max-w-4xl text-5xl font-black leading-[0.92] tracking-[-0.08em] text-white md:text-7xl">
-              Resolva em segundos. Melhore com um toque.
+              Gere uma base. Copie. Ou peça pronto.
             </h1>
             <p className="mt-5 max-w-2xl text-base font-semibold leading-8 text-zinc-400 md:text-lg">
-              {appConfig.resolver.subtitle} Agora com versões rápidas, modo formal, modo simples e melhoria instantânea.
+              {resolverConfig.subtitle} Se quiser algo mais caprichado, transforme em pedido direto no app.
             </p>
           </div>
 
           <div className="rounded-[2rem] border border-white/10 bg-black/45 p-5">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Modo app grande</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Fluxo rápido</p>
             <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs font-black text-zinc-400">
               <div className="rounded-2xl bg-white/[0.04] p-3">Gerar</div>
-              <div className="rounded-2xl bg-white/[0.04] p-3">Melhorar</div>
               <div className="rounded-2xl bg-white/[0.04] p-3">Copiar</div>
+              <div className="rounded-2xl bg-violet-500/10 p-3 text-violet-200">Pedir</div>
             </div>
           </div>
         </div>
@@ -124,8 +132,8 @@ export default function Resolver() {
           <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Configurar</p>
           <h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-white">{tipoAtual.icon} {tipoAtual.nome}</h2>
 
-          <label className="mt-5 block text-sm font-black text-zinc-300">{appConfig.resolver.inputLabel}</label>
-          <input value={tema} onChange={(e) => { setTema(e.target.value); setModo("normal"); }} placeholder={appConfig.resolver.inputPlaceholder} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/55 px-4 py-4 text-sm font-bold text-white outline-none placeholder:text-zinc-600 focus:border-violet-300/45" />
+          <label className="mt-5 block text-sm font-black text-zinc-300">{resolverConfig.inputLabel}</label>
+          <input value={tema} onChange={(e) => { setTema(e.target.value); setModo("normal"); }} placeholder={resolverConfig.inputPlaceholder} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/55 px-4 py-4 text-sm font-bold text-white outline-none placeholder:text-zinc-600 focus:border-violet-300/45" />
 
           <div className="mt-5">
             <p className="text-sm font-black text-zinc-300">Tom</p>
@@ -141,8 +149,9 @@ export default function Resolver() {
             <button onClick={() => setModo("simples")} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3 text-xs font-black text-zinc-200 active:scale-95">Mais simples</button>
           </div>
 
-          <button onClick={copiar} className="mt-5 w-full rounded-3xl bg-white py-4 text-base font-black text-black shadow-2xl shadow-violet-500/20 transition hover:scale-[1.01] active:scale-95">{copied ? appConfig.resolver.copiedLabel : appConfig.resolver.copyLabel}</button>
-          <button onClick={() => openPage("pedidos")} className="mt-3 w-full rounded-3xl border border-white/10 bg-white/[0.04] py-4 text-sm font-black text-zinc-200 transition hover:border-violet-300/35 hover:bg-violet-500/10 active:scale-95">{appConfig.resolver.helpCta || "Quero ajuda personalizada"}</button>
+          <button onClick={copiar} className="mt-5 w-full rounded-3xl bg-white py-4 text-base font-black text-black shadow-2xl shadow-violet-500/20 transition hover:scale-[1.01] active:scale-95">{copied ? resolverConfig.copiedLabel : resolverConfig.copyLabel}</button>
+          <button onClick={pedirAjuda} className="mt-3 w-full rounded-3xl border border-violet-300/20 bg-violet-500/10 py-4 text-sm font-black text-violet-100 transition hover:border-violet-300/35 hover:bg-violet-500/15 active:scale-95">{resolverConfig.helpCta}</button>
+          <p className="mt-3 text-center text-xs font-semibold text-zinc-600">Use grátis. Peça pronto só quando quiser economizar tempo.</p>
         </div>
 
         <div className="rounded-[2.5rem] border border-white/10 bg-black p-5 md:p-6">
@@ -154,6 +163,9 @@ export default function Resolver() {
             <button onClick={copiar} className="rounded-2xl bg-violet-300 px-4 py-3 text-sm font-black text-black active:scale-95">Copiar</button>
           </div>
           <pre className="mt-5 min-h-[380px] whitespace-pre-wrap rounded-[2rem] border border-white/10 bg-zinc-950/80 p-5 text-sm font-semibold leading-7 text-zinc-300">{resultado}</pre>
+          <button onClick={pedirAjuda} className="mt-4 w-full rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-4 text-sm font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">
+            Quero que façam isso pronto pra mim →
+          </button>
         </div>
       </section>
     </div>
