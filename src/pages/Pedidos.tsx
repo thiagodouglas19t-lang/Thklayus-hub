@@ -159,6 +159,31 @@ export default function Pedidos() {
         </div>
       </section>
 
+      <section className="grid gap-4 lg:grid-cols-2">
+        <section className="rounded-[2.2rem] border border-violet-300/15 bg-violet-500/10 p-5 md:p-6">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-200">{tickets.trustTitle}</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {tickets.trustItems.map((item, index) => (
+              <div key={item} className="rounded-2xl border border-violet-300/15 bg-black/35 p-4">
+                <p className="text-xl font-black text-violet-200">0{index + 1}</p>
+                <p className="mt-2 text-sm font-bold leading-6 text-zinc-300">{item}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-[2.2rem] border border-white/10 bg-white/[0.035] p-5 md:p-6">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">{tickets.examplesTitle}</p>
+          <div className="mt-4 grid gap-2">
+            {tickets.examples.map((example) => (
+              <button key={example} onClick={() => setDetalhes(example)} className="rounded-2xl border border-white/10 bg-black/35 p-4 text-left text-sm font-bold leading-6 text-zinc-300 transition hover:border-violet-300/30 hover:bg-violet-500/10 active:scale-[0.99]">
+                {example}
+              </button>
+            ))}
+          </div>
+        </section>
+      </section>
+
       <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <section className="rounded-[2.5rem] border border-white/10 bg-white/[0.035] p-5 md:p-6">
           <span className="rounded-full border border-white/10 bg-black/35 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-zinc-400">Novo pedido</span>
