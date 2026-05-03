@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { appConfig } from "../config/appConfig";
 
 type Tipo = "apresentacao" | "resumo" | "ideias" | "roteiro" | "mensagem" | "checklist" | "divulgacao" | "pedido";
@@ -6,6 +6,7 @@ type Tom = "simples" | "caprichado" | "direto";
 type Modo = "normal" | "melhorado" | "formal" | "simples" | "alternativo";
 
 type TipoCard = { id: Tipo; nome: string; icon: string; desc: string };
+type ResolverSeed = { tipo?: Tipo; tema?: string; base?: string };
 
 const tiposExtra: TipoCard[] = [
   { id: "ideias", nome: "Ideias", icon: "💡", desc: "Opções rápidas" },
@@ -56,8 +57,10 @@ function aplicarModo(texto: string, modo: Modo, tema: string) {
   return texto;
 }
 
-function gerar(tipo: Tipo, tema: string, tom: Tom, modo: Modo) {
-  return aplicarModo(gerarBase(tipo, tema, tom), modo, tema);
+function gerar(tipo: Tipo, tema: string, tom: Tom, modo: Modo, baseManual: string) {
+  if (baseManual.trim() && modo === "normal") return baseManual;
+  const texto = baseManual.trim() ? `${baseManual}\n\n---\n\nAdaptação para: ${tema || "minha tarefa"}` : gerarBase(tipo, tema, tom);
+  return aplicarModo(texto, modo, tema);
 }
 
 function openPage(page: string) {
@@ -75,9 +78,25 @@ export default function Resolver() {
   const [tema, setTema] = useState("");
   const [tom, setTom] = useState<Tom>("simples");
   const [modo, setModo] = useState<Modo>("normal");
+  const [baseManual, setBaseManual] = useState("");
   const [copied, setCopied] = useState(false);
-  const resultado = useMemo(() => gerar(tipo, tema, tom, modo), [tipo, tema, tom, modo]);
+  const resultado = useMemo(() => gerar(tipo, tema, tom, modo, baseManual), [tipo, tema, tom, modo, baseManual]);
   const tipoAtual = tipos.find((item) => item.id === tipo) ?? tipos[0];
+
+  useEffect(() => {
+    function receiveSeed(event: Event) {
+      const detail = (event as CustomEvent<ResolverSeed>).detail;
+      if (!detail) return;
+      if (detail.tipo) setTipo(detail.tipo);
+      if (detail.tema) setTema(detail.tema);
+      if (detail.base) setBaseManual(detail.base);
+      setModo("normal");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    window.addEventListener("aprendaja-resolver-seed", receiveSeed);
+    return () => window.removeEventListener("aprendaja-resolver-seed", receiveSeed);
+  }, []);
 
   async function copiar() {
     await navigator.clipboard.writeText(resultado);
@@ -89,12 +108,17 @@ export default function Resolver() {
     openPage("pedidos");
   }
 
+  function limparBase() {
+    setBaseManual("");
+    setModo("normal");
+  }
+
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[3rem] border border-violet-300/15 bg-[#030006] p-6 shadow-2xl shadow-violet-950/25 md:p-10">
+      <section className="relative min-w-0 overflow-hidden rounded-[3rem] border border-violet-300/15 bg-[#030006] p-6 shadow-2xl shadow-violet-950/25 md:p-10">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(168,85,247,0.34),transparent_34%),radial-gradient(circle_at_86%_18%,rgba(124,58,237,0.18),transparent_30%)]" />
-        <div className="relative grid gap-7 lg:grid-cols-[1fr_0.75fr] lg:items-end">
-          <div>
+        <div className="relative grid min-w-0 gap-7 lg:grid-cols-[1fr_0.75fr] lg:items-end">
+          <div className="min-w-0">
             <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">
               {resolverConfig.title}
             </span>
@@ -106,7 +130,7 @@ export default function Resolver() {
             </p>
           </div>
 
-          <div className="rounded-[2rem] border border-white/10 bg-black/45 p-5">
+          <div className="min-w-0 rounded-[2rem] border border-white/10 bg-black/45 p-5">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Fluxo rápido</p>
             <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs font-black text-zinc-400">
               <div className="rounded-2xl bg-white/[0.04] p-3">Gerar</div>
@@ -117,9 +141,21 @@ export default function Resolver() {
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {baseManual && (
+        <section className="rounded-[2rem] border border-violet-300/20 bg-violet-500/10 p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-200">Base do kit aplicada</p>
+              <p className="mt-1 text-sm font-semibold text-violet-100/80">Você pode copiar como está ou usar os botões para melhorar, simplificar ou criar outra versão.</p>
+            </div>
+            <button onClick={limparBase} className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-black text-violet-100">Limpar base</button>
+          </div>
+        </section>
+      )}
+
+      <section className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {tipos.map((item) => (
-          <button key={item.id} onClick={() => { setTipo(item.id); setModo("normal"); }} className={`rounded-[1.5rem] border p-5 text-left transition active:scale-[0.98] ${tipo === item.id ? "border-violet-300 bg-violet-300 text-black shadow-2xl shadow-violet-500/20" : "border-white/10 bg-white/[0.04] text-white hover:border-violet-300/35 hover:bg-violet-500/10"}`}>
+          <button key={item.id} onClick={() => { setTipo(item.id); setModo("normal"); }} className={`min-w-0 rounded-[1.5rem] border p-5 text-left transition active:scale-[0.98] ${tipo === item.id ? "border-violet-300 bg-violet-300 text-black shadow-2xl shadow-violet-500/20" : "border-white/10 bg-white/[0.04] text-white hover:border-violet-300/35 hover:bg-violet-500/10"}`}>
             <p className="text-3xl">{item.icon}</p>
             <p className="mt-3 font-black">{item.nome}</p>
             <p className={`mt-1 text-xs font-bold ${tipo === item.id ? "text-black/60" : "text-zinc-500"}`}>{item.desc}</p>
@@ -127,8 +163,8 @@ export default function Resolver() {
         ))}
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-[0.78fr_1.22fr]">
-        <div className="rounded-[2.5rem] border border-white/10 bg-white/[0.035] p-5 md:p-6">
+      <section className="grid min-w-0 gap-5 lg:grid-cols-[0.78fr_1.22fr]">
+        <div className="min-w-0 rounded-[2.5rem] border border-white/10 bg-white/[0.035] p-5 md:p-6">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Configurar</p>
           <h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-white">{tipoAtual.icon} {tipoAtual.nome}</h2>
 
@@ -154,15 +190,15 @@ export default function Resolver() {
           <p className="mt-3 text-center text-xs font-semibold text-zinc-600">Use grátis. Peça pronto só quando quiser economizar tempo.</p>
         </div>
 
-        <div className="rounded-[2.5rem] border border-white/10 bg-black p-5 md:p-6">
+        <div className="min-w-0 rounded-[2.5rem] border border-white/10 bg-black p-5 md:p-6">
           <div className="flex items-center justify-between gap-3">
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Resultado</p>
               <h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-white">Base pronta</h2>
             </div>
             <button onClick={copiar} className="rounded-2xl bg-violet-300 px-4 py-3 text-sm font-black text-black active:scale-95">Copiar</button>
           </div>
-          <pre className="mt-5 min-h-[380px] whitespace-pre-wrap rounded-[2rem] border border-white/10 bg-zinc-950/80 p-5 text-sm font-semibold leading-7 text-zinc-300">{resultado}</pre>
+          <pre className="mt-5 min-h-[380px] overflow-x-auto whitespace-pre-wrap rounded-[2rem] border border-white/10 bg-zinc-950/80 p-5 text-sm font-semibold leading-7 text-zinc-300">{resultado}</pre>
           <button onClick={pedirAjuda} className="mt-4 w-full rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-4 text-sm font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">
             Quero que façam isso pronto pra mim →
           </button>
