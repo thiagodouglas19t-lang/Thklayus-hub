@@ -7,6 +7,7 @@ type Modo = "normal" | "melhorado" | "formal" | "simples" | "alternativo";
 
 type TipoCard = { id: Tipo; nome: string; icon: string; desc: string };
 type ResolverSeed = { tipo?: Tipo; tema?: string; base?: string };
+type QuickPrompt = { title: string; tema: string; tipo: Tipo; icon: string };
 
 const tiposExtra: TipoCard[] = [
   { id: "ideias", nome: "Ideias", icon: "💡", desc: "Opções rápidas" },
@@ -20,6 +21,15 @@ const tons = [
   { id: "caprichado", label: "Caprichado" },
   { id: "direto", label: "Direto" },
 ] as const;
+
+const quickPrompts: QuickPrompt[] = [
+  { title: "Resumo escolar", tema: "resumo escolar sobre tecnologia", tipo: "resumo", icon: "📝" },
+  { title: "Apresentação", tema: "apresentação escolar de 6 slides", tipo: "apresentacao", icon: "🎤" },
+  { title: "Mensagem", tema: "mensagem educada para professor", tipo: "mensagem", icon: "💬" },
+  { title: "Checklist", tema: "organizar uma tarefa importante", tipo: "checklist", icon: "✅" },
+  { title: "Pedido", tema: "pedir orçamento com prazo e valor", tipo: "pedido", icon: "📦" },
+  { title: "Divulgação", tema: "divulgar um serviço simples", tipo: "divulgacao", icon: "📣" },
+];
 
 function introPorTom(tom: Tom) {
   if (tom === "direto") return "Base direta e objetiva:";
@@ -93,7 +103,6 @@ export default function Resolver() {
       setModo("normal");
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-
     window.addEventListener("aprendaja-resolver-seed", receiveSeed);
     return () => window.removeEventListener("aprendaja-resolver-seed", receiveSeed);
   }, []);
@@ -104,14 +113,9 @@ export default function Resolver() {
     setTimeout(() => setCopied(false), 1600);
   }
 
-  function pedirAjuda() {
-    openPage("pedidos");
-  }
-
-  function limparBase() {
-    setBaseManual("");
-    setModo("normal");
-  }
+  function pedirAjuda() { openPage("pedidos"); }
+  function limparBase() { setBaseManual(""); setModo("normal"); }
+  function usarAtalho(prompt: QuickPrompt) { setTipo(prompt.tipo); setTema(prompt.tema); setModo("normal"); setBaseManual(""); }
 
   return (
     <div className="space-y-6">
@@ -119,90 +123,35 @@ export default function Resolver() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(168,85,247,0.34),transparent_34%),radial-gradient(circle_at_86%_18%,rgba(124,58,237,0.18),transparent_30%)]" />
         <div className="relative grid min-w-0 gap-7 lg:grid-cols-[1fr_0.75fr] lg:items-end">
           <div className="min-w-0">
-            <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">
-              {resolverConfig.title}
-            </span>
-            <h1 className="mt-6 max-w-4xl text-5xl font-black leading-[0.92] tracking-[-0.08em] text-white md:text-7xl">
-              Gere uma base. Copie. Ou peça pronto.
-            </h1>
-            <p className="mt-5 max-w-2xl text-base font-semibold leading-8 text-zinc-400 md:text-lg">
-              {resolverConfig.subtitle} Se quiser algo mais caprichado, transforme em pedido direto no app.
-            </p>
+            <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">{resolverConfig.title}</span>
+            <h1 className="mt-6 max-w-4xl text-5xl font-black leading-[0.92] tracking-[-0.08em] text-white md:text-7xl">Gere uma base. Copie. Ou peça pronto.</h1>
+            <p className="mt-5 max-w-2xl text-base font-semibold leading-8 text-zinc-400 md:text-lg">{resolverConfig.subtitle} Se quiser algo mais caprichado, transforme em pedido direto no app.</p>
           </div>
-
-          <div className="min-w-0 rounded-[2rem] border border-white/10 bg-black/45 p-5">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Fluxo rápido</p>
-            <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs font-black text-zinc-400">
-              <div className="rounded-2xl bg-white/[0.04] p-3">Gerar</div>
-              <div className="rounded-2xl bg-white/[0.04] p-3">Copiar</div>
-              <div className="rounded-2xl bg-violet-500/10 p-3 text-violet-200">Pedir</div>
-            </div>
-          </div>
+          <div className="min-w-0 rounded-[2rem] border border-white/10 bg-black/45 p-5"><p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Fluxo rápido</p><div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs font-black text-zinc-400"><div className="rounded-2xl bg-white/[0.04] p-3">Gerar</div><div className="rounded-2xl bg-white/[0.04] p-3">Copiar</div><div className="rounded-2xl bg-violet-500/10 p-3 text-violet-200">Pedir</div></div></div>
         </div>
       </section>
 
-      {baseManual && (
-        <section className="rounded-[2rem] border border-violet-300/20 bg-violet-500/10 p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-200">Base do kit aplicada</p>
-              <p className="mt-1 text-sm font-semibold text-violet-100/80">Você pode copiar como está ou usar os botões para melhorar, simplificar ou criar outra versão.</p>
-            </div>
-            <button onClick={limparBase} className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-black text-violet-100">Limpar base</button>
-          </div>
-        </section>
-      )}
-
-      <section className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {tipos.map((item) => (
-          <button key={item.id} onClick={() => { setTipo(item.id); setModo("normal"); }} className={`min-w-0 rounded-[1.5rem] border p-5 text-left transition active:scale-[0.98] ${tipo === item.id ? "border-violet-300 bg-violet-300 text-black shadow-2xl shadow-violet-500/20" : "border-white/10 bg-white/[0.04] text-white hover:border-violet-300/35 hover:bg-violet-500/10"}`}>
-            <p className="text-3xl">{item.icon}</p>
-            <p className="mt-3 font-black">{item.nome}</p>
-            <p className={`mt-1 text-xs font-bold ${tipo === item.id ? "text-black/60" : "text-zinc-500"}`}>{item.desc}</p>
-          </button>
-        ))}
+      <section className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-4">
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Atalhos rápidos</p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
+          {quickPrompts.map((prompt) => <button key={prompt.title} onClick={() => usarAtalho(prompt)} className="rounded-2xl border border-white/10 bg-black/35 p-3 text-left transition hover:border-violet-300/35 hover:bg-violet-500/10 active:scale-95"><p className="text-2xl">{prompt.icon}</p><p className="mt-2 text-sm font-black text-white">{prompt.title}</p><p className="mt-1 line-clamp-2 text-xs font-semibold text-zinc-500">{prompt.tema}</p></button>)}
+        </div>
       </section>
+
+      {baseManual && <section className="rounded-[2rem] border border-violet-300/20 bg-violet-500/10 p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-violet-200">Base do kit aplicada</p><p className="mt-1 text-sm font-semibold text-violet-100/80">Você pode copiar como está ou usar os botões para melhorar, simplificar ou criar outra versão.</p></div><button onClick={limparBase} className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-black text-violet-100">Limpar base</button></div></section>}
+
+      <section className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">{tipos.map((item) => <button key={item.id} onClick={() => { setTipo(item.id); setModo("normal"); }} className={`min-w-0 rounded-[1.5rem] border p-5 text-left transition active:scale-[0.98] ${tipo === item.id ? "border-violet-300 bg-violet-300 text-black shadow-2xl shadow-violet-500/20" : "border-white/10 bg-white/[0.04] text-white hover:border-violet-300/35 hover:bg-violet-500/10"}`}><p className="text-3xl">{item.icon}</p><p className="mt-3 font-black">{item.nome}</p><p className={`mt-1 text-xs font-bold ${tipo === item.id ? "text-black/60" : "text-zinc-500"}`}>{item.desc}</p></button>)}</section>
 
       <section className="grid min-w-0 gap-5 lg:grid-cols-[0.78fr_1.22fr]">
         <div className="min-w-0 rounded-[2.5rem] border border-white/10 bg-white/[0.035] p-5 md:p-6">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Configurar</p>
-          <h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-white">{tipoAtual.icon} {tipoAtual.nome}</h2>
-
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Configurar</p><h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-white">{tipoAtual.icon} {tipoAtual.nome}</h2>
           <label className="mt-5 block text-sm font-black text-zinc-300">{resolverConfig.inputLabel}</label>
-          <input value={tema} onChange={(e) => { setTema(e.target.value); setModo("normal"); }} placeholder={resolverConfig.inputPlaceholder} className="mt-2 w-full rounded-2xl border border-white/10 bg-black/55 px-4 py-4 text-sm font-bold text-white outline-none placeholder:text-zinc-600 focus:border-violet-300/45" />
-
-          <div className="mt-5">
-            <p className="text-sm font-black text-zinc-300">Tom</p>
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              {tons.map((item) => <button key={item.id} onClick={() => setTom(item.id)} className={`rounded-2xl px-3 py-3 text-xs font-black transition ${tom === item.id ? "bg-white text-black" : "border border-white/10 bg-black/35 text-zinc-400"}`}>{item.label}</button>)}
-            </div>
-          </div>
-
-          <div className="mt-5 grid grid-cols-2 gap-2">
-            <button onClick={() => setModo("melhorado")} className="rounded-2xl border border-white/10 bg-violet-500/10 px-3 py-3 text-xs font-black text-violet-100 active:scale-95">Melhorar</button>
-            <button onClick={() => setModo("alternativo")} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3 text-xs font-black text-zinc-200 active:scale-95">Outra versão</button>
-            <button onClick={() => setModo("formal")} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3 text-xs font-black text-zinc-200 active:scale-95">Mais formal</button>
-            <button onClick={() => setModo("simples")} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3 text-xs font-black text-zinc-200 active:scale-95">Mais simples</button>
-          </div>
-
-          <button onClick={copiar} className="mt-5 w-full rounded-3xl bg-white py-4 text-base font-black text-black shadow-2xl shadow-violet-500/20 transition hover:scale-[1.01] active:scale-95">{copied ? resolverConfig.copiedLabel : resolverConfig.copyLabel}</button>
-          <button onClick={pedirAjuda} className="mt-3 w-full rounded-3xl border border-violet-300/20 bg-violet-500/10 py-4 text-sm font-black text-violet-100 transition hover:border-violet-300/35 hover:bg-violet-500/15 active:scale-95">{resolverConfig.helpCta}</button>
-          <p className="mt-3 text-center text-xs font-semibold text-zinc-600">Use grátis. Peça pronto só quando quiser economizar tempo.</p>
+          <input value={tema} onChange={(e) => { setTema(e.target.value); setModo("normal"); }} placeholder="Ex: currículo para primeiro emprego" className="mt-2 w-full rounded-2xl border border-white/10 bg-black/55 px-4 py-4 text-sm font-bold text-white outline-none placeholder:text-zinc-600 focus:border-violet-300/45" />
+          <div className="mt-5"><p className="text-sm font-black text-zinc-300">Tom</p><div className="mt-2 grid grid-cols-3 gap-2">{tons.map((item) => <button key={item.id} onClick={() => setTom(item.id)} className={`rounded-2xl px-3 py-3 text-xs font-black transition ${tom === item.id ? "bg-white text-black" : "border border-white/10 bg-black/35 text-zinc-400"}`}>{item.label}</button>)}</div></div>
+          <div className="mt-5 grid grid-cols-2 gap-2"><button onClick={() => setModo("melhorado")} className="rounded-2xl border border-white/10 bg-violet-500/10 px-3 py-3 text-xs font-black text-violet-100 active:scale-95">Melhorar</button><button onClick={() => setModo("alternativo")} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3 text-xs font-black text-zinc-200 active:scale-95">Outra versão</button><button onClick={() => setModo("formal")} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3 text-xs font-black text-zinc-200 active:scale-95">Mais formal</button><button onClick={() => setModo("simples")} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-3 text-xs font-black text-zinc-200 active:scale-95">Mais simples</button></div>
+          <button onClick={copiar} className="mt-5 w-full rounded-3xl bg-white py-4 text-base font-black text-black shadow-2xl shadow-violet-500/20 transition hover:scale-[1.01] active:scale-95">{copied ? resolverConfig.copiedLabel : resolverConfig.copyLabel}</button><button onClick={pedirAjuda} className="mt-3 w-full rounded-3xl border border-violet-300/20 bg-violet-500/10 py-4 text-sm font-black text-violet-100 transition hover:border-violet-300/35 hover:bg-violet-500/15 active:scale-95">{resolverConfig.helpCta}</button><p className="mt-3 text-center text-xs font-semibold text-zinc-600">Use grátis. Peça pronto só quando quiser economizar tempo.</p>
         </div>
-
-        <div className="min-w-0 rounded-[2.5rem] border border-white/10 bg-black p-5 md:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Resultado</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-white">Base pronta</h2>
-            </div>
-            <button onClick={copiar} className="rounded-2xl bg-violet-300 px-4 py-3 text-sm font-black text-black active:scale-95">Copiar</button>
-          </div>
-          <pre className="mt-5 min-h-[380px] overflow-x-auto whitespace-pre-wrap rounded-[2rem] border border-white/10 bg-zinc-950/80 p-5 text-sm font-semibold leading-7 text-zinc-300">{resultado}</pre>
-          <button onClick={pedirAjuda} className="mt-4 w-full rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-4 text-sm font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">
-            Quero que façam isso pronto pra mim →
-          </button>
-        </div>
+        <div className="min-w-0 rounded-[2.5rem] border border-white/10 bg-black p-5 md:p-6"><div className="flex items-center justify-between gap-3"><div className="min-w-0"><p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Resultado</p><h2 className="mt-2 text-3xl font-black tracking-[-0.05em] text-white">Base pronta</h2></div><button onClick={copiar} className="rounded-2xl bg-violet-300 px-4 py-3 text-sm font-black text-black active:scale-95">Copiar</button></div><pre className="mt-5 min-h-[380px] overflow-x-auto whitespace-pre-wrap rounded-[2rem] border border-white/10 bg-zinc-950/80 p-5 text-sm font-semibold leading-7 text-zinc-300">{resultado}</pre><button onClick={pedirAjuda} className="mt-4 w-full rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-4 text-sm font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">Quero que façam isso pronto pra mim →</button></div>
       </section>
     </div>
   );
