@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { appConfig } from "../config/appConfig";
 
-type Tribe = "estudante" | "freelancer";
+type Tribe = "estudante" | "freelancer" | "diaadia";
 type Vibe = "simples" | "formal" | "direto";
 
 type Template = {
@@ -25,7 +25,7 @@ const templates: Template[] = [
     id: "professor-entrega",
     tribe: "estudante",
     title: "Mensagem para professor",
-    description: "Entregar trabalho, explicar atraso ou pedir consideração sem parecer bagunçado.",
+    description: "Entregar trabalho, explicar atraso ou pedir orientação sem parecer bagunçado.",
     tag: "Escola",
     paidHint: "Sem tempo para arrumar o trabalho? Peça pronto.",
     variants: {
@@ -58,6 +58,32 @@ const templates: Template[] = [
       simples: "Bom dia/boa tarde. Hoje vou apresentar sobre [tema]. Primeiro, vou explicar o que é. Depois, vou mostrar os pontos principais e um exemplo. Para finalizar, vou fazer uma conclusão rápida. Obrigado pela atenção.",
       formal: "Cumprimento a todos. Nesta apresentação, abordarei o tema [tema], explicando seu conceito, sua importância e seus principais impactos. Ao final, apresentarei uma breve conclusão com os pontos mais relevantes.",
       direto: "Tema: [tema].\nVou explicar: 1) o que é, 2) por que importa, 3) exemplo, 4) conclusão. Vamos começar.",
+    },
+  },
+  {
+    id: "slide-estrutura",
+    tribe: "estudante",
+    title: "Estrutura de slides bonita",
+    description: "Modelo de ordem para montar apresentação escolar sem exagero.",
+    tag: "Slides",
+    paidHint: "Quer que eu monte os slides? Peça pronto.",
+    variants: {
+      simples: "Slide 1: Título + nome\nSlide 2: O que é [tema]\nSlide 3: Por que importa\nSlide 4: Pontos principais\nSlide 5: Exemplo\nSlide 6: Conclusão\n\nDica: use pouco texto e explique com sua fala.",
+      formal: "Estrutura sugerida:\n1. Capa institucional\n2. Introdução ao tema\n3. Desenvolvimento com tópicos principais\n4. Exemplo ou aplicação prática\n5. Análise final\n6. Conclusão e agradecimento.",
+      direto: "6 slides:\nCapa → Definição → Importância → 3 pontos → Exemplo → Conclusão.",
+    },
+  },
+  {
+    id: "curriculo-primeiro-emprego",
+    tribe: "estudante",
+    title: "Currículo primeiro emprego",
+    description: "Base simples para quem ainda não tem experiência.",
+    tag: "Currículo",
+    paidHint: "Quer o currículo organizado? Peça pronto.",
+    variants: {
+      simples: "Nome: [seu nome]\nContato: [telefone/e-mail]\nObjetivo: Busco minha primeira oportunidade para aprender, ajudar a equipe e desenvolver experiência profissional.\n\nFormação: [escola/série]\nHabilidades: responsabilidade, pontualidade, vontade de aprender, comunicação e organização.\nCursos/atividades: [coloque aqui].",
+      formal: "Objetivo profissional:\nBusco uma oportunidade inicial no mercado de trabalho, com foco em aprendizado, responsabilidade e contribuição para a equipe.\n\nCompetências:\n• Boa comunicação\n• Organização\n• Facilidade para aprender\n• Comprometimento\n• Pontualidade",
+      direto: "Currículo simples:\nNome\nTelefone\nE-mail\nObjetivo: primeira oportunidade\nFormação\nHabilidades\nDisponibilidade\nCursos ou atividades extras.",
     },
   },
   {
@@ -99,56 +125,98 @@ const templates: Template[] = [
       direto: "Cobrança rápida:\nPouco trabalho: R$5 a R$10\nMédio: R$15 a R$25\nUrgente ou caprichado: R$30+\n\nNunca cobre menos que seu tempo vale.",
     },
   },
+  {
+    id: "bio-servico",
+    tribe: "freelancer",
+    title: "Bio para vender serviço",
+    description: "Texto curto para perfil, status ou divulgação.",
+    tag: "Divulgação",
+    paidHint: "Quer uma bio com sua marca? Peça uma versão personalizada.",
+    variants: {
+      simples: "Faço [serviço] de forma simples, rápida e organizada. Me chama para combinar prazo, valor e detalhes.",
+      formal: "Ofereço serviços de [serviço] com foco em organização, clareza e entrega objetiva. Entre em contato para solicitar um orçamento.",
+      direto: "Faço [serviço]. Entrega rápida, combinada antes e sem enrolação. Chama no privado.",
+    },
+  },
+  {
+    id: "pedido-orcamento",
+    tribe: "diaadia",
+    title: "Pedir orçamento sem enrolar",
+    description: "Mensagem pronta para perguntar preço e prazo.",
+    tag: "Mensagem",
+    paidHint: "Quer uma mensagem mais específica? Peça pronto.",
+    variants: {
+      simples: "Oi! Tudo bem? Gostaria de saber quanto fica para fazer [serviço/produto]. O prazo seria para [data]. Você consegue me passar valor e detalhes?",
+      formal: "Olá, tudo bem? Gostaria de solicitar um orçamento para [serviço/produto], com entrega prevista para [data]. Poderia me informar valores, prazo e condições?",
+      direto: "Oi! Quanto fica [serviço/produto]? Preciso para [data]. Me passa valor e prazo, por favor.",
+    },
+  },
+  {
+    id: "pedido-desculpa",
+    tribe: "diaadia",
+    title: "Pedir desculpa direito",
+    description: "Mensagem educada sem ficar dramática demais.",
+    tag: "Conversa",
+    paidHint: "Quer uma mensagem com seu caso? Peça personalizada.",
+    variants: {
+      simples: "Oi. Quero pedir desculpa por [situação]. Eu entendo que isso pode ter sido ruim e não quero fingir que nada aconteceu. Vou tentar agir melhor daqui pra frente.",
+      formal: "Olá. Gostaria de me desculpar por [situação]. Reconheço que poderia ter agido de outra forma e assumo minha responsabilidade. Espero poder corrigir isso com atitudes melhores.",
+      direto: "Desculpa por [situação]. Eu errei nisso e vou melhorar. Não quero repetir.",
+    },
+  },
+  {
+    id: "organizar-dia",
+    tribe: "diaadia",
+    title: "Organizar o dia em 5 passos",
+    description: "Checklist rápido para sair da bagunça.",
+    tag: "Organização",
+    paidHint: "Quer um plano pronto pra sua rotina? Peça ajuda.",
+    variants: {
+      simples: "Hoje eu preciso:\n1. Fazer [tarefa principal]\n2. Resolver [tarefa rápida]\n3. Separar [coisa importante]\n4. Evitar [distração]\n5. Terminar com [resultado final]\n\nPrioridade: começar pela tarefa mais importante.",
+      formal: "Plano do dia:\n• Prioridade principal: [tarefa]\n• Pendência rápida: [tarefa]\n• Horário de foco: [horário]\n• Pausa: [horário]\n• Entrega final esperada: [resultado].",
+      direto: "Top 3 de hoje:\n1. [mais importante]\n2. [rápido]\n3. [obrigatório]\n\nRegra: fazer o primeiro antes de mexer no resto.",
+    },
+  },
 ];
 
 const tribeCopy: Record<Tribe, { title: string; desc: string; icon: string }> = {
-  estudante: { title: "Estudante", desc: "Professor, resumo e apresentação.", icon: "🎓" },
+  estudante: { title: "Estudante", desc: "Resumo, currículo e apresentação.", icon: "🎓" },
   freelancer: { title: "Freelancer", desc: "Cobrança, proposta e preço.", icon: "💼" },
+  diaadia: { title: "Dia a dia", desc: "Mensagem, pedido e organização.", icon: "⚡" },
 };
 
-const priorityIds = ["cobrar-cliente", "professor-entrega", "proposta-servico", "resumo-escolar", "preco-servico"];
+const priorityIds = ["curriculo-primeiro-emprego", "cobrar-cliente", "professor-entrega", "slide-estrutura", "pedido-orcamento"];
 const toastMessages = ["Pronto para colar!", "Copiado. Agora é só colar e enviar.", "Sucesso! Resolveu rápido."];
 const STORAGE_COPY_COUNT = "aprendaja_copy_count";
 const STORAGE_FAVORITES = "aprendaja_favorites";
 
 function safeReadNumber(key: string) {
-  try {
-    return Number(localStorage.getItem(key) || 0);
-  } catch {
-    return 0;
-  }
+  try { return Number(localStorage.getItem(key) || 0); } catch { return 0; }
 }
 
 function safeReadList(key: string) {
   try {
     const parsed = JSON.parse(localStorage.getItem(key) || "[]");
     return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 export default function Modelos() {
   const { brand, models } = appConfig;
-  const [tribe, setTribe] = useState<Tribe>("freelancer");
+  const [tribe, setTribe] = useState<Tribe>("estudante");
   const [vibe, setVibe] = useState<Vibe>("simples");
   const [busca, setBusca] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string>("cobrar-cliente");
+  const [selectedId, setSelectedId] = useState<string>("curriculo-primeiro-emprego");
   const [toast, setToast] = useState("");
   const [copyCount, setCopyCount] = useState(() => safeReadNumber(STORAGE_COPY_COUNT));
   const [favorites, setFavorites] = useState<string[]>(() => safeReadList(STORAGE_FAVORITES));
   const resultRef = useRef<HTMLDivElement | null>(null);
 
   const favoriteModels = useMemo(() => favorites.map((id) => templates.find((item) => item.id === id)).filter(Boolean) as Template[], [favorites]);
-
   const filtrados = useMemo(() => {
     const termo = busca.toLowerCase().trim();
-    return templates.filter((item) => {
-      const matchTribe = item.tribe === tribe;
-      const matchBusca = !termo || `${item.title} ${item.description} ${item.tag} ${item.variants.simples} ${item.variants.formal} ${item.variants.direto}`.toLowerCase().includes(termo);
-      return matchTribe && matchBusca;
-    });
+    return templates.filter((item) => item.tribe === tribe && (!termo || `${item.title} ${item.description} ${item.tag} ${item.variants.simples} ${item.variants.formal} ${item.variants.direto}`.toLowerCase().includes(termo)));
   }, [tribe, busca]);
 
   const selected = templates.find((item) => item.id === selectedId && item.tribe === tribe) ?? filtrados[0] ?? templates[0];
@@ -156,8 +224,7 @@ export default function Modelos() {
   const selectedIsFavorite = favorites.includes(selected.id);
 
   function showToast(message?: string) {
-    const next = message ?? toastMessages[Math.floor(Math.random() * toastMessages.length)];
-    setToast(next);
+    setToast(message ?? toastMessages[Math.floor(Math.random() * toastMessages.length)]);
     window.setTimeout(() => setToast(""), 1800);
   }
 
@@ -208,12 +275,12 @@ export default function Modelos() {
     <div className="space-y-5">
       {toast && <div className="fixed bottom-24 left-1/2 z-[80] w-[calc(100%-32px)] max-w-md -translate-x-1/2 rounded-2xl border border-violet-300/20 bg-violet-500 px-4 py-3 text-center text-sm font-black text-white shadow-2xl shadow-violet-500/30">{toast}</div>}
 
-      <section className="relative overflow-hidden rounded-[2.5rem] border border-violet-300/15 bg-[#030006] px-6 py-8 text-center shadow-2xl shadow-violet-950/30 md:px-10 md:py-12">
+      <section className="relative min-w-0 overflow-hidden rounded-[2.5rem] border border-violet-300/15 bg-[#030006] px-6 py-8 text-center shadow-2xl shadow-violet-950/30 md:px-10 md:py-12">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.32),transparent_34%),radial-gradient(circle_at_12%_18%,rgba(124,58,237,0.20),transparent_30%)]" />
         <div className="relative mx-auto max-w-4xl">
-          <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">{brand.name} • pronto para usar</span>
-          <h1 className="mt-5 text-4xl font-black leading-[0.95] tracking-[-0.07em] text-white md:text-6xl">{models.title}</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm font-semibold leading-7 text-zinc-400 md:text-base">{models.subtitle}</p>
+          <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">{brand.name} • pronto para copiar</span>
+          <h1 className="mt-5 text-4xl font-black leading-[0.95] tracking-[-0.07em] text-white md:text-6xl">Modelos prontos para resolver agora.</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-sm font-semibold leading-7 text-zinc-400 md:text-base">Copie uma base pronta, troque os campos entre colchetes e use. Sem aula, sem enrolação.</p>
           <button onClick={escolherPraMim} className="mt-6 rounded-2xl bg-white px-7 py-4 text-sm font-black text-black shadow-[0_0_38px_rgba(124,58,237,0.28)] transition hover:scale-[1.02] active:scale-95">Escolhe pra mim ✦</button>
           <p className="mt-4 text-xs font-bold text-zinc-500">Você já economizou tempo em {copyCount} {copyCount === 1 ? "modelo" : "modelos"}.</p>
         </div>
@@ -221,57 +288,25 @@ export default function Modelos() {
 
       {favoriteModels.length > 0 && (
         <section className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Meus atalhos</p>
-              <h2 className="mt-1 text-2xl font-black text-white">Favoritos salvos</h2>
-            </div>
-            <span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs font-black text-violet-200">{favoriteModels.length}/6</span>
-          </div>
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-            {favoriteModels.map((item) => <button key={item.id} onClick={() => selectTemplate(item)} className="min-w-[190px] rounded-2xl border border-violet-300/20 bg-black/35 p-3 text-left active:scale-95"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-300">{item.tag}</p><p className="mt-1 text-sm font-black text-white">{item.title}</p></button>)}
-          </div>
+          <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Meus atalhos</p><h2 className="mt-1 text-2xl font-black text-white">Favoritos salvos</h2></div><span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs font-black text-violet-200">{favoriteModels.length}/6</span></div>
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">{favoriteModels.map((item) => <button key={item.id} onClick={() => selectTemplate(item)} className="min-w-[190px] rounded-2xl border border-violet-300/20 bg-black/35 p-3 text-left active:scale-95"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-300">{item.tag}</p><p className="mt-1 text-sm font-black text-white">{item.title}</p></button>)}</div>
         </section>
       )}
 
       <section ref={resultRef} className="rounded-[2rem] border border-violet-300/25 bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.22),transparent_35%),rgba(255,255,255,0.04)] p-4 md:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-300">Sugestão agora • {selected.tag} • {vibes.find((v) => v.id === vibe)?.label}</p>
-            <h2 className="mt-2 text-3xl font-black tracking-[-0.06em] text-white">{selected.title}</h2>
-            <p className="mt-1 text-sm font-semibold text-zinc-500">{selected.description}</p>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => toggleFavorite(selected.id)} className={`rounded-2xl border px-4 py-3 text-sm font-black active:scale-95 ${selectedIsFavorite ? "border-violet-300 bg-violet-300 text-black" : "border-white/10 bg-white/[0.04] text-zinc-200"}`}>{selectedIsFavorite ? "★ Salvo" : "☆ Salvar"}</button>
-            <button onClick={() => copiar(selected.id, selectedText)} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black active:scale-95">{copied === selected.id ? "Copiado" : "Copiar e usar"}</button>
-          </div>
+          <div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-300">Sugestão agora • {selected.tag} • {vibes.find((v) => v.id === vibe)?.label}</p><h2 className="mt-2 text-3xl font-black tracking-[-0.06em] text-white">{selected.title}</h2><p className="mt-1 text-sm font-semibold text-zinc-500">{selected.description}</p></div>
+          <div className="flex gap-2"><button onClick={() => toggleFavorite(selected.id)} className={`rounded-2xl border px-4 py-3 text-sm font-black active:scale-95 ${selectedIsFavorite ? "border-violet-300 bg-violet-300 text-black" : "border-white/10 bg-white/[0.04] text-zinc-200"}`}>{selectedIsFavorite ? "★ Salvo" : "☆ Salvar"}</button><button onClick={() => copiar(selected.id, selectedText)} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black active:scale-95">{copied === selected.id ? "Copiado" : "Copiar e usar"}</button></div>
         </div>
         <p className="mt-4 whitespace-pre-line rounded-[1.4rem] border border-white/10 bg-black/45 p-4 text-sm font-semibold leading-7 text-zinc-200">{selectedText}</p>
-        {selected.paidHint && (
-          <button onClick={pedirPronto} className="mt-4 w-full rounded-2xl border border-violet-300/25 bg-violet-500/10 px-4 py-4 text-sm font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">
-            {selected.paidHint} <span className="text-violet-300">Pedir ajuda →</span>
-          </button>
-        )}
+        {selected.paidHint && <button onClick={pedirPronto} className="mt-4 w-full rounded-2xl border border-violet-300/25 bg-violet-500/10 px-4 py-4 text-sm font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">{selected.paidHint} <span className="text-violet-300">Pedir ajuda →</span></button>}
       </section>
 
-      <section className="grid gap-3 md:grid-cols-2">
-        {(["freelancer", "estudante"] as Tribe[]).map((item) => (
-          <button key={item} onClick={() => { setTribe(item); setSelectedId(item === "freelancer" ? "cobrar-cliente" : "professor-entrega"); }} className={`rounded-[1.7rem] border p-4 text-left transition active:scale-[0.99] ${tribe === item ? "border-violet-300 bg-violet-300 text-black shadow-2xl shadow-violet-500/20" : "border-white/10 bg-white/[0.035] text-white hover:border-violet-300/35"}`}>
-            <p className="text-3xl">{tribeCopy[item].icon}</p>
-            <h2 className="mt-2 text-2xl font-black tracking-[-0.05em]">{tribeCopy[item].title}</h2>
-            <p className={`mt-1 text-sm font-semibold leading-5 ${tribe === item ? "text-black/65" : "text-zinc-500"}`}>{tribeCopy[item].desc}</p>
-          </button>
-        ))}
+      <section className="grid gap-3 md:grid-cols-3">
+        {(["estudante", "freelancer", "diaadia"] as Tribe[]).map((item) => <button key={item} onClick={() => { setTribe(item); setSelectedId(item === "freelancer" ? "cobrar-cliente" : item === "diaadia" ? "pedido-orcamento" : "curriculo-primeiro-emprego"); }} className={`rounded-[1.7rem] border p-4 text-left transition active:scale-[0.99] ${tribe === item ? "border-violet-300 bg-violet-300 text-black shadow-2xl shadow-violet-500/20" : "border-white/10 bg-white/[0.035] text-white hover:border-violet-300/35"}`}><p className="text-3xl">{tribeCopy[item].icon}</p><h2 className="mt-2 text-2xl font-black tracking-[-0.05em]">{tribeCopy[item].title}</h2><p className={`mt-1 text-sm font-semibold leading-5 ${tribe === item ? "text-black/65" : "text-zinc-500"}`}>{tribeCopy[item].desc}</p></button>)}
       </section>
 
-      <section className="sticky top-[74px] z-20 rounded-[2rem] border border-white/10 bg-black/75 p-3 backdrop-blur-2xl md:top-[86px]">
-        <div className="grid gap-3 lg:grid-cols-[1fr_auto]">
-          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar modelo..." className="min-h-12 min-w-0 rounded-2xl border border-white/10 bg-black/55 px-4 text-sm font-bold text-white outline-none placeholder:text-zinc-600 focus:border-violet-300/40" />
-          <div className="grid min-w-0 grid-cols-3 gap-2">
-            {vibes.map((item) => <button key={item.id} onClick={() => setVibe(item.id)} className={`min-w-0 rounded-2xl px-3 py-3 text-sm font-black transition active:scale-95 ${vibe === item.id ? "bg-white text-black" : "border border-white/10 bg-black/35 text-zinc-400 hover:text-white"}`}>{item.label}</button>)}
-          </div>
-        </div>
-      </section>
+      <section className="sticky top-[74px] z-20 rounded-[2rem] border border-white/10 bg-black/75 p-3 backdrop-blur-2xl md:top-[86px]"><div className="grid gap-3 lg:grid-cols-[1fr_auto]"><input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar modelo..." className="min-h-12 min-w-0 rounded-2xl border border-white/10 bg-black/55 px-4 text-sm font-bold text-white outline-none placeholder:text-zinc-600 focus:border-violet-300/40" /><div className="grid min-w-0 grid-cols-3 gap-2">{vibes.map((item) => <button key={item.id} onClick={() => setVibe(item.id)} className={`min-w-0 rounded-2xl px-3 py-3 text-sm font-black transition active:scale-95 ${vibe === item.id ? "bg-white text-black" : "border border-white/10 bg-black/35 text-zinc-400 hover:text-white"}`}>{item.label}</button>)}</div></div></section>
 
       <section className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filtrados.map((item) => {
@@ -279,25 +314,7 @@ export default function Modelos() {
           const isPriority = priorityIds.includes(item.id);
           const isSelected = selected.id === item.id;
           const isFavorite = favorites.includes(item.id);
-          return (
-            <article key={item.id} onClick={() => setSelectedId(item.id)} className={`group min-w-0 cursor-pointer rounded-[1.8rem] border bg-black/45 p-4 shadow-xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-300/35 ${isSelected ? "border-violet-300 bg-violet-500/10" : isPriority ? "border-violet-300/30" : "border-white/10"}`}>
-              <div className="flex min-w-0 items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-300">{item.tag} • {vibes.find((v) => v.id === vibe)?.label}</p>
-                  <h3 className="mt-2 text-xl font-black leading-tight text-white md:text-2xl">{item.title}</h3>
-                </div>
-                <button onClick={(e) => { e.stopPropagation(); toggleFavorite(item.id); }} className={`shrink-0 rounded-2xl border px-3 py-2 text-xs font-black active:scale-95 ${isFavorite ? "border-violet-300 bg-violet-300 text-black" : "border-white/10 bg-white/[0.04] text-zinc-300"}`}>{isFavorite ? "★" : "☆"}</button>
-              </div>
-              <p className="mt-2 text-sm font-semibold text-zinc-500">{item.description}</p>
-              <p className="mt-3 max-h-[190px] overflow-auto whitespace-pre-line rounded-[1.3rem] border border-white/10 bg-white/[0.035] p-4 text-sm font-semibold leading-7 text-zinc-200">{text}</p>
-              <button onClick={(e) => { e.stopPropagation(); copiar(item.id, text); }} className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-black active:scale-95">{copied === item.id ? "Copiado" : "Copiar"}</button>
-              {item.paidHint && (
-                <button onClick={(e) => { e.stopPropagation(); pedirPronto(); }} className="mt-2 w-full rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-3 text-left text-xs font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">
-                  {item.paidHint} <span className="text-violet-300">Pedir agora →</span>
-                </button>
-              )}
-            </article>
-          );
+          return <article key={item.id} onClick={() => setSelectedId(item.id)} className={`group min-w-0 cursor-pointer rounded-[1.8rem] border bg-black/45 p-4 shadow-xl shadow-black/20 transition hover:-translate-y-1 hover:border-violet-300/35 ${isSelected ? "border-violet-300 bg-violet-500/10" : isPriority ? "border-violet-300/30" : "border-white/10"}`}><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-300">{item.tag} • {vibes.find((v) => v.id === vibe)?.label}</p><h3 className="mt-2 text-xl font-black leading-tight text-white md:text-2xl">{item.title}</h3></div><button onClick={(e) => { e.stopPropagation(); toggleFavorite(item.id); }} className={`shrink-0 rounded-2xl border px-3 py-2 text-xs font-black active:scale-95 ${isFavorite ? "border-violet-300 bg-violet-300 text-black" : "border-white/10 bg-white/[0.04] text-zinc-300"}`}>{isFavorite ? "★" : "☆"}</button></div><p className="mt-2 text-sm font-semibold text-zinc-500">{item.description}</p><p className="mt-3 max-h-[190px] overflow-auto whitespace-pre-line rounded-[1.3rem] border border-white/10 bg-white/[0.035] p-4 text-sm font-semibold leading-7 text-zinc-200">{text}</p><button onClick={(e) => { e.stopPropagation(); copiar(item.id, text); }} className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-black active:scale-95">{copied === item.id ? "Copiado" : "Copiar"}</button>{item.paidHint && <button onClick={(e) => { e.stopPropagation(); pedirPronto(); }} className="mt-2 w-full rounded-2xl border border-violet-300/20 bg-violet-500/10 px-4 py-3 text-left text-xs font-black text-violet-100 transition hover:bg-violet-500/15 active:scale-[0.99]">{item.paidHint} <span className="text-violet-300">Pedir agora →</span></button>}</article>;
         })}
       </section>
 
