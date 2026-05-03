@@ -101,7 +101,7 @@ export default function Pedidos() {
 
     const { data: thread, error } = await supabase
       .from("chat_threads")
-      .insert({ user_id: userData.user.id, type: "order", title, status: "aberto", price: pacote?.price ?? null })
+      .insert({ user_id: userData.user.id, type: "order", title, status: "aberto" })
       .select()
       .single();
 
