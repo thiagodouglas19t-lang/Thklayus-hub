@@ -4,6 +4,7 @@ import { appConfig } from "../config/appConfig";
 
 type HomeProps = { setPage: (page: Page) => void };
 type LastAction = { title: string; description: string; page: Page; createdAt: string };
+type SmartNudge = { title: string; description: string; page: Page; label: string };
 
 const steps = ["Escolha o modelo", "Copie a base", "Adapte e entregue"];
 const LAST_ACTION_KEY = "aprendaja_last_action_v1";
@@ -25,6 +26,51 @@ function saveLastAction(action: LastAction) {
   }
 }
 
+function getSmartNudge(action: LastAction | null): SmartNudge {
+  if (!action) {
+    return {
+      title: "Comece com uma tarefa pequena",
+      description: "Abra um modelo pronto, copie a base e adapte em poucos minutos.",
+      page: "modelos",
+      label: "Ver modelos",
+    };
+  }
+
+  if (action.page === "modelos") {
+    return {
+      title: "Transforme um modelo em entrega pronta",
+      description: "Pegue a base que você viu e use o Resolver para adaptar do seu jeito.",
+      page: "resolver",
+      label: "Adaptar no Resolver",
+    };
+  }
+
+  if (action.page === "resolver") {
+    return {
+      title: "Quer uma versão mais caprichada?",
+      description: "Depois de gerar a base, você pode pedir uma entrega pronta pelo suporte.",
+      page: "pedidos",
+      label: "Pedir pronto",
+    };
+  }
+
+  if (action.page === "pedidos") {
+    return {
+      title: "Enquanto espera, use um modelo grátis",
+      description: "Você pode continuar resolvendo outras tarefas com modelos rápidos.",
+      page: "modelos",
+      label: "Abrir modelos",
+    };
+  }
+
+  return {
+    title: "Faça a próxima tarefa em menos tempo",
+    description: "Use uma base pronta e evite começar do zero de novo.",
+    page: "resolver",
+    label: "Resolver agora",
+  };
+}
+
 export default function Home({ setPage }: HomeProps) {
   const { brand, home, product, services } = appConfig;
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
@@ -32,6 +78,8 @@ export default function Home({ setPage }: HomeProps) {
   useEffect(() => {
     setLastAction(readLastAction());
   }, []);
+
+  const smartNudge = getSmartNudge(lastAction);
 
   function go(page: Page, title: string, description: string) {
     const action = { title, description, page, createdAt: new Date().toISOString() };
@@ -69,18 +117,27 @@ export default function Home({ setPage }: HomeProps) {
         </div>
       </section>
 
-      {lastAction && (
-        <section className="rounded-[2rem] border border-violet-300/20 bg-violet-500/10 p-5">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-200">Continuar de onde parou</p>
-              <h2 className="mt-2 text-2xl font-black text-white">{lastAction.title}</h2>
-              <p className="mt-1 text-sm font-semibold text-zinc-400">{lastAction.description}</p>
+      <section className="grid gap-4 lg:grid-cols-2">
+        {lastAction && (
+          <article className="rounded-[2rem] border border-violet-300/20 bg-violet-500/10 p-5">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-200">Continuar de onde parou</p>
+                <h2 className="mt-2 text-2xl font-black text-white">{lastAction.title}</h2>
+                <p className="mt-1 text-sm font-semibold text-zinc-400">{lastAction.description}</p>
+              </div>
+              <button onClick={() => setPage(lastAction.page)} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black">Continuar agora</button>
             </div>
-            <button onClick={() => setPage(lastAction.page)} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black">Continuar agora</button>
-          </div>
-        </section>
-      )}
+          </article>
+        )}
+
+        <article className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-5">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">Próxima melhor ação</p>
+          <h2 className="mt-2 text-2xl font-black text-white">{smartNudge.title}</h2>
+          <p className="mt-1 text-sm font-semibold text-zinc-400">{smartNudge.description}</p>
+          <button onClick={() => go(smartNudge.page, smartNudge.title, smartNudge.description)} className="mt-4 rounded-2xl bg-violet-300 px-5 py-3 text-sm font-black text-black">{smartNudge.label}</button>
+        </article>
+      </section>
 
       <section className="grid min-w-0 gap-3 md:grid-cols-3">
         {actions.map((action) => (
