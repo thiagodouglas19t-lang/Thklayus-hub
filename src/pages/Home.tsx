@@ -1,33 +1,49 @@
+import { useEffect, useState } from "react";
 import type { Page } from "../App";
 import { appConfig } from "../config/appConfig";
 
 type HomeProps = { setPage: (page: Page) => void };
+type LastAction = { title: string; description: string; page: Page; createdAt: string };
 
 const steps = ["Escolha o modelo", "Copie a base", "Adapte e entregue"];
+const LAST_ACTION_KEY = "aprendaja_last_action_v1";
+
+function readLastAction(): LastAction | null {
+  try {
+    const saved = localStorage.getItem(LAST_ACTION_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLastAction(action: LastAction) {
+  try {
+    localStorage.setItem(LAST_ACTION_KEY, JSON.stringify(action));
+  } catch {
+    return;
+  }
+}
 
 export default function Home({ setPage }: HomeProps) {
-  const { brand, home, product, navigation, services } = appConfig;
+  const { brand, home, product, services } = appConfig;
+  const [lastAction, setLastAction] = useState<LastAction | null>(null);
+
+  useEffect(() => {
+    setLastAction(readLastAction());
+  }, []);
+
+  function go(page: Page, title: string, description: string) {
+    const action = { title, description, page, createdAt: new Date().toISOString() };
+    saveLastAction(action);
+    setLastAction(action);
+    setPage(page);
+  }
 
   const actions: { title: string; desc: string; icon: string; page: Page; primary?: boolean }[] = [
-    {
-      title: "Usar modelos",
-      desc: "Currículo, apresentação, mensagem, checklist e bases prontas.",
-      icon: "◇",
-      page: "modelos",
-      primary: true,
-    },
-    {
-      title: "Resolver tarefa",
-      desc: "Digite uma situação e receba uma base rápida para adaptar.",
-      icon: "✦",
-      page: "resolver",
-    },
-    {
-      title: "Pedir pronto",
-      desc: "Peça resumo, slide, arte simples ou apresentação feita.",
-      icon: "⚡",
-      page: "pedidos",
-    },
+    { title: "Usar modelos", desc: "Currículo, apresentação, mensagem, checklist e bases prontas.", icon: "◇", page: "modelos", primary: true },
+    { title: "Resolver tarefa", desc: "Digite uma situação e receba uma base rápida para adaptar.", icon: "✦", page: "resolver" },
+    { title: "Pedir pronto", desc: "Peça resumo, slide, arte simples ou apresentação feita.", icon: "⚡", page: "pedidos" },
   ];
 
   async function shareApp() {
@@ -42,51 +58,34 @@ export default function Home({ setPage }: HomeProps) {
       <section className="relative min-w-0 overflow-hidden rounded-[2.5rem] border border-violet-300/15 bg-[#020003] p-6 shadow-2xl shadow-violet-950/30 md:p-10">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(168,85,247,0.34),transparent_34%),radial-gradient(circle_at_88%_18%,rgba(124,58,237,0.16),transparent_32%)]" />
         <div className="relative mx-auto max-w-5xl text-center">
-          <span className="inline-flex rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">
-            {home.eyebrow}
-          </span>
-
-          <h1 className="mx-auto mt-6 max-w-4xl text-4xl font-black leading-[0.96] tracking-[-0.07em] text-white md:text-7xl">
-            Resolva tarefas com modelos prontos.
-          </h1>
-
-          <p className="mx-auto mt-5 max-w-2xl text-sm font-semibold leading-7 text-zinc-400 md:text-lg md:leading-8">
-            Escolha uma base pronta para currículo, apresentação, mensagem, resumo ou checklist. Copie, adapte e use em minutos.
-          </p>
-
+          <span className="inline-flex rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-violet-100">{home.eyebrow}</span>
+          <h1 className="mx-auto mt-6 max-w-4xl text-4xl font-black leading-[0.96] tracking-[-0.07em] text-white md:text-7xl">Resolva tarefas com modelos prontos.</h1>
+          <p className="mx-auto mt-5 max-w-2xl text-sm font-semibold leading-7 text-zinc-400 md:text-lg md:leading-8">Escolha uma base pronta para currículo, apresentação, mensagem, resumo ou checklist. Copie, adapte e use em minutos.</p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <button
-              onClick={() => setPage("modelos")}
-              className="w-full rounded-2xl bg-white px-7 py-4 text-sm font-black text-black shadow-[0_0_38px_rgba(124,58,237,0.28)] transition hover:scale-[1.02] active:scale-95 sm:w-auto"
-            >
-              Começar pelos modelos
-            </button>
-            <button
-              onClick={() => setPage("resolver")}
-              className="w-full rounded-2xl border border-white/10 bg-transparent px-7 py-4 text-sm font-black text-zinc-300 transition hover:border-violet-300/40 hover:bg-violet-500/10 hover:text-white active:scale-95 sm:w-auto"
-            >
-              Resolver uma tarefa
-            </button>
+            <button onClick={() => go("modelos", "Usar modelos", "Voltar para a biblioteca de modelos prontos.")} className="w-full rounded-2xl bg-white px-7 py-4 text-sm font-black text-black shadow-[0_0_38px_rgba(124,58,237,0.28)] transition hover:scale-[1.02] active:scale-95 sm:w-auto">Começar pelos modelos</button>
+            <button onClick={() => go("resolver", "Resolver tarefa", "Gerar uma base rápida para copiar e adaptar.")} className="w-full rounded-2xl border border-white/10 bg-transparent px-7 py-4 text-sm font-black text-zinc-300 transition hover:border-violet-300/40 hover:bg-violet-500/10 hover:text-white active:scale-95 sm:w-auto">Resolver uma tarefa</button>
           </div>
-
           <p className="mt-4 text-sm font-bold text-zinc-500">Ao clicar em começar, você entra na biblioteca de modelos prontos.</p>
         </div>
       </section>
 
+      {lastAction && (
+        <section className="rounded-[2rem] border border-violet-300/20 bg-violet-500/10 p-5">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-200">Continuar de onde parou</p>
+              <h2 className="mt-2 text-2xl font-black text-white">{lastAction.title}</h2>
+              <p className="mt-1 text-sm font-semibold text-zinc-400">{lastAction.description}</p>
+            </div>
+            <button onClick={() => setPage(lastAction.page)} className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-black">Continuar agora</button>
+          </div>
+        </section>
+      )}
+
       <section className="grid min-w-0 gap-3 md:grid-cols-3">
         {actions.map((action) => (
-          <button
-            key={action.title}
-            onClick={() => setPage(action.page)}
-            className={`min-w-0 rounded-[1.8rem] border p-5 text-left transition active:scale-[0.99] ${
-              action.primary
-                ? "border-violet-300 bg-violet-300 text-black shadow-2xl shadow-violet-500/20"
-                : "border-white/10 bg-white/[0.035] text-white hover:border-violet-300/35"
-            }`}
-          >
-            <div className={`grid h-12 w-12 place-items-center rounded-2xl text-2xl ${action.primary ? "bg-black/10" : "bg-violet-500/10 ring-1 ring-violet-300/15"}`}>
-              {action.icon}
-            </div>
+          <button key={action.title} onClick={() => go(action.page, action.title, action.desc)} className={`min-w-0 rounded-[1.8rem] border p-5 text-left transition active:scale-[0.99] ${action.primary ? "border-violet-300 bg-violet-300 text-black shadow-2xl shadow-violet-500/20" : "border-white/10 bg-white/[0.035] text-white hover:border-violet-300/35"}`}>
+            <div className={`grid h-12 w-12 place-items-center rounded-2xl text-2xl ${action.primary ? "bg-black/10" : "bg-violet-500/10 ring-1 ring-violet-300/15"}`}>{action.icon}</div>
             <h3 className="mt-4 text-xl font-black tracking-[-0.03em]">{action.title}</h3>
             <p className={`mt-2 text-sm font-semibold leading-6 ${action.primary ? "text-black/65" : "text-zinc-500"}`}>{action.desc}</p>
           </button>
@@ -101,24 +100,13 @@ export default function Home({ setPage }: HomeProps) {
             <p className="mt-3 text-sm font-semibold leading-7 text-zinc-400">O AprendaJá te entrega uma base pronta para adaptar com suas palavras.</p>
           </div>
           <div className="grid min-w-0 gap-2 sm:grid-cols-3">
-            {steps.map((step, index) => (
-              <div key={step} className="min-w-0 rounded-2xl border border-white/10 bg-black/40 p-4">
-                <p className="text-2xl font-black text-violet-300">0{index + 1}</p>
-                <p className="mt-2 text-sm font-black text-zinc-200">{step}</p>
-              </div>
-            ))}
+            {steps.map((step, index) => <div key={step} className="min-w-0 rounded-2xl border border-white/10 bg-black/40 p-4"><p className="text-2xl font-black text-violet-300">0{index + 1}</p><p className="mt-2 text-sm font-black text-zinc-200">{step}</p></div>)}
           </div>
         </div>
       </section>
 
       <section className="grid min-w-0 gap-4 lg:grid-cols-3">
-        {home.features.map((feature) => (
-          <article key={feature.title} className="min-w-0 rounded-[2rem] border border-white/10 bg-white/[0.035] p-5">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-violet-500/10 text-2xl ring-1 ring-violet-300/15">{feature.icon}</div>
-            <h2 className="mt-4 text-2xl font-black tracking-[-0.05em] text-white">{feature.title}</h2>
-            <p className="mt-2 text-sm font-semibold leading-6 text-zinc-500">{feature.desc}</p>
-          </article>
-        ))}
+        {home.features.map((feature) => <article key={feature.title} className="min-w-0 rounded-[2rem] border border-white/10 bg-white/[0.035] p-5"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-violet-500/10 text-2xl ring-1 ring-violet-300/15">{feature.icon}</div><h2 className="mt-4 text-2xl font-black tracking-[-0.05em] text-white">{feature.title}</h2><p className="mt-2 text-sm font-semibold leading-6 text-zinc-500">{feature.desc}</p></article>)}
       </section>
 
       <section className="grid min-w-0 gap-4 lg:grid-cols-2">
@@ -126,17 +114,7 @@ export default function Home({ setPage }: HomeProps) {
           <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">Mais usados</p>
           <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-white">Categorias rápidas</h2>
           <p className="mt-3 text-sm font-semibold leading-7 text-zinc-400">Escolha uma categoria e vá direto para modelos prontos de uso.</p>
-          <div className="mt-5 flex min-w-0 flex-wrap gap-2">
-            {home.categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setPage("modelos")}
-                className="rounded-full border border-violet-300/15 bg-violet-500/10 px-4 py-2 text-xs font-black text-violet-100 transition hover:border-violet-300/40 hover:bg-violet-500/20 active:scale-95"
-              >
-                {category}
-              </button>
-            ))}
-          </div>
+          <div className="mt-5 flex min-w-0 flex-wrap gap-2">{home.categories.map((category) => <button key={category} onClick={() => go("modelos", category, "Abrir modelos dessa categoria.")} className="rounded-full border border-violet-300/15 bg-violet-500/10 px-4 py-2 text-xs font-black text-violet-100 transition hover:border-violet-300/40 hover:bg-violet-500/20 active:scale-95">{category}</button>)}</div>
           <p className="mt-4 text-xs font-bold text-zinc-600">Toque em uma categoria para abrir a biblioteca.</p>
         </article>
 
@@ -144,21 +122,11 @@ export default function Home({ setPage }: HomeProps) {
           <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-300">Extra opcional</p>
           <h2 className="mt-3 text-3xl font-black tracking-[-0.06em] text-white">{services.title}</h2>
           <p className="mt-3 text-sm font-semibold leading-7 text-zinc-400">{services.subtitle}</p>
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <button onClick={() => setPage("pedidos")} className="rounded-2xl bg-violet-300 px-5 py-3 text-sm font-black text-black active:scale-95">
-              {services.primaryAction}
-            </button>
-            <button onClick={shareApp} className="rounded-2xl border border-white/10 bg-transparent px-5 py-3 text-sm font-black text-zinc-300 active:scale-95">
-              Compartilhar app
-            </button>
-          </div>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row"><button onClick={() => go("pedidos", "Pedir pronto", "Abrir pedidos para solicitar ajuda pronta.")} className="rounded-2xl bg-violet-300 px-5 py-3 text-sm font-black text-black active:scale-95">{services.primaryAction}</button><button onClick={shareApp} className="rounded-2xl border border-white/10 bg-transparent px-5 py-3 text-sm font-black text-zinc-300 active:scale-95">Compartilhar app</button></div>
         </article>
       </section>
 
-      <section className="min-w-0 rounded-[2.2rem] border border-white/10 bg-black/50 p-5 text-center">
-        <p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-600">{brand.company}</p>
-        <p className="mt-2 text-sm font-bold text-zinc-500">{brand.name} — {product.promise}</p>
-      </section>
+      <section className="min-w-0 rounded-[2.2rem] border border-white/10 bg-black/50 p-5 text-center"><p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-600">{brand.company}</p><p className="mt-2 text-sm font-bold text-zinc-500">{brand.name} — {product.promise}</p></section>
     </div>
   );
 }
