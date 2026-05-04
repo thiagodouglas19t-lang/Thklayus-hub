@@ -1,92 +1,193 @@
-import { useEffect, useMemo, useState } from "react";
-import { useTimer } from "./clash/useTimer";
-import { usePlayerStats } from "./clash/usePlayerStats";
-import { loadJson, loadText, saveJson, saveText } from "./clash/storage";
-import { normalizeHistory, normalizeRooms } from "./clash/validators";
-import { Room, WinnerRecord, Mode, Option } from "./clash/types";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-const starterRooms: Room[] = [
-  { id: 1, title: "Melhor universo de anime?", category: "Anime", mode: "ranking", finished: false, votedBy: [], options: [{ id: 11, text: "Solo Leveling", votes: 7 }, { id: 12, text: "Tensei Slime", votes: 5 }, { id: 13, text: "Shadow Garden", votes: 9 }] },
-  { id: 2, title: "Duelo supremo", category: "Personagens", mode: "battle", finished: false, votedBy: [], options: [{ id: 21, text: "Sung Jin-Woo", votes: 10 }, { id: 22, text: "Rimuru", votes: 8 }] }
-];
+type Bot = { id: number; x: number; y: number; hp: number };
+type Bullet = { id: number; x: number; y: number; vx: number; vy: number };
+type Player = { x: number; y: number; hp: number };
 
-const botNames = ["Nova", "Kai", "Zero", "Luna", "Rex", "Mika"];
-const loadRooms = () => normalizeRooms(loadJson<Room[]>("rooms", starterRooms), starterRooms);
-const loadHistory = () => normalizeHistory(loadJson<WinnerRecord[]>("history", []));
+const W = 900;
+const H = 560;
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
 
 export default function App() {
-  const [player, setPlayer] = useState(() => loadText("player", ""));
-  const { stats, level, progress, addVoteXp, addChampionXp, resetStats } = usePlayerStats();
-  const [rooms, setRooms] = useState<Room[]>(loadRooms);
-  const [history, setHistory] = useState<WinnerRecord[]>(loadHistory);
-  const [currentRoom, setCurrentRoom] = useState<Room | null>(() => loadRooms()[0] ?? starterRooms[0]);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showCreate, setShowCreate] = useState(false);
-  const [liveLog, setLiveLog] = useState<string[]>([]);
-  const [newTitle, setNewTitle] = useState("");
-  const [newCategory, setNewCategory] = useState("Geral");
-  const [newMode, setNewMode] = useState<Mode>("ranking");
-  const [newOption, setNewOption] = useState("");
-  const [newOptions, setNewOptions] = useState<Option[]>([]);
-  const timer = useTimer(30);
+  const keys = useRef<Record<string, boolean>>({});
+  const [started, setStarted] = useState(false);
+  const [player, setPlayer] = useState<Player>({ x: W / 2, y: H / 2, hp: 100 });
+  const [bots, setBots] = useState<Bot[]>([]);
+  const [bullets, setBullets] = useState<Bullet[]>([]);
+  const [score, setScore] = useState(0);
+  const [time, setTime] = useState(60);
+  const [best, setBest] = useState(() => Number(localStorage.getItem("arena:best") || 0));
+  const [aim, setAim] = useState({ x: 1, y: 0 });
 
-  useEffect(() => { saveJson("rooms", normalizeRooms(rooms, starterRooms)); }, [rooms]);
-  useEffect(() => { saveJson("history", normalizeHistory(history)); }, [history]);
-  useEffect(() => { saveText("player", player); }, [player]);
+  const gameOver = started && (player.hp <= 0 || time <= 0);
+  const hpPercent = useMemo(() => clamp(player.hp, 0, 100), [player.hp]);
 
-  const winner = useMemo(() => currentRoom ? [...currentRoom.options].sort((a, b) => b.votes - a.votes)[0] : null, [currentRoom]);
-  const totalVotes = currentRoom?.options.reduce((sum, opt) => sum + opt.votes, 0) || 0;
-  const alreadyVoted = currentRoom?.votedBy.includes(player) || false;
-  const playerWins = history.filter(item => item.player === player).length;
+  function resetGame() {
+    setStarted(true);
+    setPlayer({ x: W / 2, y: H / 2, hp: 100 });
+    setBots([
+      { id: 1, x: 90, y: 90, hp: 2 },
+      { id: 2, x: 810, y: 90, hp: 2 },
+      { id: 3, x: 120, y: 470, hp: 2 },
+    ]);
+    setBullets([]);
+    setScore(0);
+    setTime(60);
+    setAim({ x: 1, y: 0 });
+  }
+
+  function shoot() {
+    if (!started || gameOver) return;
+    const length = Math.hypot(aim.x, aim.y) || 1;
+    setBullets((current) => [
+      ...current.slice(-18),
+      { id: Date.now() + Math.random(), x: player.x, y: player.y, vx: (aim.x / length) * 12, vy: (aim.y / length) * 12 },
+    ]);
+  }
+
+  function touchMove(dx: number, dy: number) {
+    if (!started || gameOver) return;
+    setAim({ x: dx, y: dy });
+    setPlayer((p) => {
+      const len = Math.hypot(dx, dy) || 1;
+      return { ...p, x: clamp(p.x + (dx / len) * 18, 24, W - 24), y: clamp(p.y + (dy / len) * 18, 24, H - 24) };
+    });
+  }
 
   useEffect(() => {
-    if (!timer.running || !currentRoom || timer.time <= 0) return;
-    const id = window.setInterval(() => {
-      setCurrentRoom(room => {
-        if (!room || room.id !== currentRoom.id || room.options.length === 0) return room;
-        const option = room.options[Math.floor(Math.random() * room.options.length)];
-        const bot = botNames[Math.floor(Math.random() * botNames.length)];
-        setLiveLog(log => [`${bot} votou em ${option.text}`, ...log].slice(0, 6));
-        const updated = { ...room, options: room.options.map(opt => opt.id === option.id ? { ...opt, votes: opt.votes + 1 } : opt) };
-        setRooms(prev => prev.map(r => r.id === updated.id ? updated : r));
-        return updated;
+    const down = (e: KeyboardEvent) => {
+      keys.current[e.key.toLowerCase()] = true;
+      if (e.key === " ") shoot();
+    };
+    const up = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
+  });
+
+  useEffect(() => {
+    if (!started || gameOver) return;
+    const timer = window.setInterval(() => setTime((value) => Math.max(0, value - 1)), 1000);
+    return () => window.clearInterval(timer);
+  }, [started, gameOver]);
+
+  useEffect(() => {
+    if (!started || gameOver) return;
+    const loop = window.setInterval(() => {
+      setPlayer((p) => {
+        let dx = 0;
+        let dy = 0;
+        if (keys.current.w || keys.current.arrowup) dy -= 1;
+        if (keys.current.s || keys.current.arrowdown) dy += 1;
+        if (keys.current.a || keys.current.arrowleft) dx -= 1;
+        if (keys.current.d || keys.current.arrowright) dx += 1;
+        if (dx || dy) setAim({ x: dx, y: dy });
+        const len = Math.hypot(dx, dy) || 1;
+        return { ...p, x: clamp(p.x + (dx / len) * 6, 24, W - 24), y: clamp(p.y + (dy / len) * 6, 24, H - 24) };
       });
-    }, 3500);
-    return () => window.clearInterval(id);
-  }, [timer.running, timer.time, currentRoom?.id]);
 
-  function addOption() {
-    if (!newOption.trim()) return;
-    if (newMode === "battle" && newOptions.length >= 2) return;
-    setNewOptions(prev => [...prev, { id: Date.now(), text: newOption.trim(), votes: 0 }]);
-    setNewOption("");
-  }
+      setBullets((list) => list.map((b) => ({ ...b, x: b.x + b.vx, y: b.y + b.vy })).filter((b) => b.x > 0 && b.x < W && b.y > 0 && b.y < H));
 
-  function createRoom() {
-    if (!newTitle.trim() || newOptions.length < 2) return;
-    const room: Room = { id: Date.now(), title: newTitle.trim(), category: newCategory.trim() || "Geral", mode: newMode, finished: false, votedBy: [], options: newOptions };
-    setRooms(prev => normalizeRooms([room, ...prev], starterRooms));
-    setCurrentRoom(room);
-    setNewTitle(""); setNewCategory("Geral"); setNewMode("ranking"); setNewOptions([]); setShowCreate(false); timer.reset(); setLiveLog([]);
-  }
+      setBots((currentBots) => {
+        let next = currentBots.map((bot) => {
+          const angle = Math.atan2(player.y - bot.y, player.x - bot.x);
+          return { ...bot, x: bot.x + Math.cos(angle) * 2.2, y: bot.y + Math.sin(angle) * 2.2 };
+        });
 
-  function selectRoom(room: Room) { setCurrentRoom(room); timer.reset(); setShowHistory(false); setShowCreate(false); setLiveLog([]); }
+        setBullets((currentBullets) => {
+          const remainingBullets: Bullet[] = [];
+          next = next.map((bot) => {
+            const hit = currentBullets.find((bullet) => dist(bot, bullet) < 28);
+            if (hit) return { ...bot, hp: bot.hp - 1 };
+            return bot;
+          });
+          currentBullets.forEach((bullet) => {
+            const touched = next.some((bot) => dist(bot, bullet) < 28);
+            if (!touched) remainingBullets.push(bullet);
+          });
+          return remainingBullets;
+        });
 
-  function vote(optionId: number) {
-    if (!currentRoom || timer.time <= 0 || alreadyVoted) return;
-    const updated: Room = { ...currentRoom, votedBy: [...currentRoom.votedBy, player], options: currentRoom.options.map(opt => opt.id === optionId ? { ...opt, votes: opt.votes + 1 } : opt) };
-    setCurrentRoom(updated); setRooms(prev => prev.map(r => r.id === updated.id ? updated : r)); setLiveLog(log => [`${player} votou +5XP`, ...log].slice(0, 6)); addVoteXp();
-  }
+        const killed = next.filter((bot) => bot.hp <= 0).length;
+        if (killed) setScore((value) => value + killed * 10);
+        next = next.filter((bot) => bot.hp > 0);
+        while (next.length < 5) {
+          const side = Math.floor(Math.random() * 4);
+          next.push({
+            id: Date.now() + Math.random(),
+            x: side === 0 ? 40 : side === 1 ? W - 40 : Math.random() * W,
+            y: side === 2 ? 40 : side === 3 ? H - 40 : Math.random() * H,
+            hp: 2,
+          });
+        }
+        return next;
+      });
 
-  function resetRound() {
-    if (!currentRoom) return;
-    const updated: Room = { ...currentRoom, votedBy: [], options: currentRoom.options.map(opt => ({ ...opt, votes: 0 })) };
-    setCurrentRoom(updated); setRooms(prev => prev.map(r => r.id === updated.id ? updated : r)); timer.reset(); setLiveLog([]);
-  }
+      setPlayer((p) => {
+        const touching = bots.some((bot) => dist(bot, p) < 32);
+        return touching ? { ...p, hp: Math.max(0, p.hp - 3) } : p;
+      });
+    }, 33);
+    return () => window.clearInterval(loop);
+  }, [started, gameOver, player.x, player.y, bots]);
 
-  function saveWinner() { if (!currentRoom || !winner) return; setHistory(prev => normalizeHistory([{ id: Date.now(), roomTitle: currentRoom.title, winner: winner.text, votes: winner.votes, player }, ...prev])); setShowHistory(true); addChampionXp(); setLiveLog(log => [`Campeão salvo +20XP`, ...log].slice(0, 6)); }
+  useEffect(() => {
+    if (!gameOver) return;
+    if (score > best) {
+      setBest(score);
+      localStorage.setItem("arena:best", String(score));
+    }
+  }, [gameOver, score, best]);
 
-  if (!player) return <main className="grid min-h-screen place-items-center bg-[#050505] px-5 text-white"><section className="w-full max-w-md rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 backdrop-blur-2xl"><p className="text-xs font-black uppercase tracking-[0.24em] text-violet-200">ClashRoom</p><h1 className="mt-3 text-4xl font-black tracking-[-0.07em]">Escolha seu nome.</h1><input value={player} onChange={e => setPlayer(e.target.value)} placeholder="Seu nome" className="mt-6 w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none" /></section></main>;
+  return (
+    <main className="min-h-screen touch-none bg-[#050505] p-4 text-white">
+      <section className="mx-auto max-w-6xl">
+        <header className="mb-4 flex items-center justify-between rounded-3xl border border-white/10 bg-white/[0.06] p-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-200">Clash Arena</p>
+            <h1 className="text-3xl font-black tracking-[-0.06em]">Survival Arena</h1>
+          </div>
+          <button onClick={resetGame} className="rounded-2xl bg-white px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-black">
+            {started ? "Recomeçar" : "Jogar"}
+          </button>
+        </header>
 
-  return <main className="min-h-screen overflow-hidden bg-[#050505] text-white"><div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(168,85,247,.32),transparent_32%),radial-gradient(circle_at_85%_20%,rgba(59,130,246,.18),transparent_30%)]" /><section className="relative mx-auto grid min-h-screen max-w-7xl gap-6 px-5 py-6 lg:grid-cols-[300px_1fr_360px]"><aside className="rounded-[2.5rem] border border-white/10 bg-white/[0.055] p-5 backdrop-blur-2xl"><p className="text-xs font-black uppercase tracking-[0.24em] text-zinc-500">Jogador</p><h2 className="mt-2 text-3xl font-black tracking-[-0.06em]">{player}</h2><div className="mt-5 rounded-2xl bg-white p-4 text-black"><p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">Level {level}</p><p className="mt-1 text-2xl font-black">{stats.xp} XP</p><div className="mt-3 h-2 overflow-hidden rounded-full bg-black/10"><div className="h-full rounded-full bg-black" style={{ width: `${progress}%` }} /></div></div><div className="mt-5 grid grid-cols-2 gap-3"><div className="rounded-2xl bg-black/35 p-4"><p className="text-2xl font-black">{stats.votes}</p><p className="text-xs text-zinc-500">votos</p></div><div className="rounded-2xl bg-black/35 p-4"><p className="text-2xl font-black">{playerWins}</p><p className="text-xs text-zinc-500">wins</p></div></div><button onClick={() => setShowCreate(!showCreate)} className="mt-5 w-full rounded-2xl bg-white px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-black">+ Criar sala</button>{showCreate && <div className="mt-4 grid gap-2"><input value={newTitle} onChange={e=>setNewTitle(e.target.value)} placeholder="Título" className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none" /><input value={newCategory} onChange={e=>setNewCategory(e.target.value)} placeholder="Categoria" className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm outline-none" /><div className="grid grid-cols-2 gap-2"><button onClick={()=>{setNewMode('ranking'); setNewOptions([])}} className={`rounded-xl px-3 py-2 text-xs font-black ${newMode === 'ranking' ? 'bg-white text-black' : 'bg-black/40 text-zinc-400'}`}>Ranking</button><button onClick={()=>{setNewMode('battle'); setNewOptions([])}} className={`rounded-xl px-3 py-2 text-xs font-black ${newMode === 'battle' ? 'bg-white text-black' : 'bg-black/40 text-zinc-400'}`}>Duelo</button></div><div className="flex gap-2"><input value={newOption} onChange={e=>setNewOption(e.target.value)} onKeyDown={e=>{if(e.key==='Enter') addOption()}} placeholder="Opção" className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm outline-none" /><button onClick={addOption} className="rounded-xl bg-white px-3 text-black">+</button></div>{newOptions.map((opt, i)=><p key={opt.id} className="rounded-xl bg-black/35 px-3 py-2 text-xs text-zinc-300">{i+1}. {opt.text}</p>)}<button onClick={createRoom} className="rounded-2xl bg-violet-200 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-black">Salvar sala</button></div>}<p className="mt-6 text-xs font-black uppercase tracking-[0.24em] text-zinc-500">Salas</p><div className="mt-3 grid gap-3">{rooms.map(room => <button key={room.id} onClick={() => selectRoom(room)} className={`rounded-2xl border p-4 text-left transition ${currentRoom?.id === room.id ? 'border-white/40 bg-white/10' : 'border-white/10 bg-black/35 hover:bg-white/10'}`}><p className="font-black">{room.title}</p><p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">{room.category} • {room.mode}</p></button>)}</div><button onClick={resetStats} className="mt-4 w-full rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-red-200">Reset XP</button></aside><div className="rounded-[2.5rem] border border-white/10 bg-white/[0.055] p-6 backdrop-blur-2xl"><p className="text-xs font-black uppercase tracking-[0.24em] text-violet-200">Arena ativa</p><h1 className="mt-3 text-4xl font-black tracking-[-0.07em] md:text-6xl">{currentRoom?.title}</h1><p className="mt-3 text-sm text-zinc-500">{alreadyVoted ? "voto registrado" : "você ainda não votou"}</p>{timer.time === 0 && winner && <div className="mt-6 rounded-[2rem] bg-white p-5 text-black"><p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-500">Campeão</p><h2 className="mt-2 text-4xl font-black tracking-[-0.06em]">🏆 {winner.text}</h2></div>}<div className={`mt-8 grid gap-4 ${currentRoom?.mode === 'battle' ? 'md:grid-cols-2' : ''}`}>{currentRoom?.options.map(opt => { const percent = totalVotes ? Math.round((opt.votes / totalVotes) * 100) : 0; return <button key={opt.id} onClick={() => vote(opt.id)} className="rounded-[2rem] border border-white/10 bg-black/35 p-5 text-left transition hover:-translate-y-1 hover:bg-white/10 disabled:opacity-50" disabled={alreadyVoted || timer.time <= 0}><div className="flex items-center justify-between gap-4"><p className="text-2xl font-black tracking-[-0.05em]">{opt.text}</p><p className="text-3xl font-black">{opt.votes}</p></div><div className="mt-5 h-3 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-white" style={{ width: `${percent}%` }} /></div><p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-zinc-500">{percent}% dos votos</p></button>})}</div></div><aside className="rounded-[2.5rem] border border-white/10 bg-white/[0.055] p-6 backdrop-blur-2xl"><p className="text-xs font-black uppercase tracking-[0.24em] text-zinc-500">Painel ao vivo</p><h2 className="mt-3 text-7xl font-black tracking-[-0.09em]">{timer.time}s</h2><p className="mt-2 text-sm text-zinc-400">{timer.running ? "Rodada ativa" : timer.time === 0 ? "Encerrada" : "Pronto"}</p><div className="mt-6 rounded-3xl bg-black/35 p-5"><p className="text-sm text-zinc-500">Líder</p><p className="mt-2 text-3xl font-black tracking-[-0.06em]">{winner?.text}</p><p className="mt-2 text-sm text-zinc-500">{totalVotes} votos</p></div><button onClick={timer.start} className="mt-6 w-full rounded-2xl bg-white px-5 py-4 text-sm font-black uppercase tracking-[0.16em] text-black">Iniciar bots</button><button onClick={saveWinner} className="mt-3 w-full rounded-2xl border border-white/10 bg-black/35 px-5 py-4 text-sm font-black uppercase tracking-[0.16em] text-zinc-300">Salvar campeão +20XP</button><button onClick={resetRound} className="mt-3 w-full rounded-2xl border border-white/10 bg-black/35 px-5 py-4 text-sm font-black uppercase tracking-[0.16em] text-zinc-300">Nova rodada</button><button onClick={() => setShowHistory(!showHistory)} className="mt-3 w-full rounded-2xl border border-white/10 bg-black/35 px-5 py-4 text-sm font-black uppercase tracking-[0.16em] text-zinc-300">Histórico</button><div className="mt-4 rounded-3xl bg-black/35 p-4"><p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Ao vivo</p><div className="mt-3 grid gap-2">{liveLog.length ? liveLog.map((log, i) => <p key={i} className="text-sm text-zinc-300">• {log}</p>) : <p className="text-sm text-zinc-500">Inicie a rodada para ver atividade.</p>}</div></div>{showHistory && <div className="mt-4 grid gap-3">{history.slice(0, 5).map(item => <div key={item.id} className="rounded-2xl bg-black/35 p-4"><p className="text-xs text-zinc-500">{item.roomTitle}</p><p className="font-black">🏆 {item.winner}</p></div>)}</div>}</aside></section></main>;
+        <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
+          <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#111]" style={{ aspectRatio: `${W}/${H}` }}>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(168,85,247,.20),transparent_35%),linear-gradient(90deg,rgba(255,255,255,.04)_1px,transparent_1px),linear-gradient(rgba(255,255,255,.04)_1px,transparent_1px)] bg-[size:auto,48px_48px,48px_48px]" />
+
+            {!started && <div className="absolute inset-0 grid place-items-center bg-black/60 text-center"><div><h2 className="text-5xl font-black tracking-[-0.08em]">Entre na arena.</h2><p className="mt-3 text-zinc-400">WASD/setas move • espaço atira • celular tem botões</p></div></div>}
+
+            {started && <>
+              <div className="absolute rounded-full bg-cyan-300 shadow-[0_0_28px_rgba(103,232,249,.9)]" style={{ width: 34, height: 34, left: `${(player.x / W) * 100}%`, top: `${(player.y / H) * 100}%`, transform: "translate(-50%, -50%)" }} />
+              {bots.map((bot) => <div key={bot.id} className="absolute rounded-full bg-red-500 shadow-[0_0_22px_rgba(239,68,68,.8)]" style={{ width: 30, height: 30, left: `${(bot.x / W) * 100}%`, top: `${(bot.y / H) * 100}%`, transform: "translate(-50%, -50%)" }} />)}
+              {bullets.map((bullet) => <div key={bullet.id} className="absolute rounded-full bg-white" style={{ width: 9, height: 9, left: `${(bullet.x / W) * 100}%`, top: `${(bullet.y / H) * 100}%`, transform: "translate(-50%, -50%)" }} />)}
+              {gameOver && <div className="absolute inset-0 grid place-items-center bg-black/70 text-center"><div><p className="text-xs font-black uppercase tracking-[0.22em] text-red-200">Fim da partida</p><h2 className="mt-2 text-6xl font-black tracking-[-0.09em]">{score} pts</h2><button onClick={resetGame} className="mt-5 rounded-2xl bg-white px-6 py-4 font-black text-black">Jogar de novo</button></div></div>}
+            </>}
+          </div>
+
+          <aside className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-5">
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-zinc-500">Status</p>
+            <div className="mt-4 grid gap-3">
+              <div className="rounded-2xl bg-black/35 p-4"><p className="text-zinc-500">Tempo</p><p className="text-4xl font-black">{time}s</p></div>
+              <div className="rounded-2xl bg-black/35 p-4"><p className="text-zinc-500">Pontos</p><p className="text-4xl font-black">{score}</p></div>
+              <div className="rounded-2xl bg-black/35 p-4"><p className="text-zinc-500">Recorde</p><p className="text-4xl font-black">{best}</p></div>
+              <div className="rounded-2xl bg-black/35 p-4"><p className="text-zinc-500">Vida</p><div className="mt-3 h-3 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-white" style={{ width: `${hpPercent}%` }} /></div></div>
+            </div>
+          </aside>
+        </div>
+
+        <div className="fixed bottom-4 left-4 z-20 grid grid-cols-3 gap-2 md:hidden">
+          <span />
+          <button onClick={() => touchMove(0, -1)} className="rounded-2xl bg-white/90 px-5 py-4 font-black text-black">↑</button>
+          <span />
+          <button onClick={() => touchMove(-1, 0)} className="rounded-2xl bg-white/90 px-5 py-4 font-black text-black">←</button>
+          <button onClick={() => touchMove(0, 1)} className="rounded-2xl bg-white/90 px-5 py-4 font-black text-black">↓</button>
+          <button onClick={() => touchMove(1, 0)} className="rounded-2xl bg-white/90 px-5 py-4 font-black text-black">→</button>
+        </div>
+        <button onClick={shoot} className="fixed bottom-5 right-5 z-20 rounded-full bg-violet-300 px-7 py-7 text-sm font-black uppercase tracking-[0.12em] text-black shadow-2xl md:hidden">Atirar</button>
+      </section>
+    </main>
+  );
 }
