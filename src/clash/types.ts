@@ -24,3 +24,9 @@ export type WinnerRecord = {
   votes: number;
   player: string;
 };
+
+export type PlayerStats = {
+  xp: number;
+  votes: number;
+  savedChampions: number;
+};
