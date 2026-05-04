@@ -14,6 +14,7 @@ export type Room = {
   mode: Mode;
   options: Option[];
   finished: boolean;
+  votedBy: string[];
 };
 
 export type WinnerRecord = {
@@ -21,4 +22,5 @@ export type WinnerRecord = {
   roomTitle: string;
   winner: string;
   votes: number;
+  player: string;
 };
