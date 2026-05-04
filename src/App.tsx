@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 type Color = "red" | "blue" | "yellow" | "green";
 type CardType = "number" | "skip" | "draw2" | "wild";
@@ -36,22 +36,10 @@ function canPlay(card: Card, top: Card) {
   return card.type === "wild" || card.color === top.color || card.value === top.value;
 }
 
-function playSound(type: "card" | "win" | "bad") {
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    const audio = new AudioContextClass();
-    const osc = audio.createOscillator();
-    const gain = audio.createGain();
-    osc.connect(gain);
-    gain.connect(audio.destination);
-    osc.frequency.value = type === "win" ? 720 : type === "bad" ? 160 : 420;
-    gain.gain.value = 0.035;
-    osc.start();
-    osc.stop(audio.currentTime + 0.08);
-  } catch {}
-}
-
 export default function App() {
+  const audioRef = useRef<AudioContext | null>(null);
+  const lastSoundRef = useRef(0);
+  const [muted, setMuted] = useState(() => localStorage.getItem("colorclash:muted") === "1");
   const [deck, setDeck] = useState<Card[]>(() => makeDeck());
   const [playerHand, setPlayerHand] = useState<Card[]>([]);
   const [botHand, setBotHand] = useState<Card[]>([]);
@@ -75,6 +63,35 @@ export default function App() {
   const level = Math.floor(xp / 100) + 1;
   const levelProgress = xp % 100;
   const canDraw = started && turn === "player" && !gameOver && playableCount === 0 && deck.length > 0;
+
+  function toggleMute() {
+    const next = !muted;
+    setMuted(next);
+    localStorage.setItem("colorclash:muted", next ? "1" : "0");
+  }
+
+  function playSound(type: "card" | "win" | "bad") {
+    if (muted) return;
+    const now = Date.now();
+    if (now - lastSoundRef.current < 80) return;
+    lastSoundRef.current = now;
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!audioRef.current) audioRef.current = new AudioContextClass();
+      const audio = audioRef.current;
+      const osc = audio.createOscillator();
+      const gain = audio.createGain();
+      osc.type = "sine";
+      osc.frequency.value = type === "win" ? 660 : type === "bad" ? 180 : 360;
+      gain.gain.setValueAtTime(0.0001, audio.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.025, audio.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + 0.09);
+      osc.connect(gain);
+      gain.connect(audio.destination);
+      osc.start(audio.currentTime);
+      osc.stop(audio.currentTime + 0.1);
+    } catch {}
+  }
 
   function reward(addCoins: number, addXp: number) {
     const nextCoins = coins + addCoins;
@@ -154,18 +171,15 @@ export default function App() {
     animateCard(card);
     const nextCombo = combo + 1;
     setCombo(nextCombo);
-
     const nextHand = playerHand.filter((item) => item.id !== card.id);
     setPlayerHand(nextHand);
     setDiscard((cards) => [...cards, card]);
     reward(1 + Math.floor(nextCombo / 3), 4 + nextCombo);
-
     if (nextHand.length === 1) setMessage("COLOR! Você está com uma carta.");
     if (nextHand.length === 0) {
       endPlayerWin(nextHand);
       return;
     }
-
     if (card.type === "draw2") {
       const draw = drawCards(deck, 2);
       setDeck(draw.rest);
@@ -173,12 +187,10 @@ export default function App() {
       setMessage("Você jogou +2. Bot comprou cartas. Sua vez continua.");
       return;
     }
-
     if (card.type === "skip") {
       setMessage("Você bloqueou o bot. Jogue de novo.");
       return;
     }
-
     setTurn("bot");
     setMessage("Vez do bot.");
     setTimeout(botMove, 800);
@@ -189,7 +201,6 @@ export default function App() {
       const currentTop = discard[discard.length - 1];
       if (!currentTop || result) return currentBotHand;
       const card = currentBotHand.find((item) => canPlay(item, currentTop));
-
       if (!card) {
         setDeck((currentDeck) => {
           const draw = drawCards(currentDeck, 1);
@@ -200,12 +211,10 @@ export default function App() {
         setMessage("Bot comprou. Sua vez.");
         return currentBotHand;
       }
-
       playSound("card");
       animateCard(card);
       const nextBotHand = currentBotHand.filter((item) => item.id !== card.id);
       setDiscard((cards) => [...cards, card]);
-
       if (nextBotHand.length === 1) setMessage("Rival está com uma carta!");
       if (nextBotHand.length === 0) {
         const newLosses = losses + 1;
@@ -216,7 +225,6 @@ export default function App() {
         playSound("bad");
         return nextBotHand;
       }
-
       if (card.type === "draw2") {
         setDeck((currentDeck) => {
           const draw = drawCards(currentDeck, 2);
@@ -229,7 +237,6 @@ export default function App() {
         setTimeout(botMove, 900);
         return nextBotHand;
       }
-
       if (card.type === "skip") {
         setTurn("bot");
         setCombo(0);
@@ -237,7 +244,6 @@ export default function App() {
         setTimeout(botMove, 900);
         return nextBotHand;
       }
-
       setTurn("player");
       setMessage("Sua vez.");
       return nextBotHand;
@@ -255,7 +261,7 @@ export default function App() {
       <section className="mx-auto max-w-6xl">
         <header className="mb-4 flex items-center justify-between rounded-[2rem] border border-amber-900/40 bg-[#2a190d] p-4 shadow-2xl">
           <div><p className="text-xs font-black uppercase tracking-[0.22em] text-amber-300">Color Clash</p><h1 className="text-3xl font-black tracking-[-0.06em]">Mesa de Cartas</h1></div>
-          <button onClick={startGame} className="rounded-2xl bg-amber-300 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-black">{started ? "Nova partida" : "Jogar"}</button>
+          <div className="flex gap-2"><button onClick={toggleMute} className="rounded-2xl border border-amber-200/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-amber-100">{muted ? "Som off" : "Som on"}</button><button onClick={startGame} className="rounded-2xl bg-amber-300 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-black">{started ? "Nova partida" : "Jogar"}</button></div>
         </header>
 
         <div className="mb-4 grid gap-3 md:grid-cols-5">
