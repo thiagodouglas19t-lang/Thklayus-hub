@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTimer } from "./clash/useTimer";
 import { usePlayerStats } from "./clash/usePlayerStats";
+import { loadJson, loadText, saveJson, saveText } from "./clash/storage";
 import { Room, WinnerRecord, Mode, Option } from "./clash/types";
 
 const starterRooms: Room[] = [
@@ -11,11 +12,11 @@ const starterRooms: Room[] = [
 const botNames = ["Nova", "Kai", "Zero", "Luna", "Rex", "Mika"];
 
 export default function App() {
-  const [player, setPlayer] = useState(() => localStorage.getItem("player") || "");
+  const [player, setPlayer] = useState(() => loadText("player", ""));
   const { stats, level, progress, addVoteXp, addChampionXp, resetStats } = usePlayerStats();
-  const [rooms, setRooms] = useState<Room[]>(() => JSON.parse(localStorage.getItem("rooms") || "null") || starterRooms);
-  const [history, setHistory] = useState<WinnerRecord[]>(() => JSON.parse(localStorage.getItem("history") || "[]"));
-  const [currentRoom, setCurrentRoom] = useState<Room | null>(rooms[0]);
+  const [rooms, setRooms] = useState<Room[]>(() => loadJson<Room[]>("rooms", starterRooms));
+  const [history, setHistory] = useState<WinnerRecord[]>(() => loadJson<WinnerRecord[]>("history", []));
+  const [currentRoom, setCurrentRoom] = useState<Room | null>(() => loadJson<Room[]>("rooms", starterRooms)[0] ?? starterRooms[0]);
   const [showHistory, setShowHistory] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [liveLog, setLiveLog] = useState<string[]>([]);
@@ -26,9 +27,9 @@ export default function App() {
   const [newOptions, setNewOptions] = useState<Option[]>([]);
   const timer = useTimer(30);
 
-  useEffect(() => { localStorage.setItem("rooms", JSON.stringify(rooms)); }, [rooms]);
-  useEffect(() => { localStorage.setItem("history", JSON.stringify(history)); }, [history]);
-  useEffect(() => { localStorage.setItem("player", player); }, [player]);
+  useEffect(() => { saveJson("rooms", rooms); }, [rooms]);
+  useEffect(() => { saveJson("history", history); }, [history]);
+  useEffect(() => { saveText("player", player); }, [player]);
 
   const winner = useMemo(() => currentRoom ? [...currentRoom.options].sort((a, b) => b.votes - a.votes)[0] : null, [currentRoom]);
   const totalVotes = currentRoom?.options.reduce((sum, opt) => sum + opt.votes, 0) || 0;
@@ -39,7 +40,7 @@ export default function App() {
     if (!timer.running || !currentRoom || timer.time <= 0) return;
     const id = window.setInterval(() => {
       setCurrentRoom(room => {
-        if (!room || room.id !== currentRoom.id) return room;
+        if (!room || room.id !== currentRoom.id || room.options.length === 0) return room;
         const option = room.options[Math.floor(Math.random() * room.options.length)];
         const bot = botNames[Math.floor(Math.random() * botNames.length)];
         setLiveLog(log => [`${bot} votou em ${option.text}`, ...log].slice(0, 6));
