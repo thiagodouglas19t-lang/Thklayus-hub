@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTimer } from "./clash/useTimer";
 import { usePlayerStats } from "./clash/usePlayerStats";
 import { loadJson, loadText, saveJson, saveText } from "./clash/storage";
+import { normalizeHistory, normalizeRooms } from "./clash/validators";
 import { Room, WinnerRecord, Mode, Option } from "./clash/types";
 
 const starterRooms: Room[] = [
@@ -10,13 +11,15 @@ const starterRooms: Room[] = [
 ];
 
 const botNames = ["Nova", "Kai", "Zero", "Luna", "Rex", "Mika"];
+const loadRooms = () => normalizeRooms(loadJson<Room[]>("rooms", starterRooms), starterRooms);
+const loadHistory = () => normalizeHistory(loadJson<WinnerRecord[]>("history", []));
 
 export default function App() {
   const [player, setPlayer] = useState(() => loadText("player", ""));
   const { stats, level, progress, addVoteXp, addChampionXp, resetStats } = usePlayerStats();
-  const [rooms, setRooms] = useState<Room[]>(() => loadJson<Room[]>("rooms", starterRooms));
-  const [history, setHistory] = useState<WinnerRecord[]>(() => loadJson<WinnerRecord[]>("history", []));
-  const [currentRoom, setCurrentRoom] = useState<Room | null>(() => loadJson<Room[]>("rooms", starterRooms)[0] ?? starterRooms[0]);
+  const [rooms, setRooms] = useState<Room[]>(loadRooms);
+  const [history, setHistory] = useState<WinnerRecord[]>(loadHistory);
+  const [currentRoom, setCurrentRoom] = useState<Room | null>(() => loadRooms()[0] ?? starterRooms[0]);
   const [showHistory, setShowHistory] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [liveLog, setLiveLog] = useState<string[]>([]);
@@ -27,8 +30,8 @@ export default function App() {
   const [newOptions, setNewOptions] = useState<Option[]>([]);
   const timer = useTimer(30);
 
-  useEffect(() => { saveJson("rooms", rooms); }, [rooms]);
-  useEffect(() => { saveJson("history", history); }, [history]);
+  useEffect(() => { saveJson("rooms", normalizeRooms(rooms, starterRooms)); }, [rooms]);
+  useEffect(() => { saveJson("history", normalizeHistory(history)); }, [history]);
   useEffect(() => { saveText("player", player); }, [player]);
 
   const winner = useMemo(() => currentRoom ? [...currentRoom.options].sort((a, b) => b.votes - a.votes)[0] : null, [currentRoom]);
@@ -62,7 +65,7 @@ export default function App() {
   function createRoom() {
     if (!newTitle.trim() || newOptions.length < 2) return;
     const room: Room = { id: Date.now(), title: newTitle.trim(), category: newCategory.trim() || "Geral", mode: newMode, finished: false, votedBy: [], options: newOptions };
-    setRooms(prev => [room, ...prev]);
+    setRooms(prev => normalizeRooms([room, ...prev], starterRooms));
     setCurrentRoom(room);
     setNewTitle(""); setNewCategory("Geral"); setNewMode("ranking"); setNewOptions([]); setShowCreate(false); timer.reset(); setLiveLog([]);
   }
@@ -81,7 +84,7 @@ export default function App() {
     setCurrentRoom(updated); setRooms(prev => prev.map(r => r.id === updated.id ? updated : r)); timer.reset(); setLiveLog([]);
   }
 
-  function saveWinner() { if (!currentRoom || !winner) return; setHistory(prev => [{ id: Date.now(), roomTitle: currentRoom.title, winner: winner.text, votes: winner.votes, player }, ...prev]); setShowHistory(true); addChampionXp(); setLiveLog(log => [`Campeão salvo +20XP`, ...log].slice(0, 6)); }
+  function saveWinner() { if (!currentRoom || !winner) return; setHistory(prev => normalizeHistory([{ id: Date.now(), roomTitle: currentRoom.title, winner: winner.text, votes: winner.votes, player }, ...prev])); setShowHistory(true); addChampionXp(); setLiveLog(log => [`Campeão salvo +20XP`, ...log].slice(0, 6)); }
 
   if (!player) return <main className="grid min-h-screen place-items-center bg-[#050505] px-5 text-white"><section className="w-full max-w-md rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 backdrop-blur-2xl"><p className="text-xs font-black uppercase tracking-[0.24em] text-violet-200">ClashRoom</p><h1 className="mt-3 text-4xl font-black tracking-[-0.07em]">Escolha seu nome.</h1><input value={player} onChange={e => setPlayer(e.target.value)} placeholder="Seu nome" className="mt-6 w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none" /></section></main>;
 
