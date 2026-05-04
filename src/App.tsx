@@ -1,8 +1,11 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { supabase, supabaseConfigOk } from "./lib/supabase";
 
 type Color = "red" | "blue" | "yellow" | "green";
 type CardType = "number" | "skip" | "draw2" | "wild";
 type Card = { id: number; color: Color; value: string; type: CardType };
+
+type UserProfile = { email: string; id: string } | null;
 
 const colors: Color[] = ["red", "blue", "yellow", "green"];
 
@@ -56,6 +59,11 @@ export default function App() {
   const [pulse, setPulse] = useState(false);
   const [combo, setCombo] = useState(0);
   const [result, setResult] = useState<"win" | "loss" | null>(null);
+  const [profile, setProfile] = useState<UserProfile>(null);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authMessage, setAuthMessage] = useState("");
 
   const topCard = discard[discard.length - 1];
   const playableCount = useMemo(() => topCard ? playerHand.filter((card) => canPlay(card, topCard)).length : 0, [playerHand, topCard]);
@@ -63,6 +71,19 @@ export default function App() {
   const level = Math.floor(xp / 100) + 1;
   const levelProgress = xp % 100;
   const canDraw = started && turn === "player" && !gameOver && playableCount === 0 && deck.length > 0;
+  const displayName = profile?.email?.split("@")[0] || playerName;
+
+  useEffect(() => {
+    if (!supabaseConfigOk) return;
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) setProfile({ email: data.user.email, id: data.user.id });
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user;
+      setProfile(user?.email ? { email: user.email, id: user.id } : null);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
   function toggleMute() {
     const next = !muted;
@@ -91,6 +112,31 @@ export default function App() {
       osc.start(audio.currentTime);
       osc.stop(audio.currentTime + 0.1);
     } catch {}
+  }
+
+  async function signIn() {
+    if (!supabaseConfigOk) {
+      setAuthMessage("Supabase não está configurado.");
+      return;
+    }
+    const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+    setAuthMessage(error ? error.message : "Login feito.");
+  }
+
+  async function signUp() {
+    if (!supabaseConfigOk) {
+      setAuthMessage("Supabase não está configurado.");
+      return;
+    }
+    const { error } = await supabase.auth.signUp({ email: authEmail, password: authPassword });
+    setAuthMessage(error ? error.message : "Conta criada. Veja se precisa confirmar email.");
+  }
+
+  async function signOut() {
+    if (!supabaseConfigOk) return;
+    await supabase.auth.signOut();
+    setProfile(null);
+    setAuthMessage("Você saiu da conta.");
   }
 
   function reward(addCoins: number, addXp: number) {
@@ -261,11 +307,13 @@ export default function App() {
       <section className="mx-auto max-w-6xl">
         <header className="mb-4 flex items-center justify-between rounded-[2rem] border border-amber-900/40 bg-[#2a190d] p-4 shadow-2xl">
           <div><p className="text-xs font-black uppercase tracking-[0.22em] text-amber-300">Color Clash</p><h1 className="text-3xl font-black tracking-[-0.06em]">Mesa de Cartas</h1></div>
-          <div className="flex gap-2"><button onClick={toggleMute} className="rounded-2xl border border-amber-200/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-amber-100">{muted ? "Som off" : "Som on"}</button><button onClick={startGame} className="rounded-2xl bg-amber-300 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-black">{started ? "Nova partida" : "Jogar"}</button></div>
+          <div className="flex gap-2"><button onClick={() => setAuthOpen(!authOpen)} className="rounded-2xl border border-amber-200/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-amber-100">{profile ? "Perfil" : "Entrar"}</button><button onClick={toggleMute} className="rounded-2xl border border-amber-200/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-amber-100">{muted ? "Som off" : "Som on"}</button><button onClick={startGame} className="rounded-2xl bg-amber-300 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-black">{started ? "Nova partida" : "Jogar"}</button></div>
         </header>
 
+        {authOpen && <div className="mb-4 rounded-[2rem] border border-amber-900/40 bg-[#2a190d] p-4"><p className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">Perfil Supabase</p>{profile ? <div className="mt-3 flex flex-wrap items-center justify-between gap-3"><p className="font-black">Logado como {profile.email}</p><button onClick={signOut} className="rounded-2xl bg-white px-4 py-3 text-xs font-black uppercase text-black">Sair</button></div> : <div className="mt-3 grid gap-3 md:grid-cols-[1fr_1fr_auto_auto]"><input value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="Email" className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 outline-none" /><input value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} placeholder="Senha" type="password" className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 outline-none" /><button onClick={signIn} className="rounded-2xl bg-white px-4 py-3 text-xs font-black uppercase text-black">Entrar</button><button onClick={signUp} className="rounded-2xl bg-amber-300 px-4 py-3 text-xs font-black uppercase text-black">Criar</button></div>}{authMessage && <p className="mt-3 text-sm text-amber-100/80">{authMessage}</p>}</div>}
+
         <div className="mb-4 grid gap-3 md:grid-cols-5">
-          <div className="rounded-3xl bg-[#2a190d] p-4"><p className="text-xs text-amber-200/60">Nome</p><input value={playerName} onChange={(e) => saveName(e.target.value)} className="mt-1 w-full bg-transparent text-xl font-black outline-none" /></div>
+          <div className="rounded-3xl bg-[#2a190d] p-4"><p className="text-xs text-amber-200/60">Nome</p>{profile ? <p className="mt-1 truncate text-xl font-black">{displayName}</p> : <input value={playerName} onChange={(e) => saveName(e.target.value)} className="mt-1 w-full bg-transparent text-xl font-black outline-none" />}</div>
           <div className="rounded-3xl bg-[#2a190d] p-4"><p className="text-xs text-amber-200/60">Level</p><p className="text-2xl font-black">{level}</p><div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-amber-300" style={{ width: `${levelProgress}%` }} /></div></div>
           <div className="rounded-3xl bg-[#2a190d] p-4"><p className="text-xs text-amber-200/60">Moedas</p><p className="text-2xl font-black">🪙 {coins}</p></div>
           <div className="rounded-3xl bg-[#2a190d] p-4"><p className="text-xs text-amber-200/60">Placar</p><p className="text-2xl font-black">{wins}W / {losses}L</p></div>
@@ -274,8 +322,8 @@ export default function App() {
 
         <div className="rounded-[2.5rem] border-[10px] border-[#4b2b13] bg-[radial-gradient(circle_at_center,#2f8a4b,#0e4828)] p-4 shadow-2xl md:p-6">
           <div className="mb-4 flex items-center justify-between gap-3 rounded-3xl bg-black/20 p-3"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Bot</p><p className="text-lg font-black">Rival</p></div><div className="flex -space-x-12 overflow-hidden pr-10">{botHand.slice(0, 7).map((card) => <CardView key={card.id} hidden />)}</div><p className="rounded-2xl bg-white px-4 py-2 font-black text-black">{botHand.length}</p></div>
-          <div className="grid min-h-56 place-items-center py-6"><div className="grid grid-cols-3 items-center gap-5"><div className="grid place-items-center rounded-3xl bg-black/20 p-4"><p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-white/50">Monte</p><div className="grid h-32 w-20 place-items-center rounded-2xl border-4 border-white/80 bg-gradient-to-br from-[#1c140d] to-[#5a3318] shadow-xl"><span className="text-2xl font-black">{deck.length}</span></div></div><div className={`grid place-items-center rounded-3xl bg-black/25 p-4 transition ${pulse ? "scale-110" : "scale-100"}`}><p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-white/50">Mesa</p><CardView card={topCard} /></div><div className="rounded-3xl bg-black/20 p-4 text-center"><p className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Turno</p><p className="mt-2 text-2xl font-black">{turn === "player" ? playerName : "Rival"}</p><p className="mt-2 text-sm text-white/70">Jogáveis: {playableCount}</p></div></div></div>
-          <div className="rounded-3xl bg-black/25 p-4"><div className="mb-3 flex items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-white/50">{playerName}</p><p className="text-sm text-white/70">{message}</p>{lastPlayed && <p className="mt-1 text-xs text-amber-200">Última carta: {lastPlayed.value}</p>}</div><button onClick={drawPlayer} disabled={!canDraw} className="rounded-2xl bg-white px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-black disabled:opacity-40">Comprar</button></div><div className="flex gap-3 overflow-x-auto pb-3 pt-3">{playerHand.map((card) => <CardView key={card.id} card={card} playable={topCard ? canPlay(card, topCard) : true} onClick={() => playCard(card)} />)}</div></div>
+          <div className="grid min-h-56 place-items-center py-6"><div className="grid grid-cols-3 items-center gap-5"><div className="grid place-items-center rounded-3xl bg-black/20 p-4"><p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-white/50">Monte</p><div className="grid h-32 w-20 place-items-center rounded-2xl border-4 border-white/80 bg-gradient-to-br from-[#1c140d] to-[#5a3318] shadow-xl"><span className="text-2xl font-black">{deck.length}</span></div></div><div className={`grid place-items-center rounded-3xl bg-black/25 p-4 transition ${pulse ? "scale-110" : "scale-100"}`}><p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-white/50">Mesa</p><CardView card={topCard} /></div><div className="rounded-3xl bg-black/20 p-4 text-center"><p className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Turno</p><p className="mt-2 text-2xl font-black">{turn === "player" ? displayName : "Rival"}</p><p className="mt-2 text-sm text-white/70">Jogáveis: {playableCount}</p></div></div></div>
+          <div className="rounded-3xl bg-black/25 p-4"><div className="mb-3 flex items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-white/50">{displayName}</p><p className="text-sm text-white/70">{message}</p>{lastPlayed && <p className="mt-1 text-xs text-amber-200">Última carta: {lastPlayed.value}</p>}</div><button onClick={drawPlayer} disabled={!canDraw} className="rounded-2xl bg-white px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-black disabled:opacity-40">Comprar</button></div><div className="flex gap-3 overflow-x-auto pb-3 pt-3">{playerHand.map((card) => <CardView key={card.id} card={card} playable={topCard ? canPlay(card, topCard) : true} onClick={() => playCard(card)} />)}</div></div>
         </div>
 
         {gameOver && <div className="fixed inset-0 z-30 grid place-items-center bg-black/70 p-5"><div className="w-full max-w-md rounded-[2rem] bg-white p-6 text-center text-black"><p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">Partida encerrada</p><h2 className="mt-2 text-4xl font-black tracking-[-0.06em]">{result === "win" ? "Você venceu" : "Bot venceu"}</h2><p className="mt-3 text-zinc-500">{result === "win" ? `+${35 + combo * 3} moedas / +${60 + combo * 5} XP` : "Tente a revanche"}</p><button onClick={startGame} className="mt-6 rounded-2xl bg-black px-6 py-4 font-black text-white">Jogar de novo</button></div></div>}
