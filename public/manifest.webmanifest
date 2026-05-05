@@ -1,14 +1,14 @@
 {
-  "name": "AprendaJá",
-  "short_name": "AprendaJá",
-  "description": "App de cursos, serviços e suporte da THKLAYUS.",
+  "name": "THKLAYUS Arena",
+  "short_name": "Arena",
+  "description": "Jogo de cartas rápido com bots, XP e moedas.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#050505",
   "theme_color": "#050505",
-  "categories": ["education", "productivity"],
+  "categories": ["games", "entertainment"],
   "lang": "pt-BR",
   "icons": [
     {
