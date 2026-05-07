@@ -1,9 +1,12 @@
 import { useMemo, useState } from "react";
 import ClashCardsV2 from "./ClashCardsV2";
+import AuthGate from "./components/AuthGate";
 import LobbyHome from "./components/game/LobbyHome";
+import { adminCoins, isAdminEmail } from "./lib/admin";
 import { avatarItems } from "./lib/cosmetics";
 import { claimDailyReward, getDailyRewardState } from "./lib/dailyRewards";
 import { gameIdentity } from "./lib/gameIdentity";
+import { useAuthUser } from "./lib/useAuthUser";
 
 type Screen = "home" | "play" | "profile" | "shop" | "modes";
 
@@ -51,6 +54,8 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 }
 
 export default function GameApp() {
+  const { user, setUser, loading } = useAuthUser();
+  const isAdmin = isAdminEmail(user?.email);
   const [screen, setScreen] = useState<Screen>("home");
   const [shopMessage, setShopMessage] = useState("Cosméticos apenas. Nada de pay-to-win.");
   const [refresh, setRefresh] = useState(0);
@@ -62,7 +67,8 @@ export default function GameApp() {
   const roomCode = readText("roomCode", "THK-742");
 
   const stats = useMemo(() => {
-    const coins = readNumber("coins");
+    const rawCoins = readNumber("coins");
+    const coins = adminCoins(rawCoins, user?.email);
     const xp = readNumber("xp");
     const wins = readNumber("wins");
     const losses = readNumber("losses");
@@ -71,7 +77,7 @@ export default function GameApp() {
     const winRate = Math.round((wins / total) * 100);
     const currentLevelXp = xp % 100;
     return { coins, xp, wins, losses, level, winRate, currentLevelXp };
-  }, [screen, refresh]);
+  }, [screen, refresh, user?.email]);
 
   const equippedId = readText("equippedAvatar", "default");
   const owned = ownedAvatars();
@@ -111,17 +117,19 @@ export default function GameApp() {
       return;
     }
 
-    const coins = readNumber("coins");
-    if (coins < price) {
-      setShopMessage(`Moedas insuficientes. Faltam ${price - coins} moedas.`);
-      return;
+    if (!isAdmin) {
+      const coins = readNumber("coins");
+      if (coins < price) {
+        setShopMessage(`Moedas insuficientes. Faltam ${price - coins} moedas.`);
+        return;
+      }
+      writeNumber("coins", coins - price);
     }
 
-    writeNumber("coins", coins - price);
     currentOwned.add(id);
     saveOwned(currentOwned);
     writeText("equippedAvatar", id);
-    setShopMessage("Avatar comprado e equipado.");
+    setShopMessage(isAdmin ? "ADM: avatar liberado e equipado." : "Avatar comprado e equipado.");
     forceRefresh();
   }
 
@@ -136,10 +144,11 @@ export default function GameApp() {
           <div>
             <p className="text-xs uppercase tracking-[0.36em] text-yellow-300">{gameIdentity.brand}</p>
             <h1 className="text-3xl font-black tracking-tight">{gameIdentity.appName}</h1>
-            <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">{gameIdentity.version}</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">{loading ? "Carregando conta..." : isAdmin ? "ADM Alpha Arena" : gameIdentity.version}</p>
           </div>
 
           <div className="flex items-center gap-2">
+            {isAdmin && <div className="hidden rounded-full border border-amber-300/40 bg-amber-300 px-4 py-2 text-sm font-black text-black shadow-[0_0_30px_rgba(250,204,21,.25)] sm:block">ADM</div>}
             <div className="rounded-full border border-yellow-300/25 bg-yellow-300/10 px-4 py-2 text-sm font-black shadow-[0_0_30px_rgba(250,204,21,.22)]">🪙 {stats.coins}</div>
             <div className="rounded-full border border-violet-300/20 bg-violet-400/10 px-4 py-2 text-sm font-black">Nv. {stats.level}</div>
           </div>
@@ -154,12 +163,12 @@ export default function GameApp() {
 
         {screen === "home" && (
           <LobbyHome
-            playerName={readText("playerName", "Kairós")}
+            playerName={readText("playerName", user?.email?.split("@")[0] || "Kairós")}
             equipped={equipped}
             stats={stats}
             daily={daily}
             roomCode={roomCode}
-            lobbyMessage={lobbyMessage}
+            lobbyMessage={isAdmin ? "ADM ativo: economia liberada para testes." : lobbyMessage}
             selectedMode={selectedMode}
             onPlay={() => setScreen("play")}
             onClaimDaily={claimDaily}
@@ -183,20 +192,25 @@ export default function GameApp() {
 
         {screen === "profile" && (
           <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-[2rem] border border-white/10 bg-white/[0.055] p-6 backdrop-blur-xl">
-              <div className="flex items-center gap-4">
-                <div className={`grid h-24 w-24 place-items-center rounded-[1.7rem] bg-gradient-to-br ${equipped?.gradient || "from-violet-700 to-cyan-400"} text-5xl shadow-2xl`}>{equipped?.emoji || "⚡"}</div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.28em] text-violet-300">Perfil local</p>
-                  <h2 className="text-3xl font-black">{readText("playerName", "Kairós")}</h2>
-                  <p className="text-zinc-400">Avatar: {equipped?.name || "Padrão"}</p>
+            <div className="space-y-5">
+              <div className="rounded-[2rem] border border-white/10 bg-white/[0.055] p-6 backdrop-blur-xl">
+                <div className="flex items-center gap-4">
+                  <div className={`grid h-24 w-24 place-items-center rounded-[1.7rem] bg-gradient-to-br ${equipped?.gradient || "from-violet-700 to-cyan-400"} text-5xl shadow-2xl`}>{equipped?.emoji || "⚡"}</div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.28em] text-violet-300">Perfil</p>
+                    <h2 className="text-3xl font-black">{readText("playerName", user?.email?.split("@")[0] || "Kairós")}</h2>
+                    <p className="text-zinc-400">Avatar: {equipped?.name || "Padrão"}</p>
+                    {isAdmin && <p className="mt-2 inline-flex rounded-full bg-amber-300 px-3 py-1 text-xs font-black text-black">ADM · teste ilimitado</p>}
+                  </div>
+                </div>
+
+                <div className="mt-5 flex gap-2">
+                  <input value={playerName} onChange={(event) => setPlayerName(event.target.value)} className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-black/40 px-4 py-3 font-bold outline-none focus:border-violet-300" placeholder="Nome do jogador" />
+                  <button onClick={saveName} className="rounded-2xl bg-violet-300 px-5 py-3 font-black text-black">Salvar</button>
                 </div>
               </div>
 
-              <div className="mt-5 flex gap-2">
-                <input value={playerName} onChange={(event) => setPlayerName(event.target.value)} className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-black/40 px-4 py-3 font-bold outline-none focus:border-violet-300" placeholder="Nome do jogador" />
-                <button onClick={saveName} className="rounded-2xl bg-violet-300 px-5 py-3 font-black text-black">Salvar</button>
-              </div>
+              <AuthGate user={user} onUserChange={setUser} />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -216,7 +230,7 @@ export default function GameApp() {
               <div>
                 <p className="text-xs uppercase tracking-[0.28em] text-yellow-300">Loja</p>
                 <h2 className="text-3xl font-black">Avatares Neon</h2>
-                <p className="mt-1 text-sm text-zinc-400">{shopMessage}</p>
+                <p className="mt-1 text-sm text-zinc-400">{isAdmin ? "ADM ativo: todos os cosméticos podem ser liberados para teste." : shopMessage}</p>
               </div>
               <div className="rounded-full border border-yellow-300/25 bg-yellow-300/10 px-4 py-2 text-sm font-black">🪙 {stats.coins}</div>
             </div>
@@ -233,7 +247,7 @@ export default function GameApp() {
                         <strong className="block text-lg">{item.name}</strong>
                         <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{item.rarity}</p>
                       </div>
-                      <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-black">{isEquipped ? "Usando" : isOwned ? "Equipar" : `🪙 ${item.price}`}</span>
+                      <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-black">{isEquipped ? "Usando" : isOwned ? "Equipar" : isAdmin ? "ADM" : `🪙 ${item.price}`}</span>
                     </div>
                   </button>
                 );
