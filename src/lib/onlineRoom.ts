@@ -34,14 +34,16 @@ export function getLocalPlayerId() {
 
 export function normalizeRoomCode(code: string) {
   const clean = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-  if (clean.startsWith("THK")) return `THK-${clean.slice(3, 7)}`;
-  return `THK-${clean.slice(0, 4)}`;
+  if (!clean) return "";
+  const payload = clean.startsWith("THK") ? clean.slice(3, 7) : clean.slice(0, 4);
+  if (payload.length < 4) return "";
+  return `THK-${payload}`;
 }
 
 export function createLocalMember(name: string, avatar: string, isHost = false): OnlineMember {
   return {
     id: getLocalPlayerId(),
-    name: name || "Jogador",
+    name: name?.trim().slice(0, 18) || "Jogador",
     avatar: avatar || "⚡",
     ready: isHost,
     isHost,
@@ -50,12 +52,11 @@ export function createLocalMember(name: string, avatar: string, isHost = false):
 }
 
 export function upsertMember(room: OnlineRoomState, member: OnlineMember): OnlineRoomState {
+  const existing = room.members.find((item) => item.id === member.id);
+  const normalizedMember = { ...member, isHost: member.id === room.hostId, joinedAt: existing?.joinedAt || member.joinedAt };
   const withoutMe = room.members.filter((item) => item.id !== member.id);
-  return {
-    ...room,
-    members: [...withoutMe, member].slice(0, 4),
-    updatedAt: Date.now(),
-  };
+  const members = [...withoutMe, normalizedMember].sort((a, b) => a.joinedAt - b.joinedAt).slice(0, 4);
+  return { ...room, members, updatedAt: Date.now() };
 }
 
 export function updateMyReady(room: OnlineRoomState, playerId: string, ready: boolean): OnlineRoomState {
@@ -72,6 +73,7 @@ export function canUseOnlineRooms() {
 
 export async function saveOnlineRoom(room: OnlineRoomState) {
   if (!supabaseConfigOk) return { ok: false, message: "Supabase não configurado." };
+  if (!room.roomCode) return { ok: false, message: "Código da sala inválido." };
   const { error } = await supabase.from("game_rooms").upsert({
     code: room.roomCode,
     state: room,
@@ -84,23 +86,21 @@ export async function saveOnlineRoom(room: OnlineRoomState) {
 
 export async function loadOnlineRoom(code: string) {
   if (!supabaseConfigOk) return { room: null, message: "Supabase não configurado." };
-  const { data, error } = await supabase.from("game_rooms").select("state").eq("code", normalizeRoomCode(code)).maybeSingle();
+  const normalized = normalizeRoomCode(code);
+  if (!normalized) return { room: null, message: "Código inválido. Use algo tipo THK-ABCD." };
+  const { data, error } = await supabase.from("game_rooms").select("state").eq("code", normalized).maybeSingle();
   if (error) return { room: null, message: error.message };
   return { room: (data?.state as OnlineRoomState | undefined) || null, message: data ? "Sala encontrada." : "Sala não encontrada." };
 }
 
 export function subscribeOnlineRoom(code: string, onRoom: (room: OnlineRoomState) => void) {
-  if (!supabaseConfigOk) return () => undefined;
-  const channel = supabase
-    .channel(`game-room-${normalizeRoomCode(code)}`)
-    .on("postgres_changes", { event: "*", schema: "public", table: "game_rooms", filter: `code=eq.${normalizeRoomCode(code)}` }, (payload) => {
-      const next = (payload.new as { state?: OnlineRoomState } | null)?.state;
-      if (next) onRoom(next);
-    })
-    .subscribe();
-  return () => {
-    supabase.removeChannel(channel);
-  };
+  const normalized = normalizeRoomCode(code);
+  if (!supabaseConfigOk || !normalized) return () => undefined;
+  const channel = supabase.channel(`game-room-${normalized}`).on("postgres_changes", { event: "*", schema: "public", table: "game_rooms", filter: `code=eq.${normalized}` }, (payload) => {
+    const next = (payload.new as { state?: OnlineRoomState } | null)?.state;
+    if (next) onRoom(next);
+  }).subscribe();
+  return () => { supabase.removeChannel(channel); };
 }
 
 export const gameRoomsSql = `
