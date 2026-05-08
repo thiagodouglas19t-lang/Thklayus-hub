@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { partySlots } from "../../lib/cosmetics";
 import { gameIdentity } from "../../lib/gameIdentity";
 import OnlineRoomPanel from "./OnlineRoomPanel";
 
@@ -25,14 +24,14 @@ function playUiSound(type: "click" | "start" | "confirm" = "click") {
   try {
     const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     const ctx = new Ctx(); const osc = ctx.createOscillator(); const gain = ctx.createGain();
-    osc.frequency.value = type === "start" ? 720 : type === "confirm" ? 520 : 340;
+    osc.frequency.value = type === "start" ? 760 : type === "confirm" ? 540 : 340;
     gain.gain.setValueAtTime(0.001, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.015); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
     osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.16);
   } catch {}
 }
 
-function MenuButton({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
-  return <button onClick={onClick} className="rounded-xl border border-white/15 bg-slate-950/55 px-3 py-2 text-left text-[10px] font-black text-white shadow-[0_8px_22px_rgba(0,0,0,.22)] backdrop-blur transition hover:border-yellow-300/50 active:scale-[.97]"><span className="mr-1 text-yellow-300">▸</span>{children}</button>;
+function QuickCard({ label, value }: { label: string; value: string | number }) {
+  return <div className="rounded-[1.25rem] border border-white/10 bg-white/[0.055] px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,.28)] backdrop-blur"><p className="text-[9px] font-black uppercase tracking-[0.24em] text-zinc-500">{label}</p><strong className="mt-1 block text-xl text-white">{value}</strong></div>;
 }
 
 export default function LobbyHome({ playerName, equipped, stats, daily, roomCode, lobbyMessage, selectedMode, onPlay, onClaimDaily, onCopyRoomCode, onSelectMode, onLobbyMessage }: LobbyHomeProps) {
@@ -40,72 +39,97 @@ export default function LobbyHome({ playerName, equipped, stats, daily, roomCode
   const [matchStep, setMatchStep] = useState(0);
   const [onlineOpen, setOnlineOpen] = useState(false);
   const avatarEmoji = equipped?.emoji || "⚡";
-  const particles = useMemo(() => Array.from({ length: 16 }, (_, index) => index), []);
+  const particles = useMemo(() => Array.from({ length: 22 }, (_, index) => index), []);
+  const xpPercent = Math.min(100, Math.max(4, stats.currentLevelXp));
 
   useEffect(() => {
     if (!matching) return;
     setMatchStep(0);
-    const stepTimer = window.setInterval(() => setMatchStep((step) => Math.min(3, step + 1)), 520);
-    const startTimer = window.setTimeout(() => { playUiSound("start"); onPlay(); }, 1550);
+    const stepTimer = window.setInterval(() => setMatchStep((step) => Math.min(3, step + 1)), 460);
+    const startTimer = window.setTimeout(() => { playUiSound("start"); onPlay(); }, 1250);
     return () => { window.clearInterval(stepTimer); window.clearTimeout(startTimer); };
   }, [matching, onPlay]);
 
   function startMatchmaking() {
     playUiSound("confirm");
     setMatching(true);
-    onLobbyMessage("Entrando na sala...");
+    onLobbyMessage("Preparando mesa de cartas...");
   }
 
   return (
-    <section className="relative mx-auto h-[min(700px,calc(100vh-118px))] min-h-[510px] w-full overflow-hidden rounded-[1.4rem] border border-white/15 bg-[linear-gradient(180deg,#7ed9ff_0%,#3aa7e8_24%,#1e3352_52%,#07111f_100%)] shadow-[0_24px_90px_rgba(0,0,0,.55)]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_24%,rgba(255,255,255,.55),transparent_13rem),radial-gradient(circle_at_54%_60%,rgba(56,189,248,.28),transparent_18rem),radial-gradient(circle_at_50%_65%,rgba(168,85,247,.22),transparent_20rem)]" />
-      <div className="absolute left-1/2 top-[18%] h-48 w-32 -translate-x-1/2 rounded-t-3xl border border-white/20 bg-white/10 shadow-[0_0_80px_rgba(255,255,255,.22)]" />
-      <div className="absolute left-0 top-[32%] h-28 w-[34%] -skew-x-12 bg-cyan-200/24 ring-1 ring-white/10" />
-      <div className="absolute right-0 top-[30%] h-28 w-[34%] skew-x-12 bg-fuchsia-300/18 ring-1 ring-white/10" />
-      <div className="absolute inset-x-0 bottom-0 h-[48%] origin-bottom bg-[linear-gradient(90deg,rgba(255,255,255,.18)_1px,transparent_1px),linear-gradient(rgba(0,0,0,.22)_1px,transparent_1px)] bg-[size:86px_48px] opacity-55 [transform:perspective(520px)_rotateX(58deg)_scaleY(1.8)]" />
-      {particles.map((dot) => <span key={dot} className="absolute h-1 w-1 animate-pulse rounded-full bg-white/80 shadow-[0_0_14px_rgba(255,255,255,.9)]" style={{ left: `${7 + ((dot * 29) % 86)}%`, top: `${10 + ((dot * 37) % 58)}%`, animationDelay: `${dot * 0.14}s` }} />)}
+    <section className="relative mx-auto min-h-[calc(100vh-118px)] w-full overflow-hidden rounded-[1.6rem] border border-violet-300/15 bg-[radial-gradient(circle_at_50%_0%,rgba(124,58,237,.34),transparent_24rem),radial-gradient(circle_at_100%_20%,rgba(250,204,21,.12),transparent_18rem),linear-gradient(180deg,#050008,#000)] p-3 shadow-[0_24px_100px_rgba(0,0,0,.74)] md:p-5">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,.035)_1px,transparent_1px)] bg-[size:54px_54px] opacity-35" />
+      <div className="pointer-events-none absolute left-1/2 top-12 h-72 w-72 -translate-x-1/2 rounded-full bg-violet-600/20 blur-3xl" />
+      {particles.map((dot) => <span key={dot} className="pointer-events-none absolute h-1 w-1 animate-pulse rounded-full bg-violet-200/70 shadow-[0_0_16px_rgba(196,181,253,.9)]" style={{ left: `${5 + ((dot * 31) % 90)}%`, top: `${7 + ((dot * 41) % 82)}%`, animationDelay: `${dot * 0.11}s` }} />)}
 
-      <div className="absolute left-3 top-3 z-30 flex w-32 flex-col gap-2">
-        <MenuButton onClick={() => onLobbyMessage("Loja entra depois. Agora foco: salas e jogo.")}>STORE</MenuButton>
-        <MenuButton onClick={() => onLobbyMessage("Cofre removido do lobby por enquanto.")}>VAULT</MenuButton>
-        <MenuButton onClick={() => onLobbyMessage("Missões entram depois.")}>MISSIONS</MenuButton>
-        <MenuButton onClick={() => onLobbyMessage("Eventos entram depois.")}>EVENTS</MenuButton>
+      <div className="relative z-10 grid min-h-[calc(100vh-158px)] gap-4 lg:grid-cols-[320px_1fr_330px]">
+        <aside className="grid content-between gap-4 rounded-[1.8rem] border border-white/10 bg-black/42 p-4 backdrop-blur-xl">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.34em] text-yellow-300">{gameIdentity.brand}</p>
+            <h2 className="mt-1 text-3xl font-black leading-none">Clash Room</h2>
+            <p className="mt-2 text-sm text-zinc-400">Lobby focado em UNO, cartas rápidas e sala online.</p>
+          </div>
+          <div className="rounded-[1.6rem] border border-violet-300/15 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,.22),rgba(0,0,0,.42))] p-4">
+            <div className="flex items-center gap-3">
+              <div className={`grid h-20 w-20 place-items-center rounded-[1.5rem] border border-white/15 bg-gradient-to-br ${equipped?.gradient || "from-violet-700 to-cyan-400"} text-4xl shadow-[0_0_45px_rgba(139,92,246,.28)]`}>{avatarEmoji}</div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-violet-200">Perfil</p>
+                <h3 className="truncate text-2xl font-black">{playerName}</h3>
+                <p className="text-xs text-zinc-400">Nv. {stats.level} · {stats.winRate}% WR</p>
+              </div>
+            </div>
+            <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-yellow-300" style={{ width: `${xpPercent}%` }} /></div>
+            <p className="mt-2 text-[11px] text-zinc-500">XP do nível: {stats.currentLevelXp}/100</p>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <QuickCard label="Moedas" value={`🪙 ${stats.coins}`} />
+            <QuickCard label="Vitórias" value={stats.wins} />
+            <QuickCard label="Streak" value={`${daily.streak}d`} />
+            <QuickCard label="Baú" value={`${daily.nextChestWins} vit.`} />
+          </div>
+        </aside>
+
+        <main className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_50%_18%,rgba(139,92,246,.22),transparent_22rem),linear-gradient(180deg,rgba(12,6,24,.82),rgba(0,0,0,.72))] p-4 backdrop-blur-xl">
+          <div className="absolute inset-x-10 top-20 h-44 rounded-full bg-violet-600/10 blur-3xl" />
+          <div className="relative z-10 mx-auto max-w-2xl text-center">
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-yellow-300">Mesa Principal</p>
+            <h1 className="mt-2 text-4xl font-black leading-none md:text-6xl">UNO Clash</h1>
+            <p className="mx-auto mt-3 max-w-md text-sm text-zinc-400">Entre rápido contra IA ou abra uma sala para jogar com amigos por código.</p>
+          </div>
+
+          <div className="relative z-10 mx-auto mt-8 grid max-w-[560px] gap-4 sm:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, index) => <div key={index} className={`mx-auto h-40 w-28 rotate-[${index === 0 ? "-8" : index === 1 ? "0" : "8"}deg] rounded-[1.4rem] border border-white/15 bg-[linear-gradient(145deg,rgba(139,92,246,.72),rgba(0,0,0,.88))] p-3 shadow-[0_25px_65px_rgba(0,0,0,.5)]`}><div className="grid h-full place-items-center rounded-[1rem] border border-white/10 bg-black/35 text-4xl font-black text-yellow-300">THK</div></div>)}
+          </div>
+
+          <div className="relative z-10 mx-auto mt-8 grid max-w-2xl gap-3 sm:grid-cols-2">
+            {gameIdentity.modes.map((mode) => <button key={mode.id} onClick={() => { playUiSound("click"); onSelectMode(mode); if (mode.id === "online") setOnlineOpen(true); }} className={`rounded-[1.5rem] border p-4 text-left transition active:scale-[.98] ${selectedMode.id === mode.id ? "border-yellow-300 bg-yellow-300 text-black shadow-[0_0_45px_rgba(250,204,21,.18)]" : "border-white/10 bg-white/[0.055] text-white"}`}><span className="rounded-full bg-black/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em]">{mode.status}</span><h3 className="mt-3 text-2xl font-black">{mode.title}</h3><p className={`mt-1 text-xs ${selectedMode.id === mode.id ? "text-black/65" : "text-zinc-400"}`}>{mode.description}</p></button>)}
+          </div>
+
+          <div className="relative z-10 mx-auto mt-6 grid max-w-2xl gap-3 sm:grid-cols-[1fr_1.5fr]">
+            <button onClick={() => setOnlineOpen(true)} className="rounded-[1.35rem] border border-violet-300/20 bg-violet-400/10 px-5 py-4 text-sm font-black text-violet-100 backdrop-blur active:scale-[.98]">Criar / Entrar em sala</button>
+            <button onClick={startMatchmaking} className="rounded-[1.35rem] bg-gradient-to-b from-yellow-200 to-yellow-500 px-6 py-4 text-3xl font-black text-black shadow-[0_8px_0_#8a4d00,0_24px_65px_rgba(250,204,21,.22)] active:translate-y-1 active:shadow-[0_3px_0_#8a4d00]">START</button>
+          </div>
+
+          <div className="relative z-10 mx-auto mt-4 max-w-2xl rounded-[1.2rem] border border-white/10 bg-black/35 px-4 py-3 text-sm text-zinc-300"><strong className="text-yellow-300">{selectedMode.title}</strong> · {lobbyMessage}</div>
+        </main>
+
+        <aside className="grid content-between gap-4 rounded-[1.8rem] border border-white/10 bg-black/42 p-4 backdrop-blur-xl">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-cyan-200">Online</p>
+            <h3 className="mt-1 text-2xl font-black">Sala por código</h3>
+            <p className="mt-2 text-sm text-zinc-400">Copie o código, mande para um amigo e inicie quando todos estiverem prontos.</p>
+          </div>
+          <button onClick={() => { playUiSound("click"); onCopyRoomCode(); }} className="rounded-[1.5rem] border border-yellow-300/25 bg-yellow-300/10 p-4 text-left active:scale-[.98]"><p className="text-[10px] font-black uppercase tracking-[0.25em] text-yellow-200">Código rápido</p><strong className="mt-2 block text-3xl tracking-widest text-yellow-100">{roomCode}</strong></button>
+          <div className="grid gap-2">
+            <button onClick={() => setOnlineOpen(true)} className="rounded-[1.35rem] bg-cyan-300 px-5 py-4 text-sm font-black text-black shadow-[0_6px_0_#0e7490] active:translate-y-1 active:shadow-none">Abrir sala online</button>
+            <button onClick={onClaimDaily} className="rounded-[1.35rem] border border-white/10 bg-white/[0.07] px-5 py-4 text-sm font-black text-white active:scale-[.98]">{daily.canClaim ? `Coletar diária +${daily.todayReward}` : "Diária coletada"}</button>
+          </div>
+          <div className="rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-4"><p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">Status</p><p className="mt-2 text-sm text-zinc-300">Perfil personalizado, moedas e progresso ficam no seu aparelho por enquanto.</p></div>
+        </aside>
       </div>
 
-      <div className="absolute right-3 top-3 z-30 flex items-center gap-2">
-        <button onClick={() => { playUiSound("click"); onCopyRoomCode(); }} className="rounded-xl border border-yellow-300/30 bg-slate-950/45 px-4 py-2 text-xs font-black text-yellow-100 backdrop-blur">{roomCode}</button>
-        <button onClick={() => setOnlineOpen(true)} className="rounded-xl border border-cyan-300/25 bg-cyan-400/25 px-4 py-2 text-xs font-black text-cyan-50 backdrop-blur">CRIAR SALA</button>
-      </div>
-
-      <div className="absolute left-1/2 top-4 z-20 -translate-x-1/2 text-center">
-        <p className="text-[9px] font-black uppercase tracking-[0.34em] text-yellow-200 drop-shadow">THKLAYUS</p>
-        <h2 className="text-4xl font-black leading-none drop-shadow md:text-5xl">Arena Room</h2>
-        <p className="mt-1 text-[10px] uppercase tracking-[0.2em] text-white/80">{selectedMode.title}</p>
-      </div>
-
-      <div className="absolute left-1/2 top-[48%] z-20 w-[260px] -translate-x-1/2 -translate-y-1/2 text-center">
-        <div className="mx-auto grid h-40 w-40 place-items-center rounded-[2.2rem] border border-white/20 bg-slate-950/35 text-6xl shadow-[0_0_70px_rgba(34,211,238,.26)] backdrop-blur-md">{avatarEmoji}</div>
-        <h3 className="mt-3 text-3xl font-black drop-shadow">{playerName}</h3>
-        <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/70">Nv. {stats.level} · {stats.winRate}% WR</p>
-      </div>
-
-      <div className="absolute right-3 top-[27%] z-30 grid w-36 gap-2">
-        <button onClick={() => setOnlineOpen(true)} className="rounded-xl border border-yellow-300/30 bg-yellow-300/20 px-3 py-3 text-xs font-black text-yellow-50 backdrop-blur">+ Convidar</button>
-        {partySlots.slice(1, 4).map((member) => <button key={member.name} onClick={() => setOnlineOpen(true)} className="flex items-center justify-between rounded-xl border border-white/15 bg-slate-950/45 px-2 py-2 text-[10px] font-black backdrop-blur"><span>{member.emoji}</span><span className="truncate">Slot livre</span><span>＋</span></button>)}
-      </div>
-
-      <div className="absolute bottom-4 left-3 z-40 flex gap-2">
-        {gameIdentity.modes.slice(0, 4).map((mode) => <button key={mode.id} onClick={() => { playUiSound("click"); onSelectMode(mode); }} className={`rounded-xl border px-4 py-3 text-[10px] font-black backdrop-blur active:scale-[.97] ${selectedMode.id === mode.id ? "border-yellow-300 bg-yellow-300 text-black" : "border-white/15 bg-slate-950/55 text-white"}`}>{mode.title}</button>)}
-      </div>
-
-      <div className="absolute bottom-4 right-3 z-40 grid w-[330px] grid-cols-[100px_1fr] gap-2">
-        <button onClick={() => setOnlineOpen(true)} className="rounded-xl border border-white/15 bg-slate-950/65 px-3 py-3 text-xs font-black text-white backdrop-blur">SALA</button>
-        <button onClick={startMatchmaking} className="rounded-xl bg-gradient-to-b from-yellow-200 to-yellow-500 px-6 py-3 text-3xl font-black text-black shadow-[0_7px_0_#8a4d00,0_20px_50px_rgba(0,0,0,.36)] active:translate-y-1 active:shadow-[0_3px_0_#8a4d00]">START</button>
-        <div className="col-span-2 rounded-xl border border-white/10 bg-slate-950/50 px-3 py-2 text-xs text-white/80 backdrop-blur"><strong className="text-yellow-200">{selectedMode.title}</strong> · {lobbyMessage}</div>
-      </div>
-
-      {onlineOpen && <div className="fixed inset-0 z-[70] grid place-items-end bg-black/55 p-3 backdrop-blur-md"><div className="max-h-[88vh] w-full max-w-[430px] overflow-y-auto rounded-[2rem] border border-cyan-300/15 bg-[#030712] p-3 shadow-[0_0_80px_rgba(14,165,233,.18)]"><div className="mb-3 flex items-center justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200">Multiplayer</p><h3 className="text-2xl font-black">Sala online</h3></div><button onClick={() => setOnlineOpen(false)} className="rounded-2xl bg-white/10 px-4 py-3 text-sm font-black">Fechar</button></div><OnlineRoomPanel playerName={playerName} avatar={avatarEmoji} onMessage={onLobbyMessage} onStart={onPlay} /></div></div>}
-      {matching && <div className="absolute inset-0 z-50 grid place-items-center bg-black/45 p-5 backdrop-blur-md"><div className="w-[min(380px,92vw)] rounded-[2rem] border border-yellow-300/20 bg-[#08020f] p-6 text-center shadow-[0_0_80px_rgba(139,92,246,.28)]"><div className="mx-auto mb-5 h-16 w-16 animate-spin rounded-full border-4 border-white/10 border-t-yellow-300" /><p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-300">Arena</p><h3 className="mt-2 text-3xl font-black">Preparando</h3><p className="mt-2 text-sm text-zinc-400">{["Criando sala...", "Chamando jogadores...", "Sincronizando HUD...", "Entrando..."][matchStep]}</p></div></div>}
+      {onlineOpen && <div className="fixed inset-0 z-[70] grid place-items-end bg-black/70 p-3 backdrop-blur-md"><div className="max-h-[88vh] w-full max-w-[460px] overflow-y-auto rounded-[2rem] border border-cyan-300/15 bg-[#030712] p-3 shadow-[0_0_80px_rgba(14,165,233,.18)]"><div className="mb-3 flex items-center justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200">Multiplayer</p><h3 className="text-2xl font-black">Sala online</h3></div><button onClick={() => setOnlineOpen(false)} className="rounded-2xl bg-white/10 px-4 py-3 text-sm font-black">Fechar</button></div><OnlineRoomPanel playerName={playerName} avatar={avatarEmoji} onMessage={onLobbyMessage} onStart={onPlay} /></div></div>}
+      {matching && <div className="absolute inset-0 z-50 grid place-items-center bg-black/60 p-5 backdrop-blur-md"><div className="w-[min(380px,92vw)] rounded-[2rem] border border-yellow-300/20 bg-[#08020f] p-6 text-center shadow-[0_0_80px_rgba(139,92,246,.28)]"><div className="mx-auto mb-5 h-16 w-16 animate-spin rounded-full border-4 border-white/10 border-t-yellow-300" /><p className="text-xs font-black uppercase tracking-[0.3em] text-yellow-300">Clash Room</p><h3 className="mt-2 text-3xl font-black">Preparando</h3><p className="mt-2 text-sm text-zinc-400">{["Embaralhando cartas...", "Montando mesa...", "Sincronizando HUD...", "Entrando..."][matchStep]}</p></div></div>}
     </section>
   );
 }
