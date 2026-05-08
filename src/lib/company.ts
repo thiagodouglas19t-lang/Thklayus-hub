@@ -1,0 +1,25 @@
+export const company = {
+  name: "THKLAYUS",
+  product: "Clash Cards",
+  tagline: "Jogue, crie salas e evolua com seus amigos.",
+  version: "Alpha Enterprise 0.4",
+  status: "Online",
+  uptime: "99.9%",
+  activePlayersLabel: "Jogadores ativos",
+  activePlayers: "1.2K",
+  supportLabel: "Suporte",
+  supportStatus: "Disponível",
+  communityLabel: "Comunidade",
+  nextUpdate: "Regras clássicas + multiplayer estável",
+  values: ["Jogo limpo", "Salas rápidas", "Experiência premium", "Mobile-first"],
+  news: [
+    { title: "Clash Cards em foco", description: "O jogo principal agora recebe prioridade total em regras, salas e polish." },
+    { title: "Lobby reorganizado", description: "A tela inicial está sendo preparada para parecer produto de empresa grande." },
+    { title: "Online em evolução", description: "Salas e sincronização estão sendo ajustadas para jogar com amigos." },
+  ],
+  departments: [
+    { name: "Produto", status: "Planejando eventos e progressão" },
+    { name: "Engenharia", status: "Corrigindo online e performance" },
+    { name: "Suporte", status: "Preparando central do jogador" },
+  ],
+};
