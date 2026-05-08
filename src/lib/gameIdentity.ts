@@ -2,8 +2,8 @@ export const gameIdentity = {
   appName: "Clash Room",
   brand: "THKLAYUS",
   storage: "thklayus-classic-clash",
-  version: "Alpha Arena",
-  vibe: "AMOLED Neon Gaming",
+  version: "Alpha Cards",
+  vibe: "AMOLED Neon Card Game",
   palette: {
     background: "#000000",
     primary: "#8b5cf6",
@@ -13,9 +13,9 @@ export const gameIdentity = {
     text: "#ffffff",
   },
   lobby: {
-    style: "stage",
+    style: "card-stage",
     atmosphere: "competitive",
-    focus: "mobile-first",
+    focus: "mobile-first-online-cards",
     camera: "center-character",
   },
   modes: [
@@ -23,25 +23,13 @@ export const gameIdentity = {
       id: "ai",
       title: "Contra IA",
       status: "Disponível",
-      description: "Modo principal atual com bots, missões, recompensas e Clash Cards.",
+      description: "Modo principal atual com bots, UNO, recompensas e partidas rápidas.",
     },
     {
-      id: "casual",
-      title: "Casual",
-      status: "Em preparação",
-      description: "Modo rápido usando a mesma base do jogo sem duplicar sistemas.",
-    },
-    {
-      id: "ranked",
-      title: "Ranqueada",
-      status: "Futuro real",
-      description: "Entrará depois do login, matchmaking e partidas online.",
-    },
-    {
-      id: "party",
-      title: "Squad Room",
-      status: "Visual ativo",
-      description: "Lobby estilo sala gamer com amigos, prontos e códigos de convite.",
+      id: "online",
+      title: "Sala Online",
+      status: "Teste",
+      description: "Crie uma sala por código, chame amigos e inicie quando todos estiverem prontos.",
     },
   ],
   futureSystems: {
