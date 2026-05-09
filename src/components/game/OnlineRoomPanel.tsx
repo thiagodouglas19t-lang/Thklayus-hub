@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { canUseOnlineRooms, createLocalMember, loadOnlineRoom, makeRoomCode, normalizeRoomCode, OnlineRoomState, saveOnlineRoom, subscribeOnlineRoom, updateMyReady, upsertMember } from "../../lib/onlineRoom";
 
 type Props = { playerName: string; avatar: string; onMessage: (message: string) => void; onStart: () => void };
@@ -21,6 +21,7 @@ export default function OnlineRoomPanel({ playerName, avatar, onMessage, onStart
   const [room, setRoom] = useState<OnlineRoomState | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const startedRef = useRef(false);
   const ok = canUseOnlineRooms();
   const me = useMemo(() => createLocalMember(playerName, avatar, false), [playerName, avatar]);
   const mine = room?.members.find((member) => member.id === me.id);
@@ -38,13 +39,22 @@ export default function OnlineRoomPanel({ playerName, avatar, onMessage, onStart
   useEffect(() => {
     if (!room) return;
     const ticker = window.setInterval(async () => {
+      if (room.status !== "waiting") return;
       const next = upsertMember(room, { ...me, ready: mine?.ready || false, isHost: isHost || false });
       await saveOnlineRoom(next);
-    }, 8000);
+    }, 3500);
     return () => window.clearInterval(ticker);
-  }, [room?.roomCode, mine?.ready, isHost, me.id]);
+  }, [room?.roomCode, room?.status, mine?.ready, isHost, me.id]);
+
+  useEffect(() => {
+    if (!room || room.status !== "starting" || startedRef.current) return;
+    startedRef.current = true;
+    onMessage("Partida sincronizada. Entrando...");
+    window.setTimeout(onStart, 450);
+  }, [room?.status, room?.updatedAt]);
 
   async function createRoom() {
+    startedRef.current = false;
     setBusy(true);
     const code = makeRoomCode();
     const next = emptyRoom(code, playerName, avatar);
@@ -55,11 +65,12 @@ export default function OnlineRoomPanel({ playerName, avatar, onMessage, onStart
   }
 
   async function joinRoom() {
+    startedRef.current = false;
     const code = normalizeRoomCode(input);
     setBusy(true);
     const loaded = await loadOnlineRoom(code);
     if (!loaded.room) { setBusy(false); return onMessage(loaded.message); }
-    const next = upsertMember(loaded.room, { ...me, ready: false, isHost: false });
+    const next = upsertMember({ ...loaded.room, status: loaded.room.status === "playing" ? "waiting" : loaded.room.status }, { ...me, ready: false, isHost: false });
     const result = await saveOnlineRoom(next);
     setBusy(false);
     if (!result.ok) return onMessage(result.message);
@@ -67,7 +78,7 @@ export default function OnlineRoomPanel({ playerName, avatar, onMessage, onStart
   }
 
   async function ready() {
-    if (!room) return;
+    if (!room || room.status !== "waiting") return;
     const next = updateMyReady(room, me.id, !mine?.ready);
     setRoom(next);
     const result = await saveOnlineRoom(next);
@@ -86,10 +97,10 @@ export default function OnlineRoomPanel({ playerName, avatar, onMessage, onStart
     if (!isHost) return onMessage("Só o host inicia a sala.");
     if (!allReady) return onMessage("Todos precisam estar prontos.");
     const next = { ...room, status: "starting" as const, updatedAt: Date.now() };
-    await saveOnlineRoom(next);
+    startedRef.current = false;
     setRoom(next);
-    onMessage("Sala iniciando.");
-    setTimeout(onStart, 550);
+    await saveOnlineRoom(next);
+    onMessage("Sincronizando partida para todos...");
   }
 
   return (
@@ -98,12 +109,12 @@ export default function OnlineRoomPanel({ playerName, avatar, onMessage, onStart
         <div><p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-100">Clash Online</p><strong className="text-2xl">Sala por código</strong><p className="mt-1 text-xs text-white/75">Crie, compartilhe e jogue quando todos estiverem prontos.</p></div>
         <div className="text-right"><span className={`rounded-full px-3 py-1 text-[10px] font-black ${ok ? "bg-emerald-300 text-slate-950" : "bg-red-400 text-white"}`}>{ok ? "SERVIDOR ON" : "OFF"}</span><p className="mt-2 text-[10px] uppercase tracking-[0.22em] text-white/55">{roomHealth}</p></div>
       </div>
-      {!ok && <p className="mb-3 rounded-2xl border border-red-300/30 bg-red-500/20 p-3 text-xs text-red-50">Configure Supabase e crie a tabela game_rooms para ativar salas online.</p>}
 
       <div className="grid grid-cols-[1fr_auto] gap-2"><input value={input} onChange={(e) => setInput(e.target.value.toUpperCase())} className="min-w-0 rounded-2xl border border-white/30 bg-black/35 px-4 py-3 text-sm font-black tracking-widest text-white outline-none placeholder:text-white/35 focus:border-cyan-200" placeholder="THK-0000" /><button disabled={busy || !ok} onClick={joinRoom} className="rounded-2xl bg-white/20 px-4 py-3 text-xs font-black text-white disabled:opacity-40">Entrar</button></div>
       <button disabled={busy || !ok} onClick={createRoom} className="mt-2 w-full rounded-2xl bg-gradient-to-b from-yellow-100 to-yellow-400 px-4 py-3 text-sm font-black text-black shadow-[0_5px_0_#b45309] disabled:opacity-40 active:translate-y-1 active:shadow-none">Criar nova sala</button>
 
       {room && <div className="mt-4 space-y-3">
+        {room.status === "starting" && <div className="rounded-2xl border border-yellow-200/50 bg-yellow-300/25 p-3 text-sm font-black text-yellow-50">Sincronizando partida... todos os jogadores vão entrar juntos.</div>}
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-2xl bg-black/25 p-3 text-center"><p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/55">Jogadores</p><strong className="text-xl">{playerCount}/4</strong></div>
           <div className="rounded-2xl bg-black/25 p-3 text-center"><p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/55">Prontos</p><strong className="text-xl">{readyCount}/{playerCount}</strong></div>
@@ -111,7 +122,7 @@ export default function OnlineRoomPanel({ playerName, avatar, onMessage, onStart
         </div>
         <div className="flex items-center justify-between rounded-2xl border border-yellow-200/50 bg-yellow-200/60 p-3 text-slate-950"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-yellow-900">Código da sala</p><strong className="text-2xl tracking-widest">{room.roomCode}</strong></div><button onClick={copyCode} className="rounded-xl bg-slate-950 px-4 py-2 text-xs font-black text-yellow-200">{copied ? "Copiado" : "Copiar"}</button></div>
         <div className="grid gap-2">{Array.from({ length: 4 }).map((_, index) => { const member = room.members[index]; return <div key={index} className={`flex items-center justify-between rounded-2xl border p-3 transition ${member ? "border-white/20 bg-white/14" : "border-dashed border-white/20 bg-black/20"}`}><div className="flex items-center gap-3"><div className="relative grid h-12 w-12 place-items-center rounded-xl bg-white/18 text-2xl shadow-[0_10px_24px_rgba(0,0,0,.18)]">{member?.avatar || "＋"}{member && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-emerald-300 ring-2 ring-slate-900" />}</div><div><strong className="block text-sm">{member?.name || "Slot livre"}</strong><p className="text-[11px] text-white/55">{member ? member.isHost ? "Dono da sala" : "Convidado" : "Aguardando jogador"}</p></div></div><span className={`rounded-full px-3 py-1 text-[10px] font-black ${member?.ready ? "bg-emerald-300 text-black" : member ? "bg-yellow-300/25 text-yellow-50" : "bg-white/10 text-white/45"}`}>{member ? member.ready ? "PRONTO" : "AGUARDANDO" : "VAZIO"}</span></div>; })}</div>
-        <div className="grid grid-cols-2 gap-2"><button onClick={ready} className="rounded-2xl border border-white/20 bg-white/15 px-4 py-3 text-sm font-black text-white">{mine?.ready ? "Cancelar pronto" : "Estou pronto"}</button><button disabled={!isHost || !allReady} onClick={start} className="rounded-2xl bg-yellow-300 px-4 py-3 text-sm font-black text-black shadow-[0_5px_0_#b45309] disabled:opacity-40 active:translate-y-1 active:shadow-none">Iniciar</button></div>
+        <div className="grid grid-cols-2 gap-2"><button disabled={room.status !== "waiting"} onClick={ready} className="rounded-2xl border border-white/20 bg-white/15 px-4 py-3 text-sm font-black text-white disabled:opacity-40">{mine?.ready ? "Cancelar pronto" : "Estou pronto"}</button><button disabled={!isHost || !allReady || room.status !== "waiting"} onClick={start} className="rounded-2xl bg-yellow-300 px-4 py-3 text-sm font-black text-black shadow-[0_5px_0_#b45309] disabled:opacity-40 active:translate-y-1 active:shadow-none">Iniciar todos</button></div>
         <p className="rounded-2xl bg-black/25 p-3 text-xs text-white/65">A sala inicia com pelo menos 2 jogadores. Todos precisam marcar pronto.</p>
       </div>}
     </section>
