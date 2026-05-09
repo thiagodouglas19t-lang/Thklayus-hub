@@ -68,39 +68,79 @@ export function updateMyReady(room: OnlineRoomState, playerId: string, ready: bo
 }
 
 export function canUseOnlineRooms() {
-  return supabaseConfigOk;
+  return true;
+}
+
+function localRoomKey(code: string) {
+  return `${localKey}:room:${normalizeRoomCode(code)}`;
+}
+
+function saveLocalRoom(room: OnlineRoomState) {
+  localStorage.setItem(localRoomKey(room.roomCode), JSON.stringify(room));
+  localStorage.setItem(`${localKey}:lastRoom`, room.roomCode);
+  window.dispatchEvent(new StorageEvent("storage", { key: localRoomKey(room.roomCode), newValue: JSON.stringify(room) }));
+}
+
+function loadLocalRoom(code: string) {
+  const normalized = normalizeRoomCode(code);
+  if (!normalized) return null;
+  try {
+    const raw = localStorage.getItem(localRoomKey(normalized));
+    return raw ? JSON.parse(raw) as OnlineRoomState : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function saveOnlineRoom(room: OnlineRoomState) {
-  if (!supabaseConfigOk) return { ok: false, message: "Supabase não configurado." };
   if (!room.roomCode) return { ok: false, message: "Código da sala inválido." };
+  if (!supabaseConfigOk) {
+    saveLocalRoom(room);
+    return { ok: true, message: "Sala salva no modo local." };
+  }
   const { error } = await supabase.from("game_rooms").upsert({
     code: room.roomCode,
     state: room,
     status: room.status,
     updated_at: new Date().toISOString(),
   });
-  if (error) return { ok: false, message: error.message };
+  if (error) {
+    saveLocalRoom(room);
+    return { ok: true, message: `Servidor indisponível. Usando modo local: ${error.message}` };
+  }
   return { ok: true, message: "Sala atualizada." };
 }
 
 export async function loadOnlineRoom(code: string) {
-  if (!supabaseConfigOk) return { room: null, message: "Supabase não configurado." };
   const normalized = normalizeRoomCode(code);
   if (!normalized) return { room: null, message: "Código inválido. Use algo tipo THK-ABCD." };
+  if (!supabaseConfigOk) {
+    const room = loadLocalRoom(normalized);
+    return { room, message: room ? "Sala local encontrada." : "Sala local não encontrada neste aparelho." };
+  }
   const { data, error } = await supabase.from("game_rooms").select("state").eq("code", normalized).maybeSingle();
-  if (error) return { room: null, message: error.message };
-  return { room: (data?.state as OnlineRoomState | undefined) || null, message: data ? "Sala encontrada." : "Sala não encontrada." };
+  if (error) {
+    const room = loadLocalRoom(normalized);
+    return { room, message: room ? "Servidor falhou, mas sala local foi carregada." : error.message };
+  }
+  return { room: (data?.state as OnlineRoomState | undefined) || loadLocalRoom(normalized), message: data ? "Sala encontrada." : "Sala não encontrada." };
 }
 
 export function subscribeOnlineRoom(code: string, onRoom: (room: OnlineRoomState) => void) {
   const normalized = normalizeRoomCode(code);
-  if (!supabaseConfigOk || !normalized) return () => undefined;
+  if (!normalized) return () => undefined;
+  const key = localRoomKey(normalized);
+  const localListener = (event: StorageEvent) => {
+    if (event.key !== key || !event.newValue) return;
+    try { onRoom(JSON.parse(event.newValue) as OnlineRoomState); } catch {}
+  };
+  window.addEventListener("storage", localListener);
+  if (!supabaseConfigOk) return () => window.removeEventListener("storage", localListener);
   const channel = supabase.channel(`game-room-${normalized}`).on("postgres_changes", { event: "*", schema: "public", table: "game_rooms", filter: `code=eq.${normalized}` }, (payload) => {
     const next = (payload.new as { state?: OnlineRoomState } | null)?.state;
     if (next) onRoom(next);
   }).subscribe();
-  return () => { supabase.removeChannel(channel); };
+  return () => { window.removeEventListener("storage", localListener); supabase.removeChannel(channel); };
 }
 
 export const gameRoomsSql = `
