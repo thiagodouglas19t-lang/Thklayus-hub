@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type Props = {
   coins: number;
@@ -11,6 +11,9 @@ type Props = {
 
 type Category = "avatar" | "frame" | "banner" | "title";
 type ProfileItem = { id: string; name: string; rarity: string; price: number; preview: string; gradient?: string };
+
+const economyStorage = "thklayus-classic-clash";
+const profileStorage = "thklayus-profile";
 
 const profileItems: Record<Category, ProfileItem[]> = {
   avatar: [
@@ -46,21 +49,58 @@ const categoryLabels: Record<Category, string> = {
   title: "Títulos",
 };
 
+function readOwned(category: Category) {
+  return new Set((localStorage.getItem(`${profileStorage}:owned:${category}`) || profileItems[category][0].id).split(",").filter(Boolean));
+}
+
+function saveOwned(category: Category, owned: Set<string>) {
+  localStorage.setItem(`${profileStorage}:owned:${category}`, Array.from(owned).join(","));
+}
+
+function readEquipped(category: Category) {
+  return localStorage.getItem(`${profileStorage}:${category}`) || profileItems[category][0].id;
+}
+
 function saveProfilePart(category: Category, id: string) {
-  localStorage.setItem(`thklayus-profile:${category}`, id);
+  localStorage.setItem(`${profileStorage}:${category}`, id);
+}
+
+function spendCoins(amount: number) {
+  const current = Number(localStorage.getItem(`${economyStorage}:coins`) || 0);
+  localStorage.setItem(`${economyStorage}:coins`, String(Math.max(0, current - amount)));
+}
+
+function findItem(category: Category, id: string) {
+  return profileItems[category].find((item) => item.id === id) || profileItems[category][0];
 }
 
 export default function SkinStore({ coins, avatarEmoji, playerName, isAdmin, onMessage, onRefresh }: Props) {
   const [category, setCategory] = useState<Category>("avatar");
+  const [tick, setTick] = useState(0);
   const items = profileItems[category];
+  const equipped = useMemo(() => ({
+    avatar: findItem("avatar", readEquipped("avatar")),
+    frame: findItem("frame", readEquipped("frame")),
+    banner: findItem("banner", readEquipped("banner")),
+    title: findItem("title", readEquipped("title")),
+  }), [tick]);
 
   function equip(item: ProfileItem) {
-    if (!isAdmin && item.price > coins) {
-      onMessage(`Moedas insuficientes para ${item.name}.`);
-      return;
+    const owned = readOwned(category);
+    const alreadyOwned = owned.has(item.id) || item.price === 0;
+    if (!alreadyOwned) {
+      if (!isAdmin && item.price > coins) {
+        onMessage(`Moedas insuficientes para ${item.name}.`);
+        return;
+      }
+      if (!isAdmin) spendCoins(item.price);
+      owned.add(item.id);
+      saveOwned(category, owned);
     }
     saveProfilePart(category, item.id);
-    onMessage(`${item.name} equipado no perfil.`);
+    if (category === "avatar") localStorage.setItem(`${economyStorage}:equippedAvatar`, item.id === "bolt" ? "default" : item.id);
+    onMessage(alreadyOwned ? `${item.name} equipado.` : `${item.name} comprado e equipado.`);
+    setTick((value) => value + 1);
     onRefresh();
   }
 
@@ -70,14 +110,14 @@ export default function SkinStore({ coins, avatarEmoji, playerName, isAdmin, onM
         <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/40 blur-3xl" />
         <p className="relative text-[10px] font-black uppercase tracking-[0.32em] text-violet-900">Perfil / Loja</p>
         <h2 className="relative mt-1 text-3xl font-black">Perfil personalizado</h2>
-        <p className="relative mt-2 text-sm font-bold text-slate-700">Sem personagem 3D. Personalize avatar, moldura, banner e título.</p>
+        <p className="relative mt-2 text-sm font-bold text-slate-700">Compre uma vez, equipe quando quiser. Sem personagem 3D.</p>
 
         <div className="relative mt-6 overflow-hidden rounded-[1.8rem] border border-white/60 bg-white/42 p-4 shadow-[0_18px_45px_rgba(15,23,42,.2)] backdrop-blur-xl">
-          <div className="h-28 rounded-[1.4rem] bg-gradient-to-br from-cyan-300 via-violet-400 to-yellow-300" />
+          <div className={`h-28 rounded-[1.4rem] bg-gradient-to-br ${equipped.banner.gradient || "from-cyan-300 via-violet-400 to-yellow-300"}`} />
           <div className="-mt-10 flex items-end gap-3 px-3">
-            <div className="grid h-24 w-24 place-items-center rounded-[1.6rem] border-[5px] border-white bg-gradient-to-br from-violet-600 to-cyan-300 text-5xl shadow-[0_0_40px_rgba(255,255,255,.55)]">{avatarEmoji}</div>
+            <div className={`grid h-24 w-24 place-items-center rounded-[1.6rem] border-[5px] ${equipped.frame.id === "gold" ? "border-yellow-300" : equipped.frame.id === "champion" ? "border-fuchsia-300" : equipped.frame.id === "neon" ? "border-cyan-200" : "border-white"} bg-gradient-to-br ${equipped.avatar.gradient || "from-violet-600 to-cyan-300"} text-5xl shadow-[0_0_40px_rgba(255,255,255,.55)]`}>{equipped.avatar.preview || avatarEmoji}</div>
             <div className="pb-2">
-              <p className="rounded-full bg-yellow-300 px-3 py-1 text-[10px] font-black tracking-[0.18em]">UNO MASTER</p>
+              <p className="rounded-full bg-yellow-300 px-3 py-1 text-[10px] font-black tracking-[0.18em]">{equipped.title.preview}</p>
               <h3 className="mt-2 text-2xl font-black">{playerName}</h3>
             </div>
           </div>
@@ -97,17 +137,17 @@ export default function SkinStore({ coins, avatarEmoji, playerName, isAdmin, onM
           <span className="rounded-full border border-yellow-300/25 bg-yellow-300/10 px-4 py-2 text-sm font-black">🪙 {coins}</span>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {items.map((item) => <button key={item.id} onClick={() => equip(item)} className="group rounded-[1.6rem] border border-white/10 bg-black/35 p-4 text-left transition hover:border-yellow-300/35 active:scale-[.98]">
+          {items.map((item) => { const owned = readOwned(category); const isOwned = owned.has(item.id) || item.price === 0; const isEquipped = readEquipped(category) === item.id; return <button key={item.id} onClick={() => equip(item)} className={`group rounded-[1.6rem] border p-4 text-left transition active:scale-[.98] ${isEquipped ? "border-yellow-300 bg-yellow-300/12" : "border-white/10 bg-black/35 hover:border-yellow-300/35"}`}>
             <div className={`mb-3 grid h-24 place-items-center rounded-[1.2rem] border border-white/10 ${item.gradient ? `bg-gradient-to-br ${item.gradient}` : "bg-[radial-gradient(circle,rgba(168,85,247,.18),rgba(0,0,0,.4))]"} text-4xl font-black text-white`}>
               {item.preview}
             </div>
             <strong className="block text-lg">{item.name}</strong>
             <p className="mt-1 text-xs uppercase tracking-[0.18em] text-zinc-500">{item.rarity}</p>
             <div className="mt-4 flex items-center justify-between gap-2">
-              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-black">{isAdmin ? "ADM" : item.price === 0 ? "FREE" : `🪙 ${item.price}`}</span>
-              <span className="rounded-full bg-yellow-300 px-3 py-1 text-xs font-black text-black">Equipar</span>
+              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-black">{isAdmin ? "ADM" : isOwned ? "COMPRADO" : item.price === 0 ? "FREE" : `🪙 ${item.price}`}</span>
+              <span className="rounded-full bg-yellow-300 px-3 py-1 text-xs font-black text-black">{isEquipped ? "Equipado" : isOwned ? "Equipar" : "Comprar"}</span>
             </div>
-          </button>)}
+          </button>; })}
         </div>
       </div>
     </section>
