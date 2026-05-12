@@ -31,6 +31,11 @@ const fakeFriends = [
   { name: "Nexus", status: "offline", avatar: "🤖" },
 ];
 const passRewards = ["🪙", "🎴", "💎", "👑"];
+const globalMessages = [
+  { name: "Shadow", avatar: "🌑", text: "Bora ranked?" },
+  { name: "Rimuru", avatar: "💠", text: "Alguém cria sala." },
+  { name: "Nexus", avatar: "🤖", text: "Evento neon ativo." },
+];
 
 function playUiSound(type: "click" | "start" | "confirm" | "ambient" = "click") {
   try {
@@ -58,6 +63,9 @@ export default function LobbyHome({ playerName, equipped, stats, daily, roomCode
   const [roomMode, setRoomMode] = useState<"quick" | "online" | "ranked">("quick");
   const [eventIndex, setEventIndex] = useState(0);
   const [ambientOn, setAmbientOn] = useState(false);
+  const [chatText, setChatText] = useState("");
+  const [chat, setChat] = useState(globalMessages);
+  const [notice, setNotice] = useState("Shadow te convidou para uma sala.");
   const avatarEmoji = equipped?.emoji || "⚡";
   const fx = useMemo(() => Array.from({ length: 28 }, (_, index) => index), []);
   const xpPercent = Math.min(100, Math.max(6, stats.currentLevelXp));
@@ -65,6 +73,11 @@ export default function LobbyHome({ playerName, equipped, stats, daily, roomCode
 
   useEffect(() => {
     const timer = window.setInterval(() => setEventIndex((value) => value + 1), 5200);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNotice((value) => value ? "" : "Rimuru está procurando party."), 7000);
     return () => window.clearInterval(timer);
   }, []);
 
@@ -95,8 +108,16 @@ export default function LobbyHome({ playerName, equipped, stats, daily, roomCode
     onLobbyMessage(mode === "ranked" ? "Sala ranked aberta." : "Sala online aberta.");
   }
 
+  function sendGlobalChat() {
+    const text = chatText.trim().slice(0, 80);
+    if (!text) return;
+    setChat((list) => [...list, { name: playerName, avatar: avatarEmoji, text }].slice(-5));
+    setChatText("");
+  }
+
   return (
     <section className="relative mx-auto min-h-[calc(100vh-118px)] w-full overflow-hidden rounded-[2rem] border border-violet-200/45 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,.24),transparent_15rem),linear-gradient(180deg,#080014_0%,#190a45_42%,#3b136d_72%,#050008_100%)] shadow-[0_24px_90px_rgba(2,6,23,.42)]">
+      {notice && <button onClick={() => openOnline("online")} className="absolute right-5 top-24 z-[60] rounded-2xl border border-cyan-200/40 bg-cyan-300/20 px-4 py-3 text-left text-sm font-black text-white shadow-[0_0_35px_rgba(14,165,233,.22)] backdrop-blur-xl">🔔 {notice}<span className="block text-[10px] uppercase tracking-[.18em] text-cyan-100">Toque para abrir</span></button>}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_16%,rgba(124,58,237,.55),transparent_17rem),radial-gradient(circle_at_15%_60%,rgba(34,211,238,.18),transparent_18rem),radial-gradient(circle_at_88%_58%,rgba(250,204,21,.20),transparent_16rem)]" />
       <div className="pointer-events-none absolute inset-x-[-8%] bottom-[-10%] h-[42%] rounded-[50%_50%_0_0] bg-[linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04)),linear-gradient(90deg,#12051f,#211047,#3b0764)] shadow-[inset_0_18px_45px_rgba(255,255,255,.08)]" />
       <div className="pointer-events-none absolute bottom-[11%] left-1/2 h-[16%] w-[58%] -translate-x-1/2 rounded-[50%] bg-violet-400/25 blur-2xl" />
@@ -112,12 +133,7 @@ export default function LobbyHome({ playerName, equipped, stats, daily, roomCode
         </header>
 
         <div className="grid flex-1 grid-cols-[112px_1fr_112px] items-center gap-2 py-3 md:grid-cols-[190px_1fr_190px] md:gap-5">
-          <aside className="grid gap-3 self-stretch py-2">
-            <FloatingButton icon="🎮" label="Modos" hint="Escolher" onClick={onPlay} tone="danger" />
-            <FloatingButton icon="🌐" label="Online" hint="Sala" onClick={() => openOnline("online")} tone="online" />
-            <FloatingButton icon="🎁" label="Diária" hint={daily.canClaim ? `+${daily.todayReward}` : "coletada"} onClick={onClaimDaily} tone="reward" />
-            <div className="rounded-[1.3rem] border border-white/10 bg-black/28 p-3 text-white backdrop-blur-xl"><p className="text-[9px] font-black uppercase tracking-[.22em] text-yellow-200">Missões</p><div className="mt-2 space-y-2 text-[11px] font-bold text-white/75"><p>• Jogar 1 partida</p><p>• Entrar em sala</p><p>• Coletar diária</p></div></div>
-          </aside>
+          <aside className="grid gap-3 self-stretch py-2"><FloatingButton icon="🎮" label="Modos" hint="Escolher" onClick={onPlay} tone="danger" /><FloatingButton icon="🌐" label="Online" hint="Sala" onClick={() => openOnline("online")} tone="online" /><FloatingButton icon="🎁" label="Diária" hint={daily.canClaim ? `+${daily.todayReward}` : "coletada"} onClick={onClaimDaily} tone="reward" /><div className="rounded-[1.3rem] border border-white/10 bg-black/28 p-3 text-white backdrop-blur-xl"><p className="text-[9px] font-black uppercase tracking-[.22em] text-yellow-200">Missões</p><div className="mt-2 space-y-2 text-[11px] font-bold text-white/75"><p>• Jogar 1 partida</p><p>• Entrar em sala</p><p>• Coletar diária</p></div></div><div className="rounded-[1.3rem] border border-fuchsia-200/15 bg-fuchsia-400/10 p-3 text-white backdrop-blur-xl"><p className="text-[9px] font-black uppercase tracking-[.22em] text-fuchsia-200">ADM</p><p className="mt-2 text-[11px] text-white/60">Online OK · Eventos 3 · Erros 0</p></div></aside>
 
           <main className="relative grid min-h-[560px] place-items-center text-center">
             <div className="absolute top-2 max-w-[84vw] rounded-full border border-white/20 bg-black/35 px-5 py-2 text-sm font-black text-white shadow-[0_10px_28px_rgba(0,0,0,.22)] backdrop-blur-xl">{lobbyMessage}</div>
@@ -127,13 +143,7 @@ export default function LobbyHome({ playerName, equipped, stats, daily, roomCode
             <div className="absolute bottom-5 left-1/2 grid w-[min(470px,88vw)] -translate-x-1/2 gap-2"><button onClick={startMatchmaking} className="rounded-[1.6rem] border-4 border-yellow-100 bg-gradient-to-b from-yellow-100 to-yellow-400 px-6 py-4 text-5xl font-black text-slate-950 shadow-[0_10px_0_#a8550d,0_28px_58px_rgba(245,158,11,.35)] active:translate-y-1 active:shadow-[0_4px_0_#a8550d]">JOGAR</button><button onClick={() => openOnline("online")} className="rounded-[1.25rem] border border-cyan-200/40 bg-cyan-300/15 px-5 py-3 text-sm font-black uppercase tracking-[.18em] text-cyan-100 backdrop-blur-xl active:scale-[.98]">Criar / Entrar em sala</button></div>
           </main>
 
-          <aside className="grid gap-3 self-stretch py-2">
-            <FloatingButton icon="🛒" label="Loja" hint="skins" side="right" onClick={() => onLobbyMessage("Abra a aba Loja para personalizar.")} />
-            <FloatingButton icon="🏆" label="Rank" hint={`${stats.winRate}% WR`} side="right" onClick={() => onLobbyMessage(`Vitórias: ${stats.wins} · WR ${stats.winRate}%`)} tone="reward" />
-            <FloatingButton icon="🔗" label="Código" hint={roomCode} side="right" onClick={() => { playUiSound("click"); onCopyRoomCode(); }} tone="online" />
-            <div className="rounded-[1.3rem] border border-white/10 bg-black/28 p-3 text-white backdrop-blur-xl"><p className="text-[9px] font-black uppercase tracking-[.22em] text-cyan-200">Party</p><div className="mt-2 flex -space-x-2">{fakeFriends.slice(0, 3).map((friend) => <button key={friend.name} onClick={() => onLobbyMessage(`${friend.name}: ${friend.status}`)} className="grid h-10 w-10 place-items-center rounded-xl border border-white/20 bg-white/10 text-xl">{friend.avatar}</button>)}</div><p className="mt-2 text-[11px] text-white/55">{fakeFriends.filter((f) => f.status !== "offline").length} amigos ativos</p></div>
-            <div className="rounded-[1.3rem] border border-yellow-200/20 bg-yellow-300/10 p-3 text-white backdrop-blur-xl"><p className="text-[9px] font-black uppercase tracking-[.22em] text-yellow-200">Passe</p><div className="mt-2 grid grid-cols-4 gap-1">{passRewards.map((reward) => <span key={reward} className="grid h-8 place-items-center rounded-lg bg-black/25">{reward}</span>)}</div><div className="mt-2 h-2 overflow-hidden rounded-full bg-black/30"><div className="h-full rounded-full bg-yellow-300" style={{ width: `${Math.min(100, stats.currentLevelXp)}%` }} /></div></div>
-          </aside>
+          <aside className="grid gap-3 self-stretch py-2"><FloatingButton icon="🛒" label="Loja" hint="skins" side="right" onClick={() => onLobbyMessage("Abra a aba Loja para personalizar.")} /><FloatingButton icon="🏆" label="Rank" hint={`${stats.winRate}% WR`} side="right" onClick={() => onLobbyMessage(`Vitórias: ${stats.wins} · WR ${stats.winRate}%`)} tone="reward" /><FloatingButton icon="🔗" label="Código" hint={roomCode} side="right" onClick={() => { playUiSound("click"); onCopyRoomCode(); }} tone="online" /><div className="rounded-[1.3rem] border border-white/10 bg-black/28 p-3 text-white backdrop-blur-xl"><p className="text-[9px] font-black uppercase tracking-[.22em] text-cyan-200">Party</p><div className="mt-2 flex -space-x-2">{fakeFriends.slice(0, 3).map((friend) => <button key={friend.name} onClick={() => onLobbyMessage(`${friend.name}: ${friend.status}`)} className="grid h-10 w-10 place-items-center rounded-xl border border-white/20 bg-white/10 text-xl">{friend.avatar}</button>)}</div><p className="mt-2 text-[11px] text-white/55">{fakeFriends.filter((f) => f.status !== "offline").length} amigos ativos</p></div><div className="rounded-[1.3rem] border border-yellow-200/20 bg-yellow-300/10 p-3 text-white backdrop-blur-xl"><p className="text-[9px] font-black uppercase tracking-[.22em] text-yellow-200">Passe</p><div className="mt-2 grid grid-cols-4 gap-1">{passRewards.map((reward) => <span key={reward} className="grid h-8 place-items-center rounded-lg bg-black/25">{reward}</span>)}</div><div className="mt-2 h-2 overflow-hidden rounded-full bg-black/30"><div className="h-full rounded-full bg-yellow-300" style={{ width: `${Math.min(100, stats.currentLevelXp)}%` }} /></div></div><div className="rounded-[1.3rem] border border-white/10 bg-black/28 p-3 text-white backdrop-blur-xl"><p className="text-[9px] font-black uppercase tracking-[.22em] text-violet-200">Chat global</p><div className="mt-2 max-h-24 space-y-1 overflow-y-auto text-[11px] text-white/70">{chat.map((msg, i) => <p key={`${msg.name}-${i}`}><b>{msg.avatar} {msg.name}:</b> {msg.text}</p>)}</div><div className="mt-2 grid grid-cols-[1fr_auto] gap-1"><input value={chatText} onChange={(e) => setChatText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") sendGlobalChat(); }} className="min-w-0 rounded-lg bg-white/10 px-2 py-1 text-[11px] outline-none" placeholder="msg" /><button onClick={sendGlobalChat} className="rounded-lg bg-violet-400 px-2 text-[10px] font-black">OK</button></div></div></aside>
         </div>
       </div>
 
