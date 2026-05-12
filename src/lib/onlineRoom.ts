@@ -1,5 +1,15 @@
 import { supabase, supabaseConfigOk } from "./supabase";
 
+export type OnlineChatMessage = {
+  id: string;
+  playerId: string;
+  playerName: string;
+  avatar: string;
+  text: string;
+  createdAt: number;
+  system?: boolean;
+};
+
 export type OnlineMember = {
   id: string;
   name: string;
@@ -8,19 +18,29 @@ export type OnlineMember = {
   isHost: boolean;
   joinedAt: number;
   lastSeenAt: number;
+  rankPoints: number;
+  profileLevel: number;
 };
 
 export type OnlineRoomState = {
   roomCode: string;
   members: OnlineMember[];
   hostId: string;
-  status: "waiting" | "starting" | "playing";
+  status: "waiting" | "searching" | "starting" | "playing";
+  queueType: "casual" | "ranked";
+  matchmakingStartedAt?: number;
+  loadingStartedAt?: number;
+  chat: OnlineChatMessage[];
   updatedAt: number;
 };
 
 const localKey = "thklayus-online-room";
 const MEMBER_TIMEOUT = 22000;
 const START_LOCK_TIME = 6000;
+
+function uid() {
+  return crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 export function makeRoomCode() {
   return `THK-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -29,7 +49,7 @@ export function makeRoomCode() {
 export function getLocalPlayerId() {
   let id = localStorage.getItem(`${localKey}:playerId`);
   if (!id) {
-    id = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+    id = uid();
     localStorage.setItem(`${localKey}:playerId`, id);
   }
   return id;
@@ -45,6 +65,8 @@ export function normalizeRoomCode(code: string) {
 
 export function createLocalMember(name: string, avatar: string, isHost = false): OnlineMember {
   const now = Date.now();
+  const wins = Number(localStorage.getItem("thklayus:wins") || 0);
+  const xp = Number(localStorage.getItem("thklayus:xp") || 0);
   return {
     id: getLocalPlayerId(),
     name: name?.trim().slice(0, 18) || "Jogador",
@@ -53,7 +75,20 @@ export function createLocalMember(name: string, avatar: string, isHost = false):
     isHost,
     joinedAt: now,
     lastSeenAt: now,
+    rankPoints: 1000 + wins * 24,
+    profileLevel: Math.floor(xp / 100) + 1,
   };
+}
+
+export function systemMessage(text: string): OnlineChatMessage {
+  return { id: uid(), playerId: "system", playerName: "Sistema", avatar: "⚡", text, createdAt: Date.now(), system: true };
+}
+
+export function addChatMessage(room: OnlineRoomState, member: OnlineMember, text: string): OnlineRoomState {
+  const cleanText = text.trim().slice(0, 120);
+  if (!cleanText) return room;
+  const chat = [...(room.chat || []), { id: uid(), playerId: member.id, playerName: member.name, avatar: member.avatar, text: cleanText, createdAt: Date.now() }].slice(-30);
+  return { ...room, chat, updatedAt: Date.now() };
 }
 
 export function cleanRoomMembers(room: OnlineRoomState): OnlineRoomState {
@@ -62,10 +97,12 @@ export function cleanRoomMembers(room: OnlineRoomState): OnlineRoomState {
   if (activeMembers.length === room.members.length) return room;
   const hostStillHere = activeMembers.some((member) => member.id === room.hostId);
   const nextHost = hostStillHere ? room.hostId : activeMembers[0]?.id || room.hostId;
+  const chat = activeMembers.length !== room.members.length ? [...(room.chat || []), systemMessage("Host transfer aplicado automaticamente.")].slice(-30) : room.chat || [];
   return {
     ...room,
     hostId: nextHost,
     members: activeMembers.map((member) => ({ ...member, isHost: member.id === nextHost })),
+    chat,
     updatedAt: now,
   };
 }
@@ -77,21 +114,45 @@ export function upsertMember(room: OnlineRoomState, member: OnlineMember): Onlin
   const normalizedMember = {
     ...member,
     isHost: member.id === cleaned.hostId,
+    ready: existing?.ready || member.ready,
     joinedAt: existing?.joinedAt || member.joinedAt || now,
     lastSeenAt: now,
   };
   const withoutMe = cleaned.members.filter((item) => item.id !== member.id);
+  const isNew = !existing;
   const members = [...withoutMe, normalizedMember]
     .sort((a, b) => a.joinedAt - b.joinedAt)
     .slice(0, 4)
     .map((item) => ({ ...item, isHost: item.id === cleaned.hostId }));
-  return { ...cleaned, members, updatedAt: now };
+  const chat = isNew ? [...(cleaned.chat || []), systemMessage(`${normalizedMember.name} entrou na sala.`)].slice(-30) : cleaned.chat || [];
+  return { ...cleaned, members, chat, updatedAt: now };
 }
 
 export function updateMyReady(room: OnlineRoomState, playerId: string, ready: boolean): OnlineRoomState {
   return {
     ...room,
     members: room.members.map((member) => member.id === playerId ? { ...member, ready, lastSeenAt: Date.now() } : member),
+    updatedAt: Date.now(),
+  };
+}
+
+export function startMatchmaking(room: OnlineRoomState, ranked = false): OnlineRoomState {
+  return {
+    ...room,
+    status: "searching",
+    queueType: ranked ? "ranked" : "casual",
+    matchmakingStartedAt: Date.now(),
+    chat: [...(room.chat || []), systemMessage(ranked ? "Fila ranqueada iniciada." : "Procurando partida casual.")].slice(-30),
+    updatedAt: Date.now(),
+  };
+}
+
+export function startSynchronizedLoading(room: OnlineRoomState): OnlineRoomState {
+  return {
+    ...room,
+    status: "starting",
+    loadingStartedAt: Date.now(),
+    chat: [...(room.chat || []), systemMessage("Loading sincronizado iniciado.")].slice(-30),
     updatedAt: Date.now(),
   };
 }
@@ -108,12 +169,38 @@ export function isRoomStartLocked(room: OnlineRoomState) {
   return room.status === "starting" && Date.now() - room.updatedAt < START_LOCK_TIME;
 }
 
+export function makeInviteUrl(code: string) {
+  if (typeof window === "undefined") return "";
+  const url = new URL(window.location.href);
+  url.searchParams.set("room", normalizeRoomCode(code));
+  return url.toString();
+}
+
+export function getInviteCodeFromUrl() {
+  if (typeof window === "undefined") return "";
+  return normalizeRoomCode(new URLSearchParams(window.location.search).get("room") || "");
+}
+
+function normalizeRoomShape(room: OnlineRoomState): OnlineRoomState {
+  return {
+    ...room,
+    queueType: room.queueType || "casual",
+    chat: room.chat || [],
+    members: room.members.map((member) => ({
+      ...member,
+      lastSeenAt: member.lastSeenAt || member.joinedAt || Date.now(),
+      rankPoints: member.rankPoints || 1000,
+      profileLevel: member.profileLevel || 1,
+    })),
+  };
+}
+
 function localRoomKey(code: string) {
   return `${localKey}:room:${normalizeRoomCode(code)}`;
 }
 
 function saveLocalRoom(room: OnlineRoomState) {
-  const cleaned = cleanRoomMembers(room);
+  const cleaned = cleanRoomMembers(normalizeRoomShape(room));
   localStorage.setItem(localRoomKey(cleaned.roomCode), JSON.stringify(cleaned));
   localStorage.setItem(`${localKey}:lastRoom`, cleaned.roomCode);
   window.dispatchEvent(new StorageEvent("storage", { key: localRoomKey(cleaned.roomCode), newValue: JSON.stringify(cleaned) }));
@@ -125,7 +212,7 @@ function loadLocalRoom(code: string) {
   try {
     const raw = localStorage.getItem(localRoomKey(normalized));
     const room = raw ? JSON.parse(raw) as OnlineRoomState : null;
-    return room ? cleanRoomMembers(room) : null;
+    return room ? cleanRoomMembers(normalizeRoomShape(room)) : null;
   } catch {
     return null;
   }
@@ -133,7 +220,7 @@ function loadLocalRoom(code: string) {
 
 export async function saveOnlineRoom(room: OnlineRoomState) {
   if (!room.roomCode) return { ok: false, message: "Código da sala inválido." };
-  const cleaned = cleanRoomMembers(room);
+  const cleaned = cleanRoomMembers(normalizeRoomShape(room));
   if (!supabaseConfigOk) {
     saveLocalRoom(cleaned);
     return { ok: true, message: "Sala salva no modo local." };
@@ -164,7 +251,7 @@ export async function loadOnlineRoom(code: string) {
     return { room, message: room ? "Servidor falhou, mas sala local foi carregada." : error.message };
   }
   const remoteRoom = (data?.state as OnlineRoomState | undefined) || loadLocalRoom(normalized);
-  return { room: remoteRoom ? cleanRoomMembers(remoteRoom) : null, message: data ? "Sala encontrada." : "Sala não encontrada." };
+  return { room: remoteRoom ? cleanRoomMembers(normalizeRoomShape(remoteRoom)) : null, message: data ? "Sala encontrada." : "Sala não encontrada." };
 }
 
 export function subscribeOnlineRoom(code: string, onRoom: (room: OnlineRoomState) => void) {
@@ -173,13 +260,13 @@ export function subscribeOnlineRoom(code: string, onRoom: (room: OnlineRoomState
   const key = localRoomKey(normalized);
   const localListener = (event: StorageEvent) => {
     if (event.key !== key || !event.newValue) return;
-    try { onRoom(cleanRoomMembers(JSON.parse(event.newValue) as OnlineRoomState)); } catch {}
+    try { onRoom(cleanRoomMembers(normalizeRoomShape(JSON.parse(event.newValue) as OnlineRoomState))); } catch {}
   };
   window.addEventListener("storage", localListener);
   if (!supabaseConfigOk) return () => window.removeEventListener("storage", localListener);
   const channel = supabase.channel(`game-room-${normalized}`).on("postgres_changes", { event: "*", schema: "public", table: "game_rooms", filter: `code=eq.${normalized}` }, (payload) => {
     const next = (payload.new as { state?: OnlineRoomState } | null)?.state;
-    if (next) onRoom(cleanRoomMembers(next));
+    if (next) onRoom(cleanRoomMembers(normalizeRoomShape(next)));
   }).subscribe();
   return () => { window.removeEventListener("storage", localListener); supabase.removeChannel(channel); };
 }
