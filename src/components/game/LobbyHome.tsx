@@ -20,17 +20,29 @@ type LobbyHomeProps = {
   onLobbyMessage: (message: string) => void;
 };
 
-function playUiSound(type: "click" | "start" | "confirm" = "click") {
+const lobbyEvents = [
+  { tag: "Evento", title: "Noite Neon", text: "Ganhe bônus jogando partidas rápidas hoje.", icon: "🌌" },
+  { tag: "Ranked", title: "Subida Alpha", text: "Prepare sua party e entre na fila ranqueada.", icon: "🏆" },
+  { tag: "Loja", title: "Drop raro", text: "Avatares premium aparecem por tempo limitado.", icon: "💎" },
+];
+const fakeFriends = [
+  { name: "Shadow", status: "online", avatar: "🌑" },
+  { name: "Rimuru", status: "em sala", avatar: "💠" },
+  { name: "Nexus", status: "offline", avatar: "🤖" },
+];
+const passRewards = ["🪙", "🎴", "💎", "👑"];
+
+function playUiSound(type: "click" | "start" | "confirm" | "ambient" = "click") {
   try {
     const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     const ctx = new Ctx();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.frequency.value = type === "start" ? 820 : type === "confirm" ? 620 : 380;
+    osc.frequency.value = type === "ambient" ? 220 : type === "start" ? 820 : type === "confirm" ? 620 : 380;
     gain.gain.setValueAtTime(0.001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.09, ctx.currentTime + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
-    osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.16);
+    gain.gain.exponentialRampToValueAtTime(type === "ambient" ? 0.035 : 0.09, ctx.currentTime + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (type === "ambient" ? 0.5 : 0.14));
+    osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + (type === "ambient" ? 0.52 : 0.16));
   } catch {}
 }
 
@@ -44,9 +56,24 @@ export default function LobbyHome({ playerName, equipped, stats, daily, roomCode
   const [matchStep, setMatchStep] = useState(0);
   const [onlineOpen, setOnlineOpen] = useState(false);
   const [roomMode, setRoomMode] = useState<"quick" | "online" | "ranked">("quick");
+  const [eventIndex, setEventIndex] = useState(0);
+  const [ambientOn, setAmbientOn] = useState(false);
   const avatarEmoji = equipped?.emoji || "⚡";
   const fx = useMemo(() => Array.from({ length: 28 }, (_, index) => index), []);
   const xpPercent = Math.min(100, Math.max(6, stats.currentLevelXp));
+  const activeEvent = lobbyEvents[eventIndex % lobbyEvents.length];
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setEventIndex((value) => value + 1), 5200);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!ambientOn) return;
+    playUiSound("ambient");
+    const timer = window.setInterval(() => playUiSound("ambient"), 4200);
+    return () => window.clearInterval(timer);
+  }, [ambientOn]);
 
   useEffect(() => {
     if (!matching) return;
@@ -81,47 +108,31 @@ export default function LobbyHome({ playerName, equipped, stats, daily, roomCode
             <div className={`grid h-14 w-14 place-items-center rounded-[1rem] border-[3px] border-white/35 bg-gradient-to-br ${equipped?.gradient || "from-violet-600 to-cyan-300"} text-3xl shadow-[0_0_28px_rgba(124,58,237,.45)]`}>{avatarEmoji}</div>
             <div className="min-w-0"><h3 className="truncate text-xl font-black">{playerName}</h3><div className="mt-1 h-2 w-32 overflow-hidden rounded-full bg-white/14"><div className="h-full rounded-full bg-gradient-to-r from-violet-400 via-fuchsia-400 to-yellow-300" style={{ width: `${xpPercent}%` }} /></div><p className="mt-1 text-[10px] font-black uppercase tracking-[.18em] text-white/45">Lobby Alpha</p></div>
           </button>
-
-          <div className="flex items-center gap-2">
-            <div className="rounded-full border border-yellow-200/60 bg-yellow-300 px-4 py-2 text-sm font-black text-slate-950 shadow-[0_6px_0_#b45309]">🪙 {stats.coins}</div>
-            <div className="rounded-full border border-violet-200/30 bg-white/12 px-4 py-2 text-sm font-black text-white">Nv. {stats.level}</div>
-          </div>
+          <div className="flex items-center gap-2"><button onClick={() => setAmbientOn((v) => !v)} className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-black text-white">{ambientOn ? "🔊" : "🔇"}</button><div className="rounded-full border border-yellow-200/60 bg-yellow-300 px-4 py-2 text-sm font-black text-slate-950 shadow-[0_6px_0_#b45309]">🪙 {stats.coins}</div><div className="rounded-full border border-violet-200/30 bg-white/12 px-4 py-2 text-sm font-black text-white">Nv. {stats.level}</div></div>
         </header>
 
-        <div className="grid flex-1 grid-cols-[96px_1fr_96px] items-center gap-2 py-3 md:grid-cols-[170px_1fr_170px] md:gap-5">
-          <aside className="grid gap-3">
+        <div className="grid flex-1 grid-cols-[112px_1fr_112px] items-center gap-2 py-3 md:grid-cols-[190px_1fr_190px] md:gap-5">
+          <aside className="grid gap-3 self-stretch py-2">
             <FloatingButton icon="🎮" label="Modos" hint="Escolher" onClick={onPlay} tone="danger" />
             <FloatingButton icon="🌐" label="Online" hint="Sala" onClick={() => openOnline("online")} tone="online" />
             <FloatingButton icon="🎁" label="Diária" hint={daily.canClaim ? `+${daily.todayReward}` : "coletada"} onClick={onClaimDaily} tone="reward" />
+            <div className="rounded-[1.3rem] border border-white/10 bg-black/28 p-3 text-white backdrop-blur-xl"><p className="text-[9px] font-black uppercase tracking-[.22em] text-yellow-200">Missões</p><div className="mt-2 space-y-2 text-[11px] font-bold text-white/75"><p>• Jogar 1 partida</p><p>• Entrar em sala</p><p>• Coletar diária</p></div></div>
           </aside>
 
-          <main className="relative grid min-h-[540px] place-items-center text-center">
+          <main className="relative grid min-h-[560px] place-items-center text-center">
             <div className="absolute top-2 max-w-[84vw] rounded-full border border-white/20 bg-black/35 px-5 py-2 text-sm font-black text-white shadow-[0_10px_28px_rgba(0,0,0,.22)] backdrop-blur-xl">{lobbyMessage}</div>
-
-            <div className="absolute top-16 grid w-[min(520px,92%)] grid-cols-3 gap-2 rounded-[1.5rem] border border-white/10 bg-black/25 p-2 backdrop-blur-xl">
-              {[{ id: "quick", label: "Rápida", icon: "⚡" }, { id: "online", label: "Sala", icon: "🌐" }, { id: "ranked", label: "Ranked", icon: "🏆" }].map((item) => <button key={item.id} onClick={() => { const mode = item.id as typeof roomMode; setRoomMode(mode); if (mode !== "quick") openOnline(mode); else onLobbyMessage("Partida rápida selecionada."); }} className={`rounded-[1rem] px-2 py-2 text-xs font-black transition active:scale-[.97] ${roomMode === item.id ? "bg-yellow-300 text-black shadow-[0_0_22px_rgba(250,204,21,.35)]" : "bg-white/10 text-white/75"}`}><span className="block text-lg">{item.icon}</span>{item.label}</button>)}
-            </div>
-
-            <div className="relative mt-16 grid place-items-center">
-              <div className="absolute h-64 w-64 rounded-full bg-violet-500/30 blur-3xl" />
-              <div className="absolute top-[205px] h-16 w-96 rounded-[50%] bg-black/35 blur-xl" />
-              <div className="relative z-10 rounded-[2rem] border border-white/10 bg-white/[0.055] px-7 py-5 backdrop-blur-sm"><p className="text-[10px] font-black uppercase tracking-[.45em] text-yellow-200">THKLAYUS</p><h1 className="mt-1 text-5xl font-black leading-none text-white drop-shadow-[0_8px_18px_rgba(0,0,0,.42)] md:text-7xl">Clash<br />Cards</h1><p className="mt-3 rounded-full bg-black/25 px-4 py-2 text-xs font-black uppercase tracking-[.22em] text-white/80 backdrop-blur">Mesa rápida · estratégia · caos</p></div>
-
-              <div className="relative z-10 mt-7 flex items-end justify-center">
-                {["+2", "THK", "↺"].map((text, index) => <div key={text} className="mx-[-10px] h-44 rounded-[1.5rem] border-[5px] border-white/85 bg-gradient-to-br from-violet-700 via-fuchsia-600 to-yellow-300 p-2 shadow-[0_24px_48px_rgba(0,0,0,.36)]" style={{ width: "7.4rem", transform: `rotate(${(index - 1) * 9}deg) translateY(${index === 1 ? -18 : 0}px)` }}><div className="grid h-full place-items-center rounded-[1rem] bg-white/18 text-4xl font-black text-white drop-shadow">{text}</div></div>)}
-              </div>
-            </div>
-
-            <div className="absolute bottom-5 left-1/2 grid w-[min(470px,88vw)] -translate-x-1/2 gap-2">
-              <button onClick={startMatchmaking} className="rounded-[1.6rem] border-4 border-yellow-100 bg-gradient-to-b from-yellow-100 to-yellow-400 px-6 py-4 text-5xl font-black text-slate-950 shadow-[0_10px_0_#a8550d,0_28px_58px_rgba(245,158,11,.35)] active:translate-y-1 active:shadow-[0_4px_0_#a8550d]">JOGAR</button>
-              <button onClick={() => openOnline("online")} className="rounded-[1.25rem] border border-cyan-200/40 bg-cyan-300/15 px-5 py-3 text-sm font-black uppercase tracking-[.18em] text-cyan-100 backdrop-blur-xl active:scale-[.98]">Criar / Entrar em sala</button>
-            </div>
+            <button onClick={() => onLobbyMessage(activeEvent.text)} className="absolute top-14 flex w-[min(560px,94%)] items-center gap-3 rounded-[1.45rem] border border-yellow-200/25 bg-gradient-to-r from-yellow-300/20 via-violet-400/20 to-cyan-300/20 p-3 text-left text-white shadow-[0_18px_45px_rgba(0,0,0,.18)] backdrop-blur-xl"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/12 text-3xl">{activeEvent.icon}</span><span className="min-w-0"><small className="font-black uppercase tracking-[.24em] text-yellow-200">{activeEvent.tag}</small><strong className="block truncate text-xl">{activeEvent.title}</strong><span className="block truncate text-xs text-white/60">{activeEvent.text}</span></span></button>
+            <div className="absolute top-[142px] grid w-[min(520px,92%)] grid-cols-3 gap-2 rounded-[1.5rem] border border-white/10 bg-black/25 p-2 backdrop-blur-xl">{[{ id: "quick", label: "Rápida", icon: "⚡" }, { id: "online", label: "Sala", icon: "🌐" }, { id: "ranked", label: "Ranked", icon: "🏆" }].map((item) => <button key={item.id} onClick={() => { const mode = item.id as typeof roomMode; setRoomMode(mode); if (mode !== "quick") openOnline(mode); else onLobbyMessage("Partida rápida selecionada."); }} className={`rounded-[1rem] px-2 py-2 text-xs font-black transition active:scale-[.97] ${roomMode === item.id ? "bg-yellow-300 text-black shadow-[0_0_22px_rgba(250,204,21,.35)]" : "bg-white/10 text-white/75"}`}><span className="block text-lg">{item.icon}</span>{item.label}</button>)}</div>
+            <div className="relative mt-28 grid place-items-center"><div className="absolute h-64 w-64 rounded-full bg-violet-500/30 blur-3xl" /><div className="absolute top-[205px] h-16 w-96 rounded-[50%] bg-black/35 blur-xl" /><div className="relative z-10 rounded-[2rem] border border-white/10 bg-white/[0.055] px-7 py-5 backdrop-blur-sm"><p className="text-[10px] font-black uppercase tracking-[.45em] text-yellow-200">THKLAYUS</p><h1 className="mt-1 text-5xl font-black leading-none text-white drop-shadow-[0_8px_18px_rgba(0,0,0,.42)] md:text-7xl">Clash<br />Cards</h1><p className="mt-3 rounded-full bg-black/25 px-4 py-2 text-xs font-black uppercase tracking-[.22em] text-white/80 backdrop-blur">Mesa rápida · estratégia · caos</p></div><div className="relative z-10 mt-7 flex items-end justify-center">{["+2", "THK", "↺"].map((text, index) => <div key={text} className="mx-[-10px] h-44 rounded-[1.5rem] border-[5px] border-white/85 bg-gradient-to-br from-violet-700 via-fuchsia-600 to-yellow-300 p-2 shadow-[0_24px_48px_rgba(0,0,0,.36)]" style={{ width: "7.4rem", transform: `rotate(${(index - 1) * 9}deg) translateY(${index === 1 ? -18 : 0}px)` }}><div className="grid h-full place-items-center rounded-[1rem] bg-white/18 text-4xl font-black text-white drop-shadow">{text}</div></div>)}</div></div>
+            <div className="absolute bottom-5 left-1/2 grid w-[min(470px,88vw)] -translate-x-1/2 gap-2"><button onClick={startMatchmaking} className="rounded-[1.6rem] border-4 border-yellow-100 bg-gradient-to-b from-yellow-100 to-yellow-400 px-6 py-4 text-5xl font-black text-slate-950 shadow-[0_10px_0_#a8550d,0_28px_58px_rgba(245,158,11,.35)] active:translate-y-1 active:shadow-[0_4px_0_#a8550d]">JOGAR</button><button onClick={() => openOnline("online")} className="rounded-[1.25rem] border border-cyan-200/40 bg-cyan-300/15 px-5 py-3 text-sm font-black uppercase tracking-[.18em] text-cyan-100 backdrop-blur-xl active:scale-[.98]">Criar / Entrar em sala</button></div>
           </main>
 
-          <aside className="grid gap-3">
+          <aside className="grid gap-3 self-stretch py-2">
             <FloatingButton icon="🛒" label="Loja" hint="skins" side="right" onClick={() => onLobbyMessage("Abra a aba Loja para personalizar.")} />
             <FloatingButton icon="🏆" label="Rank" hint={`${stats.winRate}% WR`} side="right" onClick={() => onLobbyMessage(`Vitórias: ${stats.wins} · WR ${stats.winRate}%`)} tone="reward" />
             <FloatingButton icon="🔗" label="Código" hint={roomCode} side="right" onClick={() => { playUiSound("click"); onCopyRoomCode(); }} tone="online" />
+            <div className="rounded-[1.3rem] border border-white/10 bg-black/28 p-3 text-white backdrop-blur-xl"><p className="text-[9px] font-black uppercase tracking-[.22em] text-cyan-200">Party</p><div className="mt-2 flex -space-x-2">{fakeFriends.slice(0, 3).map((friend) => <button key={friend.name} onClick={() => onLobbyMessage(`${friend.name}: ${friend.status}`)} className="grid h-10 w-10 place-items-center rounded-xl border border-white/20 bg-white/10 text-xl">{friend.avatar}</button>)}</div><p className="mt-2 text-[11px] text-white/55">{fakeFriends.filter((f) => f.status !== "offline").length} amigos ativos</p></div>
+            <div className="rounded-[1.3rem] border border-yellow-200/20 bg-yellow-300/10 p-3 text-white backdrop-blur-xl"><p className="text-[9px] font-black uppercase tracking-[.22em] text-yellow-200">Passe</p><div className="mt-2 grid grid-cols-4 gap-1">{passRewards.map((reward) => <span key={reward} className="grid h-8 place-items-center rounded-lg bg-black/25">{reward}</span>)}</div><div className="mt-2 h-2 overflow-hidden rounded-full bg-black/30"><div className="h-full rounded-full bg-yellow-300" style={{ width: `${Math.min(100, stats.currentLevelXp)}%` }} /></div></div>
           </aside>
         </div>
       </div>
