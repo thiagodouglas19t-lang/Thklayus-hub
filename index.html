@@ -3,40 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#07070b" />
-    <meta name="description" content="THKLAYUS Hub" />
+    <meta name="theme-color" content="#f7f8fb" />
+    <meta name="description" content="THKLAYUS Hub — páginas digitais simples, bem apresentadas e feitas para evolução real." />
     <title>THKLAYUS Hub</title>
+    <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <main class="page-shell">
-      <section class="hero-card">
-        <p class="eyebrow">TH神の子 / THKLAYUS</p>
-        <h1>Um hub simples para construir, aprender e evoluir.</h1>
-        <p class="hero-text">Páginas leves para perfis, bios e pequenos projetos. Sem promessa exagerada. Só progresso real.</p>
-        <div class="actions">
-          <a href="mailto:thiagodouglas19tt@gmail.com">Entrar em contato</a>
-          <a class="ghost" href="#servicos">Ver serviços</a>
+    <header class="nav">
+      <a class="brand" href="#top">THKLAYUS</a>
+      <nav aria-label="Navegação principal">
+        <a href="#servicos">Serviços</a>
+        <a href="#processo">Processo</a>
+        <a href="#contato">Contato</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero section">
+        <div class="hero-content">
+          <p class="tag">TH神の子 / evolução real através da tecnologia</p>
+          <h1>Páginas digitais com aparência de marca grande.</h1>
+          <p class="lead">Criação de páginas simples, rápidas e bem apresentadas para perfis, bios, serviços e pequenos projetos.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="mailto:thiagodouglas19tt@gmail.com">Solicitar página</a>
+            <a class="button secondary" href="#servicos">Ver opções</a>
+          </div>
+        </div>
+        <div class="hero-panel">
+          <div class="window-top"><span></span><span></span><span></span></div>
+          <div class="mock-card">
+            <p>Projeto em destaque</p>
+            <strong>Bio profissional</strong>
+            <small>Links, contato, apresentação e estilo visual.</small>
+          </div>
         </div>
       </section>
-
-      <section id="servicos" class="grid">
-        <article>
-          <span>01</span>
-          <h2>Bio simples</h2>
-          <p>Uma página com nome, descrição e links principais.</p>
-        </article>
-        <article>
-          <span>02</span>
-          <h2>Perfil visual</h2>
-          <p>Uma apresentação com estilo próprio para redes e comunidades.</p>
-        </article>
-        <article>
-          <span>03</span>
-          <h2>Divulgação</h2>
-          <p>Uma página direta para mostrar uma ideia, serviço ou projeto pequeno.</p>
-        </article>
-      </section>
     </main>
-    <script type="module" src="/src/main.tsx"></script>
+
+    <script src="./script.js"></script>
   </body>
 </html>
