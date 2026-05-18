@@ -3,88 +3,97 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f7f8fb" />
-    <meta name="description" content="THKLAYUS Hub — páginas digitais simples, bem apresentadas e feitas para evolução real." />
-    <title>THKLAYUS Hub</title>
+    <meta name="theme-color" content="#0b1020" />
+    <meta name="description" content="THKLAYUS OS — painel para estudar, criar e transformar evolução em projetos reais." />
+    <title>THKLAYUS OS</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <header class="nav">
-      <a class="brand" href="#top">THKLAYUS</a>
+    <div class="noise"></div>
+    <header class="topbar">
+      <a class="brand" href="#top"><span>TH</span>KLAYUS OS</a>
       <nav aria-label="Navegação principal">
-        <a href="#servicos">Serviços</a>
-        <a href="#processo">Processo</a>
-        <a href="#contato">Contato</a>
+        <a href="#sistema">Sistema</a>
+        <a href="#laboratorio">Laboratório</a>
+        <a href="#progresso">Progresso</a>
       </nav>
+      <a class="top-action" href="mailto:thiagodouglas19tt@gmail.com">Contato</a>
     </header>
 
     <main id="top">
-      <section class="hero section">
-        <div class="hero-content">
-          <p class="tag">TH神の子 / evolução real através da tecnologia</p>
-          <h1>Páginas digitais com aparência de marca grande.</h1>
-          <p class="lead">Criação de páginas simples, rápidas e bem apresentadas para perfis, bios, serviços e pequenos projetos.</p>
-          <div class="hero-actions">
-            <a class="button primary" href="mailto:thiagodouglas19tt@gmail.com">Solicitar página</a>
-            <a class="button secondary" href="#servicos">Ver opções</a>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="pill">TH神の子 • construir antes de parecer pronto</p>
+          <h1>Um painel para transformar estudo em criação real.</h1>
+          <p class="lead">Organize ideias, acompanhe progresso e transforme pequenos projetos em entregas visíveis. Simples o bastante para começar. Forte o bastante para evoluir.</p>
+          <div class="actions">
+            <a class="btn primary" href="#sistema">Abrir sistema</a>
+            <a class="btn ghost" href="#laboratorio">Ver laboratório</a>
           </div>
         </div>
-        <div class="hero-panel">
-          <div class="window-top"><span></span><span></span><span></span></div>
-          <div class="mock-card">
-            <p>Projeto em destaque</p>
-            <strong>Bio profissional</strong>
-            <small>Links, contato, apresentação e estilo visual.</small>
+
+        <aside class="dashboard" aria-label="Prévia do painel">
+          <div class="dash-head">
+            <div><small>Status</small><strong>Base ativa</strong></div>
+            <span class="live">online</span>
           </div>
-        </div>
+          <div class="metric-grid">
+            <div><small>Foco</small><strong>Estudo</strong></div>
+            <div><small>Meta</small><strong>Renda</strong></div>
+          </div>
+          <div class="progress-card">
+            <div><span>HTML/CSS</span><b>72%</b></div>
+            <i><em style="width:72%"></em></i>
+          </div>
+          <div class="task-list">
+            <p>Hoje</p>
+            <label><input type="checkbox" checked /> Aprender algo real</label>
+            <label><input type="checkbox" checked /> Limpar projeto antigo</label>
+            <label><input type="checkbox" /> Publicar versão premium</label>
+          </div>
+        </aside>
       </section>
 
-      <section id="servicos" class="section">
-        <div class="section-title">
-          <p class="tag">Serviços</p>
-          <h2>Pequeno por fora. Bem pensado por dentro.</h2>
-        </div>
-
-        <div class="cards">
-          <article class="card">
-            <span class="number">01</span>
-            <h3>Página Bio</h3>
-            <p>Uma página limpa com nome, descrição, links e botão de contato.</p>
-          </article>
-
-          <article class="card featured">
-            <span class="number">02</span>
-            <h3>Perfil Visual</h3>
-            <p>Apresentação com identidade própria para Discord, Instagram, TikTok ou comunidade.</p>
-          </article>
-
-          <article class="card">
-            <span class="number">03</span>
-            <h3>Página de Divulgação</h3>
-            <p>Uma página direta para mostrar serviço, ideia, produto simples ou projeto pessoal.</p>
-          </article>
-        </div>
+      <section id="sistema" class="section intro">
+        <p class="pill">Sistema</p>
+        <h2>Feito para não virar bagunça.</h2>
+        <p>O app separa o que importa: aprender, criar, publicar e vender pequenos serviços sem se perder no meio do caminho.</p>
       </section>
 
-      <section id="processo" class="section split">
+      <section class="feature-grid">
+        <article class="feature big">
+          <span>01</span>
+          <h3>Mapa de evolução</h3>
+          <p>Uma visão clara do que estudar e do que construir depois.</p>
+        </article>
+        <article class="feature">
+          <span>02</span>
+          <h3>Projetos pequenos</h3>
+          <p>Ideias que cabem em poucos dias, não em meses de confusão.</p>
+        </article>
+        <article class="feature dark">
+          <span>03</span>
+          <h3>Portfólio vivo</h3>
+          <p>Cada entrega vira prova de capacidade.</p>
+        </article>
+      </section>
+
+      <section id="laboratorio" class="section lab">
         <div>
-          <p class="tag">Processo</p>
-          <h2>Sem bagunça. Sem promessa falsa.</h2>
+          <p class="pill">Laboratório</p>
+          <h2>Menos promessa. Mais construção.</h2>
         </div>
-
-        <ol class="steps">
-          <li><span>1</span>Você envia nome, descrição e links.</li>
-          <li><span>2</span>A primeira versão é montada.</li>
-          <li><span>3</span>Você revisa o visual e o texto.</li>
-          <li><span>4</span>O link final é entregue.</li>
-        </ol>
+        <div class="lab-card">
+          <p>Próxima missão</p>
+          <strong>Criar uma página utilizável, bonita e publicável.</strong>
+          <small>O objetivo não é parecer famoso. É parecer sério, confiável e em evolução.</small>
+        </div>
       </section>
 
-      <section id="contato" class="section contact">
-        <p class="tag">Contato</p>
-        <h2>Comece com uma página simples.</h2>
-        <p>Um projeto pequeno, bem terminado, vale mais que uma ideia gigante abandonada.</p>
-        <a class="button primary" href="mailto:thiagodouglas19tt@gmail.com">Falar agora</a>
+      <section id="progresso" class="section final-card">
+        <p class="pill">Progresso real</p>
+        <h2>Começa pequeno. Termina limpo.</h2>
+        <a class="btn primary" href="mailto:thiagodouglas19tt@gmail.com">Iniciar contato</a>
       </section>
     </main>
 
