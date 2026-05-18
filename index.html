@@ -1,17 +1,42 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!doctype html>
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#050505" />
-    <meta name="description" content="THKLAYUS Arena, jogo de cartas rápido com bots, XP, moedas e progresso local." />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" href="/icons/icon-192.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
-    <title>THKLAYUS Arena</title>
+    <meta name="theme-color" content="#07070b" />
+    <meta name="description" content="THKLAYUS Hub" />
+    <title>THKLAYUS Hub</title>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <main class="page-shell">
+      <section class="hero-card">
+        <p class="eyebrow">TH神の子 / THKLAYUS</p>
+        <h1>Um hub simples para construir, aprender e evoluir.</h1>
+        <p class="hero-text">Páginas leves para perfis, bios e pequenos projetos. Sem promessa exagerada. Só progresso real.</p>
+        <div class="actions">
+          <a href="mailto:thiagodouglas19tt@gmail.com">Entrar em contato</a>
+          <a class="ghost" href="#servicos">Ver serviços</a>
+        </div>
+      </section>
+
+      <section id="servicos" class="grid">
+        <article>
+          <span>01</span>
+          <h2>Bio simples</h2>
+          <p>Uma página com nome, descrição e links principais.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h2>Perfil visual</h2>
+          <p>Uma apresentação com estilo próprio para redes e comunidades.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h2>Divulgação</h2>
+          <p>Uma página direta para mostrar uma ideia, serviço ou projeto pequeno.</p>
+        </article>
+      </section>
+    </main>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
