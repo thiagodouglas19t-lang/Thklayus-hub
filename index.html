@@ -4,109 +4,55 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b1020" />
-    <meta name="description" content="CodeBloom — app interativo para aprender programação criando mini projetos." />
+    <meta name="description" content="CodeBloom — app interativo e gratuito para estudar programação, design, renda digital e IA como copiloto." />
     <title>CodeBloom</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <div class="splash" aria-hidden="true">
-      <div class="splash-orb"></div>
-      <div class="splash-logo">CB</div>
-      <p>CodeBloom</p>
-    </div>
+    <div class="splash" aria-hidden="true"><div class="splash-orb"></div><div class="splash-logo">CB</div><p>CodeBloom</p></div>
     <div class="noise"></div>
     <header class="topbar">
       <a class="brand" href="#top"><span>CB</span>CodeBloom</a>
       <nav aria-label="Navegação principal">
-        <a href="#trabalhos">Trabalhos</a>
-        <a href="#apps">Apps</a>
-        <a href="#prompts">Prompts</a>
-        <a href="#setup">Setup</a>
+        <a href="#trilhas">Trilhas</a>
+        <a href="#revisao">Revisão</a>
+        <a href="#desafios">Desafios</a>
+        <a href="#proposta">Proposta</a>
       </nav>
-      <a class="top-action" href="mailto:thiagodouglas19tt@gmail.com">Contato</a>
+      <a class="top-action" href="#trilhas">Começar</a>
     </header>
 
     <main id="top">
       <section class="hero">
         <div class="hero-copy">
-          <p class="pill">Aprender → Criar → Publicar → Vender</p>
-          <h1>Aprenda programação criando mini projetos reais.</h1>
-          <p class="lead">Um app interativo para estudar devagar, praticar de verdade e transformar os melhores projetos em portfólio.</p>
-          <div class="actions">
-            <a class="btn primary" href="#trabalhos">Começar agora</a>
-            <a class="btn ghost" href="#prompts">Ver prompts</a>
-          </div>
+          <p class="pill">Curso interativo gratuito • estudo + revisão + prática</p>
+          <h1>Aprenda criando, revise sem pressão e transforme projetos em renda.</h1>
+          <p class="lead">CodeBloom junta programação, design, renda digital e IA como copiloto em trilhas curtas, com flashcards, desafios práticos e simulador de proposta.</p>
+          <div class="actions"><a class="btn primary" href="#trilhas">Escolher trilha</a><a class="btn ghost" href="#revisao">Revisar agora</a></div>
         </div>
-
-        <aside class="dashboard" aria-label="Prévia do laboratório">
-          <div class="dash-head">
-            <div><small>Lição atual</small><strong>HTML básico</strong></div>
-            <span class="live">interativo</span>
-          </div>
-          <div class="metric-grid">
-            <div><small>Curso</small><strong>Programação</strong></div>
-            <div><small>Meta</small><strong>Projeto</strong></div>
-          </div>
-          <div class="progress-card">
-            <div><span>Progresso da lição</span><b>3/5</b></div>
-            <i><em style="width:60%"></em></i>
-          </div>
-          <div class="task-list">
-            <p>Passos</p>
-            <label><input type="checkbox" checked /> Ler explicação simples</label>
-            <label><input type="checkbox" checked /> Praticar exemplo pequeno</label>
-            <label><input type="checkbox" /> Criar mini projeto</label>
-          </div>
+        <aside class="dashboard" aria-label="Prévia do app">
+          <div class="dash-head"><div><small>Lição de hoje</small><strong>HTML5: estrutura óssea</strong></div><span class="live">5 min</span></div>
+          <div class="metric-grid"><div><small>Trilha</small><strong>Code</strong></div><div><small>XP</small><strong>120</strong></div></div>
+          <div class="progress-card"><div><span>Progresso semanal</span><b>4/7</b></div><i><em style="width:57%"></em></i></div>
+          <div class="task-list"><p>Fluxo da lição</p><label><input type="checkbox" checked /> Explicação simples</label><label><input type="checkbox" checked /> Exemplo pequeno</label><label><input type="checkbox" /> Desafio mão na massa</label></div>
         </aside>
       </section>
 
-      <section id="trabalhos" class="section intro">
-        <p class="pill">Trabalhos</p>
-        <h2>Serviços pequenos que você pode aprender a entregar.</h2>
-        <p>Comece com trabalhos simples, claros e possíveis. O objetivo é criar algo útil, mostrar o resultado e evoluir com cada entrega.</p>
+      <section id="trilhas" class="section intro"><p class="pill">Pilares do profissional moderno</p><h2>Quatro trilhas para evoluir sem se perder.</h2><p>Cada trilha tem lições curtas, revisão e projetos pequenos para transformar conhecimento em algo visível.</p></section>
+
+      <section class="track-grid">
+        <article class="track-card code"><span>01</span><h3>Code</h3><p>HTML5, CSS3, JavaScript e React para transformar ideias em código real.</p><ul><li>Semântica e acessibilidade</li><li>Flexbox, Grid e responsividade</li><li>DOM, funções, APIs e eventos</li></ul></article>
+        <article class="track-card visual"><span>02</span><h3>Visual</h3><p>UI/UX Design para deixar projetos profissionais, claros e agradáveis.</p><ul><li>Psicologia das cores</li><li>Layout, respiro e hierarquia</li><li>Cards, botões e formulários</li></ul></article>
+        <article class="track-card business"><span>03</span><h3>Business</h3><p>Renda digital com páginas simples, portfólio, propostas e processos.</p><ul><li>Link-in-bio</li><li>Portfólio magnético</li><li>Precificação e atendimento</li></ul></article>
+        <article class="track-card mindset"><span>04</span><h3>Mindset</h3><p>IA como copiloto para aprender, revisar e pensar melhor sem copiar tudo.</p><ul><li>Prompts para aprendizado</li><li>IA para code review</li><li>Brainstorming de design</li></ul></article>
       </section>
 
-      <section class="work-grid">
-        <article class="work-card"><span>01</span><h3>Página Bio</h3><p>Nome, descrição, links e botão de contato.</p><b>R$30+</b></article>
-        <article class="work-card"><span>02</span><h3>Perfil visual</h3><p>Apresentação estilo comunidade, Discord ou criador.</p><b>R$40+</b></article>
-        <article class="work-card"><span>03</span><h3>Card de divulgação</h3><p>Arte simples para vender serviço ou divulgar perfil.</p><b>R$10+</b></article>
-        <article class="work-card"><span>04</span><h3>Landing simples</h3><p>Uma página direta para serviço, projeto ou produto pequeno.</p><b>R$50+</b></article>
-      </section>
+      <section id="revisao" class="section lab"><div><p class="pill">Revisão inteligente</p><h2>Flashcards para lembrar o que importa.</h2></div><div class="lab-card flashcard"><p>Flashcard</p><strong>O que faz o HTML?</strong><small>Resposta: estrutura o conteúdo de uma página, como títulos, textos, imagens, links e botões.</small></div></section>
 
-      <section id="apps" class="section lab">
-        <div>
-          <p class="pill">Apps</p>
-          <h2>Mini apps para treinar e mostrar evolução.</h2>
-        </div>
-        <div class="lab-card"><p>Comece por aqui</p><strong>Relógio, cronômetro, lista de tarefas, app de metas e gerador de bio.</strong><small>Cada app ensina uma parte: estrutura, visual, clique, lógica e organização.</small></div>
-      </section>
+      <section id="desafios" class="section challenge-section"><p class="pill">Mão na massa</p><h2>Desafios pequenos para praticar sem travar.</h2><div class="challenge-grid"><article><b>CSS</b><h3>Corrija o botão</h3><p>Alinhe o texto, melhore o espaçamento e crie um hover simples.</p></article><article><b>JavaScript</b><h3>Contador</h3><p>Faça um botão aumentar um número na tela.</p></article><article><b>Prompt</b><h3>Dica, não resposta</h3><p>Treine pedir ajuda para a IA sem receber tudo pronto.</p></article></div></section>
 
-      <section class="app-grid">
-        <article><h3>Relógio</h3><p>Treina tempo e atualização de tela.</p></article>
-        <article><h3>Cronômetro</h3><p>Treina botões, estados e lógica simples.</p></article>
-        <article><h3>Lista de tarefas</h3><p>Treina criar, marcar e remover itens.</p></article>
-        <article><h3>App de metas</h3><p>Treina progresso e organização pessoal.</p></article>
-      </section>
-
-      <section id="prompts" class="section prompt-section">
-        <p class="pill">Prompts</p>
-        <h2>Use IA sem desligar seu cérebro.</h2>
-        <div class="prompt-grid">
-          <div><strong>Explicar</strong><p>Explique esse código como se eu estivesse começando do zero, com exemplo pequeno.</p></div>
-          <div><strong>Dica</strong><p>Não me dê a resposta. Me dê só uma dica para eu tentar sozinho.</p></div>
-          <div><strong>Revisar</strong><p>Veja meu código e diga onde está o erro, sem reescrever tudo.</p></div>
-          <div><strong>Design</strong><p>Me dê 3 formas simples de melhorar esse visual sem mudar tudo.</p></div>
-        </div>
-      </section>
-
-      <section id="setup" class="section final-card">
-        <p class="pill">Setup</p>
-        <h2>Ferramentas e compras úteis, sem distração.</h2>
-        <p>Notebook, mouse, teclado, fone, caderno e suporte. Só o que ajuda a estudar, criar e entregar.</p>
-        <a class="btn primary" href="mailto:thiagodouglas19tt@gmail.com">Enviar ideia de projeto</a>
-      </section>
+      <section id="proposta" class="section proposal"><div><p class="pill">Modo sua proposta</p><h2>Treine vender sem medo.</h2><p>Simule um cliente fictício, escolha um serviço e monte uma proposta simples para praticar atendimento e preço.</p></div><form class="proposal-card"><label>Cliente fictício<input value="Loja de bairro" /></label><label>Serviço<select><option>Página Bio</option><option>Landing simples</option><option>Card de divulgação</option></select></label><label>Preço sugerido<input value="R$50" /></label><button type="button" class="btn primary">Gerar estrutura</button></form></section>
     </main>
-
     <script type="module" src="./script.js"></script>
   </body>
 </html>
