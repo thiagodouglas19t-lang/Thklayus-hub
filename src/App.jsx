@@ -135,15 +135,17 @@ export default function App() {
           </div>
         </header>
 
-        <AnimatePresence mode="wait">
-          <motion.section key={abaAtiva} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={spring} className="flex-1">
-            {abaAtiva === 'home' ? (
-              <HomeScreen xp={xp} vidas={vidas} streak={streak} openLesson={() => setAbaAtiva('licao')} promptAtivo={promptAtivo} setPromptAtivo={setPromptAtivo} />
-            ) : (
-              <LessonScreen fase={fase} setFase={setFase} progresso={progresso} contrasteOk={contrasteOk} setContrasteOk={setContrasteOk} states={states} setStates={setStates} buttonPreviewClass={buttonPreviewClass} erroToque={erroToque} tocarMicroBotao={tocarMicroBotao} finalizarAula={finalizarAula} />
-            )}
-          </motion.section>
-        </AnimatePresence>
+        <section className="flex-1">
+          <AnimatePresence initial={false} mode="popLayout">
+            <motion.div key={abaAtiva} initial={{ opacity: 0.35, y: 8, scale: 0.995 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.995, position: 'absolute', inset: 0 }} transition={{ type: 'spring', stiffness: 420, damping: 34 }} className="w-full">
+              {abaAtiva === 'home' ? (
+                <HomeScreen xp={xp} vidas={vidas} streak={streak} openLesson={() => setAbaAtiva('licao')} promptAtivo={promptAtivo} setPromptAtivo={setPromptAtivo} />
+              ) : (
+                <LessonScreen fase={fase} setFase={setFase} progresso={progresso} contrasteOk={contrasteOk} setContrasteOk={setContrasteOk} states={states} setStates={setStates} buttonPreviewClass={buttonPreviewClass} erroToque={erroToque} tocarMicroBotao={tocarMicroBotao} finalizarAula={finalizarAula} />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </section>
 
         <nav className="fixed bottom-4 left-1/2 z-50 flex w-[calc(100%-24px)] max-w-md -translate-x-1/2 items-center justify-between rounded-[2rem] border border-white/35 bg-white/25 p-2 text-white shadow-[0_24px_90px_rgba(0,0,0,0.22)] backdrop-blur-2xl">
           {tabs.map((tab) => {
@@ -195,7 +197,7 @@ function Metric({ label, value }) {
 
 function LessonScreen({ fase, setFase, progresso, contrasteOk, setContrasteOk, states, setStates, buttonPreviewClass, erroToque, tocarMicroBotao, finalizarAula }) {
   const podeAvancar = fase !== 0 || contrasteOk
-  return <div className="space-y-4 text-black"><div className="h-1.5 overflow-hidden rounded-full bg-black/10"><motion.div animate={{ width: `${progresso}%` }} transition={liquid} className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-purple-400" /></div><motion.section layout transition={spring} className="min-h-[560px] rounded-[2rem] border border-white/45 bg-white/34 p-6 shadow-[0_34px_130px_rgba(0,0,0,0.17)] backdrop-blur-2xl"><AnimatePresence mode="wait"><motion.div key={fase} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={spring}>{fase === 0 && <FaseContraste contrasteOk={contrasteOk} setContrasteOk={setContrasteOk} />}{fase === 1 && <FaseSandbox states={states} setStates={setStates} buttonPreviewClass={buttonPreviewClass} />}{fase === 2 && <FaseAcessibilidade erroToque={erroToque} tocarMicroBotao={tocarMicroBotao} />}{fase === 3 && <FaseEntrega />}</motion.div></AnimatePresence></motion.section><div className="grid grid-cols-2 gap-3"><motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} onClick={() => setFase(Math.max(0, fase - 1))} className="rounded-3xl border border-white/45 bg-white/30 px-6 py-4 font-bold backdrop-blur-2xl">Voltar</motion.button><motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} disabled={!podeAvancar} onClick={fase === 3 ? finalizarAula : () => setFase(Math.min(3, fase + 1))} className={`rounded-3xl px-6 py-4 font-extrabold tracking-tight ${podeAvancar ? 'bg-black text-white shadow-[0_22px_70px_rgba(0,0,0,0.25)]' : 'bg-white/25 text-black/25'}`}>{fase === 3 ? 'Finalizar' : 'Avançar'}</motion.button></div></div>
+  return <div className="space-y-4 text-black"><div className="h-1.5 overflow-hidden rounded-full bg-black/10"><motion.div animate={{ width: `${progresso}%` }} transition={liquid} className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-purple-400" /></div><motion.section layout transition={spring} className="min-h-[560px] rounded-[2rem] border border-white/45 bg-white/34 p-6 shadow-[0_34px_130px_rgba(0,0,0,0.17)] backdrop-blur-2xl"><AnimatePresence initial={false} mode="popLayout"><motion.div key={fase} initial={{ opacity: 0.4, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6, position: 'absolute', inset: 0 }} transition={spring}>{fase === 0 && <FaseContraste contrasteOk={contrasteOk} setContrasteOk={setContrasteOk} />}{fase === 1 && <FaseSandbox states={states} setStates={setStates} buttonPreviewClass={buttonPreviewClass} />}{fase === 2 && <FaseAcessibilidade erroToque={erroToque} tocarMicroBotao={tocarMicroBotao} />}{fase === 3 && <FaseEntrega />}</motion.div></AnimatePresence></motion.section><div className="grid grid-cols-2 gap-3"><motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} onClick={() => setFase(Math.max(0, fase - 1))} className="rounded-3xl border border-white/45 bg-white/30 px-6 py-4 font-bold backdrop-blur-2xl">Voltar</motion.button><motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} disabled={!podeAvancar} onClick={fase === 3 ? finalizarAula : () => setFase(Math.min(3, fase + 1))} className={`rounded-3xl px-6 py-4 font-extrabold tracking-tight ${podeAvancar ? 'bg-black text-white shadow-[0_22px_70px_rgba(0,0,0,0.25)]' : 'bg-white/25 text-black/25'}`}>{fase === 3 ? 'Finalizar' : 'Avançar'}</motion.button></div></div>
 }
 
 function LiquidChoice({ selected, children, onClick, dark }) {
