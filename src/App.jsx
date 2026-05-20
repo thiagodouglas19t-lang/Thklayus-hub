@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, ChevronRight, Crown, Heart, Home, Layers3, MousePointer2, Sparkles, Zap } from 'lucide-react'
+import { Check, ChevronRight, Crown, Heart, Home, Layers3, MousePointer2, Sparkles, Trophy, Wand2, Zap } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
 const spring = { type: 'spring', stiffness: 350, damping: 28 }
 const liquid = { type: 'spring', stiffness: 220, damping: 18, mass: 0.9 }
-const glass = 'bg-white/[0.10] border border-white/[0.22] backdrop-blur-2xl rounded-3xl p-6 shadow-[0_28px_110px_rgba(0,0,0,0.16)]'
+const glass = 'bg-white/[0.12] border border-white/[0.24] backdrop-blur-2xl rounded-3xl p-6 shadow-[0_32px_130px_rgba(0,0,0,0.18)]'
 
 const tabs = [
   { id: 'home', label: 'Home', icon: Home },
@@ -13,14 +13,22 @@ const tabs = [
 ]
 
 const lessons = [
-  { title: 'Contraste que vende', tag: 'UI', time: '4 min' },
-  { title: 'Estados táteis', tag: 'Motion', time: '6 min' },
-  { title: 'Toque mobile 44px', tag: 'UX', time: '5 min' },
+  { title: 'Contraste que vende', tag: 'UI', time: '4 min', lock: false },
+  { title: 'Estados táteis', tag: 'Motion', time: '6 min', lock: false },
+  { title: 'Toque mobile 44px', tag: 'UX', time: '5 min', lock: false },
+  { title: 'Proposta de R$ 1.200', tag: 'Money', time: '8 min', lock: false },
 ]
 
 const projects = [
-  { title: 'Landing premium', value: 'R$ 1.200', desc: 'Hero, CTA e oferta para cliente local.' },
-  { title: 'Página Bio Pro', value: 'R$ 450', desc: 'Cartão digital com visual de produto caro.' },
+  { title: 'Landing premium', value: 'R$ 1.200', desc: 'Hero, CTA, prova social e oferta para cliente local.' },
+  { title: 'Página Bio Pro', value: 'R$ 450', desc: 'Cartão digital, links, oferta e captura de contato.' },
+  { title: 'Mini app visual', value: 'R$ 2.500', desc: 'Dashboard mobile-first com experiência de produto real.' },
+]
+
+const prompts = [
+  'Crie um botão CTA premium com estado hover, active e disabled.',
+  'Transforme esta landing em uma proposta de R$ 1.200 para cliente local.',
+  'Liste 5 melhorias de UX para aumentar cliques no botão principal.',
 ]
 
 export default function App() {
@@ -33,8 +41,9 @@ export default function App() {
   const [contrasteOk, setContrasteOk] = useState(false)
   const [erroToque, setErroToque] = useState(false)
   const [states, setStates] = useState({ hover: false, active: false, disabled: false })
+  const [promptAtivo, setPromptAtivo] = useState(0)
 
-  const progresso = ((fase + 1) / 3) * 100
+  const progresso = ((fase + 1) / 4) * 100
 
   const buttonPreviewClass = useMemo(() => {
     const classes = ['rounded-[1.35rem] px-8 py-4 font-extrabold tracking-tight bg-white text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.9),inset_0_-18px_34px_rgba(0,0,0,0.12),0_24px_70px_rgba(255,255,255,0.24)]']
@@ -107,10 +116,12 @@ export default function App() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#eafff4] text-[#071011]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(45,212,191,0.55),transparent_34%),radial-gradient(circle_at_100%_8%,rgba(168,85,247,0.30),transparent_27%),radial-gradient(circle_at_50%_55%,rgba(255,255,255,0.78),transparent_34%),linear-gradient(180deg,#f9fff9_0%,#baf4df_34%,#0b1010_100%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.08] mix-blend-multiply bg-[repeating-linear-gradient(0deg,#000_0px,#000_1px,transparent_1px,transparent_4px)]" />
-      <div className="pointer-events-none absolute left-[-90px] top-[-110px] h-96 w-96 rounded-full bg-cyan-300/35 blur-[140px]" />
-      <div className="pointer-events-none absolute bottom-32 right-[-120px] h-96 w-96 rounded-full bg-purple-500/30 blur-[140px]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(45,212,191,0.58),transparent_34%),radial-gradient(circle_at_100%_8%,rgba(168,85,247,0.34),transparent_27%),radial-gradient(circle_at_52%_45%,rgba(255,255,255,0.82),transparent_36%),linear-gradient(180deg,#fffefa_0%,#c8f8e5_30%,#f4fff7_55%,#070a0a_100%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.075] mix-blend-multiply bg-[repeating-linear-gradient(0deg,#000_0px,#000_1px,transparent_1px,transparent_4px)]" />
+      <div className="pointer-events-none absolute left-[-90px] top-[-110px] h-96 w-96 rounded-full bg-cyan-300/40 blur-[140px]" />
+      <div className="pointer-events-none absolute bottom-32 right-[-120px] h-96 w-96 rounded-full bg-purple-500/35 blur-[140px]" />
+      <motion.div animate={{ y: [0, -16, 0], rotate: [0, 4, 0] }} transition={{ duration: 9, repeat: Infinity }} className="pointer-events-none absolute right-4 top-32 h-28 w-28 rounded-[2rem] border border-white/35 bg-white/20 backdrop-blur-2xl" />
+      <motion.div animate={{ y: [0, 20, 0], rotate: [0, -6, 0] }} transition={{ duration: 11, repeat: Infinity }} className="pointer-events-none absolute left-5 top-[38rem] h-20 w-20 rounded-full border border-cyan-200/40 bg-cyan-200/20 blur-[1px]" />
 
       <div className="relative mx-auto flex min-h-screen max-w-md flex-col px-4 pb-28 pt-6">
         <header className="mb-7 flex items-center justify-between text-white mix-blend-difference">
@@ -127,7 +138,7 @@ export default function App() {
         <AnimatePresence mode="wait">
           <motion.section key={abaAtiva} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={spring} className="flex-1">
             {abaAtiva === 'home' ? (
-              <HomeScreen xp={xp} vidas={vidas} streak={streak} openLesson={() => setAbaAtiva('licao')} />
+              <HomeScreen xp={xp} vidas={vidas} streak={streak} openLesson={() => setAbaAtiva('licao')} promptAtivo={promptAtivo} setPromptAtivo={setPromptAtivo} />
             ) : (
               <LessonScreen fase={fase} setFase={setFase} progresso={progresso} contrasteOk={contrasteOk} setContrasteOk={setContrasteOk} states={states} setStates={setStates} buttonPreviewClass={buttonPreviewClass} erroToque={erroToque} tocarMicroBotao={tocarMicroBotao} finalizarAula={finalizarAula} />
             )}
@@ -150,12 +161,12 @@ function StatusPill({ icon, value }) {
   return <motion.div whileHover={{ y: -2 }} transition={spring} className="rounded-2xl border border-white/35 bg-white/25 px-3 py-2 text-white shadow-[0_12px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl"><div className="flex items-center gap-1.5 text-sm font-black">{icon}{value}</div></motion.div>
 }
 
-function HomeScreen({ xp, vidas, streak, openLesson }) {
-  return <div className="space-y-5"><HeroCard openLesson={openLesson} /><div className="grid grid-cols-3 gap-3"><Metric label="Streak" value={streak} /><Metric label="XP" value={xp} /><Metric label="Vidas" value={vidas} /></div><InterfacePreview /><SectionTitle title="Trilha de hoje" subtitle="Aulas curtas com resultado visual" /> <div className="space-y-3">{lessons.map((lesson, index) => <motion.button key={lesson.title} whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} onClick={index === 0 ? openLesson : undefined} className={`${glass} flex w-full items-center justify-between text-left`}><div><div className="flex items-center gap-2"><span className="rounded-full border border-black/10 bg-white/45 px-2 py-1 text-[10px] font-black text-black/45">{lesson.tag}</span><span className="text-xs text-black/35">{lesson.time}</span></div><h3 className="mt-3 text-xl font-extrabold tracking-tighter">{lesson.title}</h3></div><ChevronRight className="text-black/35" /></motion.button>)}</div><SectionTitle title="Renda digital" subtitle="Transforme aula em proposta" /><div className="grid gap-3">{projects.map((project) => <motion.article key={project.title} whileHover={{ y: -2 }} transition={spring} className={`${glass}`}><div className="flex items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.24em] text-black/35">Projeto</p><h3 className="mt-2 text-2xl font-extrabold tracking-tighter">{project.title}</h3><p className="mt-2 text-sm leading-6 text-black/45">{project.desc}</p></div><div className="rounded-2xl border border-emerald-600/10 bg-emerald-300/30 px-3 py-2 text-sm font-extrabold text-emerald-950">{project.value}</div></div></motion.article>)}</div></div>
+function HomeScreen({ xp, vidas, streak, openLesson, promptAtivo, setPromptAtivo }) {
+  return <div className="space-y-5"><HeroCard openLesson={openLesson} /><div className="grid grid-cols-3 gap-3"><Metric label="Streak" value={streak} /><Metric label="XP" value={xp} /><Metric label="Vidas" value={vidas} /></div><InterfacePreview /><PromptMachine promptAtivo={promptAtivo} setPromptAtivo={setPromptAtivo} /><SectionTitle title="Trilha de hoje" subtitle="Aulas curtas com resultado visual" /> <div className="space-y-3">{lessons.map((lesson, index) => <motion.button key={lesson.title} whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} onClick={index === 0 ? openLesson : undefined} className={`${glass} flex w-full items-center justify-between text-left`}><div><div className="flex items-center gap-2"><span className="rounded-full border border-black/10 bg-white/45 px-2 py-1 text-[10px] font-black text-black/45">{lesson.tag}</span><span className="text-xs text-black/35">{lesson.time}</span></div><h3 className="mt-3 text-xl font-extrabold tracking-tighter">{lesson.title}</h3></div><ChevronRight className="text-black/35" /></motion.button>)}</div><SectionTitle title="Renda digital" subtitle="Transforme aula em proposta" /><div className="grid gap-3">{projects.map((project) => <motion.article key={project.title} whileHover={{ y: -2 }} transition={spring} className={`${glass}`}><div className="flex items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.24em] text-black/35">Projeto</p><h3 className="mt-2 text-2xl font-extrabold tracking-tighter">{project.title}</h3><p className="mt-2 text-sm leading-6 text-black/45">{project.desc}</p></div><div className="rounded-2xl border border-emerald-600/10 bg-emerald-300/30 px-3 py-2 text-sm font-extrabold text-emerald-950">{project.value}</div></div></motion.article>)}</div><AchievementStrip /></div>
 }
 
 function HeroCard({ openLesson }) {
-  return <motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} onClick={openLesson} className="relative w-full overflow-hidden rounded-[2.6rem] border border-white/50 bg-white/30 p-6 text-left shadow-[0_36px_140px_rgba(0,0,0,0.20)] backdrop-blur-2xl"><div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-cyan-300/40 blur-[80px]" /><div className="absolute left-8 top-36 h-40 w-40 rounded-full bg-purple-400/20 blur-[70px]" /><div className="absolute bottom-0 left-0 right-0 h-52 bg-gradient-to-t from-black/70 via-black/18 to-transparent" /><div className="relative min-h-[430px]"><div className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/35 px-3 py-1.5 text-xs font-bold text-black/55 backdrop-blur-xl"><Crown size={13} /> Signature Series</div><h2 className="max-w-xs text-6xl font-extrabold leading-[0.82] tracking-tighter text-black">Botões que parecem produto caro.</h2><PremiumKeys /><div className="absolute bottom-0 left-0 right-0 text-white"><p className="max-w-xs text-sm leading-7 text-white/72">Aprenda a criar CTA com presença, contraste, estados e toque mobile.</p><div className="mt-5 flex items-center gap-3"><span className="rounded-2xl bg-white px-5 py-3 text-sm font-extrabold text-black shadow-[0_18px_50px_rgba(255,255,255,0.24)]">Começar aula</span><span className="text-sm font-bold text-white/55">+15 XP</span></div></div></div></motion.button>
+  return <motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} onClick={openLesson} className="relative w-full overflow-hidden rounded-[2.6rem] border border-white/50 bg-white/32 p-6 text-left shadow-[0_36px_140px_rgba(0,0,0,0.20)] backdrop-blur-2xl"><div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-cyan-300/40 blur-[80px]" /><div className="absolute left-8 top-36 h-40 w-40 rounded-full bg-purple-400/20 blur-[70px]" /><div className="absolute bottom-0 left-0 right-0 h-52 bg-gradient-to-t from-black/70 via-black/18 to-transparent" /><div className="relative min-h-[470px]"><div className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/35 px-3 py-1.5 text-xs font-bold text-black/55 backdrop-blur-xl"><Crown size={13} /> Signature Series</div><h2 className="max-w-xs text-6xl font-extrabold leading-[0.82] tracking-tighter text-black">Botões que parecem produto caro.</h2><PremiumKeys /><motion.div animate={{ x: [0, 12, 0], y: [0, -8, 0] }} transition={{ duration: 4.8, repeat: Infinity }} className="absolute right-3 top-10 h-12 w-12 rounded-full bg-cyan-300/80 shadow-[0_0_60px_rgba(34,211,238,0.65)]" /><div className="absolute bottom-0 left-0 right-0 text-white"><p className="max-w-xs text-sm leading-7 text-white/72">Aprenda a criar CTA com presença, contraste, estados e toque mobile.</p><div className="mt-5 flex items-center gap-3"><span className="rounded-2xl bg-white px-5 py-3 text-sm font-extrabold text-black shadow-[0_18px_50px_rgba(255,255,255,0.24)]">Começar aula</span><span className="text-sm font-bold text-white/55">+15 XP</span></div></div></div></motion.button>
 }
 
 function PremiumKeys() {
@@ -163,7 +174,15 @@ function PremiumKeys() {
 }
 
 function InterfacePreview() {
-  return <motion.article whileHover={{ y: -2 }} transition={spring} className="relative overflow-hidden rounded-[2rem] border border-white/45 bg-white/28 p-4 shadow-[0_30px_110px_rgba(0,0,0,0.17)] backdrop-blur-2xl"><div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(34,211,238,0.32),transparent_30%),radial-gradient(circle_at_20%_0%,rgba(147,51,234,0.18),transparent_34%)]" /><div className="relative rounded-[1.5rem] border border-white/20 bg-black/72 p-4 text-white"><div className="mb-8 flex items-center justify-between"><div className="h-8 w-8 rounded-xl bg-white/10" /><div className="flex gap-2 text-[10px] text-white/35"><span>Design</span><span>Code</span><span>Sell</span></div></div><p className="text-xs uppercase tracking-[0.24em] text-cyan-100/45">Portfolio UI</p><h3 className="mt-2 text-4xl font-extrabold leading-[0.9] tracking-tighter">From lesson to client-ready interface.</h3><div className="mt-7 grid grid-cols-2 gap-3"><div className="h-20 rounded-2xl border border-white/[0.08] bg-white/[0.05]" /><div className="h-20 rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.10]" /></div></div></motion.article>
+  return <motion.article whileHover={{ y: -2 }} transition={spring} className="relative overflow-hidden rounded-[2rem] border border-white/45 bg-white/30 p-4 shadow-[0_30px_110px_rgba(0,0,0,0.17)] backdrop-blur-2xl"><div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(34,211,238,0.32),transparent_30%),radial-gradient(circle_at_20%_0%,rgba(147,51,234,0.18),transparent_34%)]" /><div className="relative rounded-[1.5rem] border border-white/20 bg-black/72 p-4 text-white"><div className="mb-8 flex items-center justify-between"><div className="h-8 w-8 rounded-xl bg-white/10" /><div className="flex gap-2 text-[10px] text-white/35"><span>Design</span><span>Code</span><span>Sell</span></div></div><p className="text-xs uppercase tracking-[0.24em] text-cyan-100/45">Portfolio UI</p><h3 className="mt-2 text-4xl font-extrabold leading-[0.9] tracking-tighter">From lesson to client-ready interface.</h3><div className="mt-7 grid grid-cols-2 gap-3"><div className="h-20 rounded-2xl border border-white/[0.08] bg-white/[0.05]" /><div className="h-20 rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.10]" /></div></div></motion.article>
+}
+
+function PromptMachine({ promptAtivo, setPromptAtivo }) {
+  return <motion.article whileHover={{ y: -2 }} transition={spring} className={`${glass}`}><div className="flex items-center justify-between"><div><p className="text-xs uppercase tracking-[0.24em] text-black/35">Prompt Lab</p><h3 className="mt-2 text-2xl font-extrabold tracking-tighter">Copie, pratique, venda.</h3></div><Wand2 className="text-black/45" /></div><div className="relative mt-5 rounded-[1.4rem] border border-white/45 bg-white/30 p-4 backdrop-blur-xl"><AnimatePresence mode="wait"><motion.p key={promptAtivo} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={spring} className="text-sm font-bold leading-7 text-black/60">{prompts[promptAtivo]}</motion.p></AnimatePresence></div><div className="mt-4 grid grid-cols-3 gap-2">{prompts.map((_, index) => <motion.button key={index} whileTap={{ scale: 0.95 }} transition={liquid} onClick={() => setPromptAtivo(index)} className="relative h-10 rounded-2xl border border-white/40 bg-white/30">{promptAtivo === index && <motion.span layoutId="promptLiquid" transition={liquid} className="absolute inset-1 rounded-2xl bg-cyan-300/80 shadow-[0_0_35px_rgba(34,211,238,0.6)]" />}</motion.button>)}</div></motion.article>
+}
+
+function AchievementStrip() {
+  return <div className="grid grid-cols-2 gap-3 pb-3"><motion.article whileHover={{ y: -2 }} transition={spring} className={`${glass}`}><Trophy className="text-orange-500" /><h3 className="mt-4 text-2xl font-extrabold tracking-tighter">Level 01</h3><p className="mt-1 text-sm text-black/45">Designer que entrega.</p></motion.article><motion.article whileHover={{ y: -2 }} transition={spring} className={`${glass}`}><Sparkles className="text-cyan-600" /><h3 className="mt-4 text-2xl font-extrabold tracking-tighter">3 assets</h3><p className="mt-1 text-sm text-black/45">Para portfólio.</p></motion.article></div>
 }
 
 function SectionTitle({ title, subtitle }) {
@@ -171,16 +190,16 @@ function SectionTitle({ title, subtitle }) {
 }
 
 function Metric({ label, value }) {
-  return <motion.article whileHover={{ y: -2 }} transition={spring} className="rounded-3xl border border-white/45 bg-white/28 p-4 shadow-[0_18px_70px_rgba(0,0,0,0.12)] backdrop-blur-2xl"><p className="text-xs text-black/45">{label}</p><h3 className="mt-2 text-3xl font-extrabold tracking-tighter text-black">{value}</h3></motion.article>
+  return <motion.article whileHover={{ y: -2 }} transition={spring} className="rounded-3xl border border-white/45 bg-white/30 p-4 shadow-[0_18px_70px_rgba(0,0,0,0.12)] backdrop-blur-2xl"><p className="text-xs text-black/45">{label}</p><h3 className="mt-2 text-3xl font-extrabold tracking-tighter text-black">{value}</h3></motion.article>
 }
 
 function LessonScreen({ fase, setFase, progresso, contrasteOk, setContrasteOk, states, setStates, buttonPreviewClass, erroToque, tocarMicroBotao, finalizarAula }) {
   const podeAvancar = fase !== 0 || contrasteOk
-  return <div className="space-y-4 text-black"><div className="h-1.5 overflow-hidden rounded-full bg-black/10"><motion.div animate={{ width: `${progresso}%` }} transition={liquid} className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-purple-400" /></div><motion.section layout transition={spring} className="min-h-[560px] rounded-[2rem] border border-white/45 bg-white/32 p-6 shadow-[0_34px_130px_rgba(0,0,0,0.17)] backdrop-blur-2xl"><AnimatePresence mode="wait"><motion.div key={fase} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={spring}>{fase === 0 && <FaseContraste contrasteOk={contrasteOk} setContrasteOk={setContrasteOk} />}{fase === 1 && <FaseSandbox states={states} setStates={setStates} buttonPreviewClass={buttonPreviewClass} />}{fase === 2 && <FaseAcessibilidade erroToque={erroToque} tocarMicroBotao={tocarMicroBotao} />}</motion.div></AnimatePresence></motion.section><div className="grid grid-cols-2 gap-3"><motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} onClick={() => setFase(Math.max(0, fase - 1))} className="rounded-3xl border border-white/45 bg-white/28 px-6 py-4 font-bold backdrop-blur-2xl">Voltar</motion.button><motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} disabled={!podeAvancar} onClick={fase === 2 ? finalizarAula : () => setFase(Math.min(2, fase + 1))} className={`rounded-3xl px-6 py-4 font-extrabold tracking-tight ${podeAvancar ? 'bg-black text-white shadow-[0_22px_70px_rgba(0,0,0,0.25)]' : 'bg-white/25 text-black/25'}`}>{fase === 2 ? 'Finalizar' : 'Avançar'}</motion.button></div></div>
+  return <div className="space-y-4 text-black"><div className="h-1.5 overflow-hidden rounded-full bg-black/10"><motion.div animate={{ width: `${progresso}%` }} transition={liquid} className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-purple-400" /></div><motion.section layout transition={spring} className="min-h-[560px] rounded-[2rem] border border-white/45 bg-white/34 p-6 shadow-[0_34px_130px_rgba(0,0,0,0.17)] backdrop-blur-2xl"><AnimatePresence mode="wait"><motion.div key={fase} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={spring}>{fase === 0 && <FaseContraste contrasteOk={contrasteOk} setContrasteOk={setContrasteOk} />}{fase === 1 && <FaseSandbox states={states} setStates={setStates} buttonPreviewClass={buttonPreviewClass} />}{fase === 2 && <FaseAcessibilidade erroToque={erroToque} tocarMicroBotao={tocarMicroBotao} />}{fase === 3 && <FaseEntrega />}</motion.div></AnimatePresence></motion.section><div className="grid grid-cols-2 gap-3"><motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} onClick={() => setFase(Math.max(0, fase - 1))} className="rounded-3xl border border-white/45 bg-white/30 px-6 py-4 font-bold backdrop-blur-2xl">Voltar</motion.button><motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} disabled={!podeAvancar} onClick={fase === 3 ? finalizarAula : () => setFase(Math.min(3, fase + 1))} className={`rounded-3xl px-6 py-4 font-extrabold tracking-tight ${podeAvancar ? 'bg-black text-white shadow-[0_22px_70px_rgba(0,0,0,0.25)]' : 'bg-white/25 text-black/25'}`}>{fase === 3 ? 'Finalizar' : 'Avançar'}</motion.button></div></div>
 }
 
 function LiquidChoice({ selected, children, onClick, dark }) {
-  return <motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} onClick={onClick} className={`relative overflow-hidden rounded-3xl px-5 py-4 text-left font-extrabold ${dark ? 'bg-black text-white' : 'bg-white/38 text-black'} border border-white/45 backdrop-blur-xl`}>{selected && <motion.span layoutId="liquidChoiceBubble" transition={liquid} className="absolute right-3 top-1/2 h-11 w-11 -translate-y-1/2 rounded-full bg-cyan-300/90 shadow-[0_0_50px_rgba(34,211,238,0.65)]" />}<span className="relative">{children}</span></motion.button>
+  return <motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} onClick={onClick} className={`relative overflow-hidden rounded-3xl px-5 py-4 text-left font-extrabold ${dark ? 'bg-black text-white' : 'bg-white/40 text-black'} border border-white/45 backdrop-blur-xl`}>{selected && <motion.span layoutId="liquidChoiceBubble" transition={liquid} className="absolute right-3 top-1/2 h-11 w-11 -translate-y-1/2 rounded-full bg-cyan-300/90 shadow-[0_0_50px_rgba(34,211,238,0.65)]" />}<span className="relative">{children}</span></motion.button>
 }
 
 function FaseContraste({ contrasteOk, setContrasteOk }) {
@@ -188,13 +207,17 @@ function FaseContraste({ contrasteOk, setContrasteOk }) {
 }
 
 function FaseSandbox({ states, setStates, buttonPreviewClass }) {
-  return <div><p className="text-xs font-black uppercase tracking-[0.24em] text-black/35">Fase 1</p><h2 className="mt-4 text-5xl font-extrabold leading-[0.9] tracking-tighter">Estados com peso físico.</h2><p className="mt-4 text-sm leading-7 text-black/50">A bolha desliza nos switches como água dentro de vidro.</p><div className="my-10 grid place-items-center rounded-3xl border border-white/45 bg-white/28 p-8 backdrop-blur-xl"><motion.button layout transition={spring} className={buttonPreviewClass}>Botão Premium</motion.button></div><div className="space-y-3">{['hover', 'active', 'disabled'].map((key) => <Switch key={key} label={key} value={states[key]} onClick={() => setStates({ ...states, [key]: !states[key] })} />)}</div></div>
+  return <div><p className="text-xs font-black uppercase tracking-[0.24em] text-black/35">Fase 1</p><h2 className="mt-4 text-5xl font-extrabold leading-[0.9] tracking-tighter">Estados com peso físico.</h2><p className="mt-4 text-sm leading-7 text-black/50">A bolha desliza nos switches como água dentro de vidro.</p><div className="my-10 grid place-items-center rounded-3xl border border-white/45 bg-white/30 p-8 backdrop-blur-xl"><motion.button layout transition={spring} className={buttonPreviewClass}>Botão Premium</motion.button></div><div className="space-y-3">{['hover', 'active', 'disabled'].map((key) => <Switch key={key} label={key} value={states[key]} onClick={() => setStates({ ...states, [key]: !states[key] })} />)}</div></div>
 }
 
 function Switch({ label, value, onClick }) {
-  return <motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} onClick={onClick} className="flex w-full items-center justify-between rounded-3xl border border-white/45 bg-white/28 p-4 backdrop-blur-xl"><span className="font-extrabold capitalize tracking-tight">{label}</span><span className="relative h-8 w-14 overflow-hidden rounded-full border border-white/45 bg-white/35"><motion.span layout transition={liquid} className={`absolute top-1 h-6 w-6 rounded-full bg-cyan-300 shadow-[0_0_35px_rgba(34,211,238,0.70)] ${value ? 'left-7' : 'left-1'}`} /></span></motion.button>
+  return <motion.button whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={spring} onClick={onClick} className="flex w-full items-center justify-between rounded-3xl border border-white/45 bg-white/30 p-4 backdrop-blur-xl"><span className="font-extrabold capitalize tracking-tight">{label}</span><span className="relative h-8 w-14 overflow-hidden rounded-full border border-white/45 bg-white/35"><motion.span layout transition={liquid} className={`absolute top-1 h-6 w-6 rounded-full bg-cyan-300 shadow-[0_0_35px_rgba(34,211,238,0.70)] ${value ? 'left-7' : 'left-1'}`} /></span></motion.button>
 }
 
 function FaseAcessibilidade({ erroToque, tocarMicroBotao }) {
-  return <div><p className="text-xs font-black uppercase tracking-[0.24em] text-black/35">Fase 2</p><h2 className="mt-4 text-5xl font-extrabold leading-[0.9] tracking-tighter">Toque mobile sem fricção.</h2><p className="mt-4 text-sm leading-7 text-black/50">O micro botão vira uma bolha acessível de 44px.</p><div className="mt-10 grid place-items-center rounded-3xl border border-white/45 bg-white/28 p-10 backdrop-blur-xl"><motion.button layout whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={liquid} onClick={tocarMicroBotao} className={`grid place-items-center font-extrabold ${erroToque ? 'h-11 w-11 rounded-full bg-cyan-300 text-black shadow-[0_0_60px_rgba(34,211,238,0.70)]' : 'h-5 w-5 rounded-full bg-black/20 text-[10px] text-black/35'}`}><MousePointer2 size={erroToque ? 18 : 10} /></motion.button></div>{erroToque && <p className="mt-5 text-sm font-bold leading-6 text-cyan-950/70">Corrigido para 44x44px com transição elástica.</p>}</div>
+  return <div><p className="text-xs font-black uppercase tracking-[0.24em] text-black/35">Fase 2</p><h2 className="mt-4 text-5xl font-extrabold leading-[0.9] tracking-tighter">Toque mobile sem fricção.</h2><p className="mt-4 text-sm leading-7 text-black/50">O micro botão vira uma bolha acessível de 44px.</p><div className="mt-10 grid place-items-center rounded-3xl border border-white/45 bg-white/30 p-10 backdrop-blur-xl"><motion.button layout whileTap={{ scale: 0.95 }} whileHover={{ y: -2 }} transition={liquid} onClick={tocarMicroBotao} className={`grid place-items-center font-extrabold ${erroToque ? 'h-11 w-11 rounded-full bg-cyan-300 text-black shadow-[0_0_60px_rgba(34,211,238,0.70)]' : 'h-5 w-5 rounded-full bg-black/20 text-[10px] text-black/35'}`}><MousePointer2 size={erroToque ? 18 : 10} /></motion.button></div>{erroToque && <p className="mt-5 text-sm font-bold leading-6 text-cyan-950/70">Corrigido para 44x44px com transição elástica.</p>}</div>
+}
+
+function FaseEntrega() {
+  return <div><p className="text-xs font-black uppercase tracking-[0.24em] text-black/35">Fase 3</p><h2 className="mt-4 text-5xl font-extrabold leading-[0.9] tracking-tighter">Agora isso vira dinheiro.</h2><p className="mt-4 text-sm leading-7 text-black/50">Você acabou de transformar detalhes visuais em argumento de proposta: clareza, confiança e menos fricção.</p><div className="mt-8 grid gap-3"><div className="rounded-3xl border border-white/45 bg-white/35 p-5 backdrop-blur-xl"><p className="text-xs uppercase tracking-[0.24em] text-black/35">Oferta</p><h3 className="mt-2 text-3xl font-extrabold tracking-tighter">Landing premium</h3><p className="mt-2 text-sm text-black/45">Valor sugerido: R$ 1.200</p></div><div className="rounded-3xl bg-black p-5 text-white"><p className="text-xs uppercase tracking-[0.24em] text-white/35">Recompensa</p><h3 className="mt-2 text-3xl font-extrabold tracking-tighter">+15 XP</h3></div></div></div>
 }
