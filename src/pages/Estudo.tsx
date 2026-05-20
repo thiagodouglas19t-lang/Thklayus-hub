@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { professionalCourses } from "../data/courses";
+import LicaoInterativa from "../components/LicaoInterativa";
 
 type Compra = {
   id: string;
@@ -16,7 +17,7 @@ type AcessoManual = {
 };
 
 type Kit = (typeof professionalCourses)[number];
-type View = "catalog" | "kit";
+type View = "catalog" | "kit" | "licao";
 
 function normalize(text?: string | null) {
   return (text ?? "")
@@ -165,6 +166,10 @@ export default function Estudo() {
     URL.revokeObjectURL(url);
   }
 
+  if (view === "licao") {
+    return <LicaoInterativa onBackHome={() => setView("catalog")} onFinish={() => setView("catalog")} />;
+  }
+
   if (loading) {
     return (
       <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-8 text-center">
@@ -197,8 +202,8 @@ export default function Estudo() {
 
         <section className="grid gap-3 md:grid-cols-3">
           <button onClick={baixarKit} className="rounded-2xl bg-white px-5 py-4 font-black text-black">Baixar kit</button>
-          <button onClick={() => window.dispatchEvent(new CustomEvent("thklayus-open-page", { detail: "resolver" }))} className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 font-black text-white">Resolver com base</button>
-          <button onClick={() => window.dispatchEvent(new CustomEvent("thklayus-open-page", { detail: "pedidos" }))} className="rounded-2xl border border-violet-300/20 bg-violet-500/10 px-5 py-4 font-black text-violet-100">Pedir pronto</button>
+          <button onClick={() => setView("licao")} className="rounded-2xl border border-violet-300/20 bg-violet-500/10 px-5 py-4 font-black text-violet-100">Abrir lição interativa</button>
+          <button onClick={() => window.dispatchEvent(new CustomEvent("thklayus-open-page", { detail: "pedidos" }))} className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 font-black text-white">Pedir pronto</button>
         </section>
 
         <section className="grid gap-4 lg:grid-cols-2">
@@ -210,12 +215,8 @@ export default function Estudo() {
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-300">Modelo {index + 1}</p>
                 <h2 className="mt-3 text-2xl font-black leading-tight text-white">{item.title}</h2>
                 <p className="mt-3 text-sm leading-7 text-zinc-400">{item.text}</p>
-                <div className="mt-4 rounded-2xl border border-white/10 bg-black/50 p-4 text-sm leading-7 text-zinc-300">
-                  {item.action}
-                </div>
-                <button onClick={() => copyText(id, content)} className="mt-4 w-full rounded-2xl bg-white px-5 py-3 font-black text-black">
-                  {copied === id ? "Copiado!" : "Copiar modelo"}
-                </button>
+                <div className="mt-4 rounded-2xl border border-white/10 bg-black/50 p-4 text-sm leading-7 text-zinc-300">{item.action}</div>
+                <button onClick={() => copyText(id, content)} className="mt-4 w-full rounded-2xl bg-white px-5 py-3 font-black text-black">{copied === id ? "Copiado!" : "Copiar modelo"}</button>
               </article>
             );
           })}
@@ -229,12 +230,12 @@ export default function Estudo() {
       <section className="relative overflow-hidden rounded-[3rem] border border-violet-300/15 bg-[#030006] px-6 py-10 shadow-2xl shadow-violet-950/25 md:px-10 md:py-14">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_45%_0%,rgba(168,85,247,0.32),transparent_34%),radial-gradient(circle_at_10%_20%,rgba(124,58,237,0.20),transparent_30%),radial-gradient(circle_at_90%_50%,rgba(255,255,255,0.06),transparent_26%)]" />
         <div className="relative max-w-4xl">
-          <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">Biblioteca rápida</span>
-          <h1 className="mt-7 text-5xl font-black leading-[0.95] tracking-[-0.08em] text-white md:text-7xl">Modelos e kits para usar sem começar do zero.</h1>
-          <p className="mt-6 max-w-2xl text-base leading-8 text-zinc-300">Nada de curso. Aqui ficam bases prontas para currículo, apresentação, mensagem, organização, venda e tarefas rápidas.</p>
-          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+          <span className="rounded-full border border-violet-300/25 bg-violet-500/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-violet-100">CodeBloom</span>
+          <h1 className="mt-7 text-5xl font-black leading-[0.95] tracking-[-0.08em] text-white md:text-7xl">Aprenda design criando interfaces que parecem caras.</h1>
+          <p className="mt-6 max-w-2xl text-base leading-8 text-zinc-300">Comece pela primeira lição interativa: botões premium, contraste, estados e toque mobile.</p>
+          <div className="mt-8 grid gap-3 sm:grid-cols-4">
+            <button onClick={() => setView("licao")} className="rounded-3xl bg-violet-300 p-5 text-left font-black text-black transition active:scale-95 sm:col-span-2">Continuar lição<br /><span className="text-sm font-bold text-black/60">Design System: Botões</span></button>
             <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5"><p className="text-sm text-zinc-500">Disponíveis</p><p className="mt-1 text-3xl font-black text-white">{totalDisponiveis}</p></div>
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5"><p className="text-sm text-zinc-500">Extras</p><p className="mt-1 text-3xl font-black text-white">{totalExtras}</p></div>
             <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5"><p className="text-sm text-zinc-500">Total</p><p className="mt-1 text-3xl font-black text-white">{professionalCourses.length}</p></div>
           </div>
         </div>
