@@ -21,19 +21,17 @@ function getProfileId() {
 }
 
 function roomTopic(code) {
-  return `walktok-private-${String(code || '00001').replace(/\D/g, '').slice(0, 20) || '00001'}`
+  return `walktok-call-${String(code || '00001').replace(/\D/g, '').slice(0, 20) || '00001'}`
 }
 
 export default function App() {
-  const [joined, setJoined] = useState(() => localStorage.getItem('walktok-joined') !== 'false')
+  const [joined, setJoined] = useState(false)
   const [muted, setMuted] = useState(() => localStorage.getItem('walktok-muted') === 'true')
-  const [tx, setTx] = useState(false)
-  const [micStatus, setMicStatus] = useState('entre na sala privada e segure PTT')
+  const [micStatus, setMicStatus] = useState('entre na sala para iniciar a ligação')
   const [roomCode, setRoomCode] = useState(() => localStorage.getItem(ROOM_KEY) || '00001')
   const [name, setName] = useState(() => localStorage.getItem(NAME_KEY) || `Tok ${Math.floor(100 + Math.random() * 900)}`)
-  const [peopleOnline, setPeopleOnline] = useState(1)
+  const [peopleOnline, setPeopleOnline] = useState(0)
   const [participants, setParticipants] = useState([])
-  const [speaker, setSpeaker] = useState('ninguém falando')
   const streamRef = useRef(null)
   const realtimeRef = useRef(null)
   const peersRef = useRef(new Map())
@@ -43,7 +41,6 @@ export default function App() {
   const makingOfferRef = useRef(false)
 
   useEffect(() => { if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {}) }, [])
-  useEffect(() => localStorage.setItem('walktok-joined', String(joined)), [joined])
   useEffect(() => localStorage.setItem('walktok-muted', String(muted)), [muted])
   useEffect(() => localStorage.setItem(ROOM_KEY, roomCode), [roomCode])
   useEffect(() => localStorage.setItem(NAME_KEY, name), [name])
@@ -64,28 +61,20 @@ export default function App() {
       return
     }
 
-    closeAllPeers()
     const channel = supabase.channel(roomTopic(roomCode), { config: { presence: { key: profileIdRef.current } } })
     realtimeRef.current = channel
 
     channel.on('presence', { event: 'sync' }, async () => {
       const state = channel.presenceState()
       const ids = Object.keys(state)
-      const list = ids.map((id) => ({ id, name: state[id]?.[0]?.name || 'Tok', self: id === profileIdRef.current }))
-      setParticipants(list)
       setPeopleOnline(ids.length || 1)
+      setParticipants(ids.map((id) => ({ id, name: state[id]?.[0]?.name || 'Tok', self: id === profileIdRef.current })))
       for (const id of ids) {
         if (id !== profileIdRef.current) {
           politeRef.current.set(id, profileIdRef.current > id)
           await ensurePeer(id)
         }
       }
-    })
-
-    channel.on('broadcast', { event: 'ptt' }, ({ payload }) => {
-      if (!payload || payload.from === profileIdRef.current) return
-      setSpeaker(payload.live ? payload.name || 'alguém' : 'ninguém falando')
-      setMicStatus(payload.live ? `${payload.name || 'alguém'} está falando` : 'ouvindo sala privada')
     })
 
     channel.on('broadcast', { event: 'rtc' }, async ({ payload }) => {
@@ -96,7 +85,7 @@ export default function App() {
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
         await channel.track({ id: profileIdRef.current, name, roomCode, onlineAt: Date.now() })
-        setMicStatus('sala privada conectada')
+        setMicStatus(muted ? 'na ligação, microfone mudo' : 'na ligação, microfone aberto')
       }
     })
 
@@ -106,10 +95,9 @@ export default function App() {
       realtimeRef.current = null
       closeAllPeers()
     }
-  }, [joined, roomCode, name])
+  }, [joined, roomCode, name, muted])
 
-  const peopleInChannel = hasSupabase ? peopleOnline : joined ? 1 : 0
-  const status = !joined ? 'FORA' : muted ? 'MUDO' : tx ? 'AO VIVO' : 'OUVINDO'
+  const status = !joined ? 'FORA' : muted ? 'MUDO' : 'EM LIGAÇÃO'
   const initials = name.trim().slice(0, 2).toUpperCase() || 'TK'
 
   function closeAllPeers() {
@@ -120,14 +108,17 @@ export default function App() {
     audiosRef.current.clear()
   }
 
-  async function ensureMic() {
-    if (streamRef.current) return streamRef.current
+  async function ensureMic(open = !muted) {
+    if (streamRef.current) {
+      setMicLive(open)
+      return streamRef.current
+    }
     setMicStatus('liberando microfone...')
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
-    stream.getAudioTracks().forEach((track) => { track.enabled = false })
     streamRef.current = stream
+    stream.getAudioTracks().forEach((track) => { track.enabled = open })
     peersRef.current.forEach((peer) => addLocalTracks(peer, stream))
-    setMicStatus('microfone pronto')
+    setMicStatus(open ? 'na ligação, microfone aberto' : 'na ligação, microfone mudo')
     return stream
   }
 
@@ -150,8 +141,8 @@ export default function App() {
 
     peer.onicecandidate = (event) => { if (event.candidate) sendSignal(peerId, { type: 'ice', candidate: event.candidate }) }
     peer.onconnectionstatechange = () => {
-      if (['failed', 'disconnected', 'closed'].includes(peer.connectionState)) setMicStatus('reconectando áudio...')
-      if (peer.connectionState === 'connected') setMicStatus('áudio ao vivo conectado')
+      if (peer.connectionState === 'connected') setMicStatus(muted ? 'na ligação, microfone mudo' : 'na ligação, microfone aberto')
+      if (['failed', 'disconnected'].includes(peer.connectionState)) setMicStatus('reconectando ligação...')
     }
     peer.ontrack = (event) => {
       let audio = audiosRef.current.get(peerId)
@@ -164,9 +155,8 @@ export default function App() {
         document.body.appendChild(audio)
         audiosRef.current.set(peerId, audio)
       }
-      audio.muted = muted
       audio.srcObject = event.streams[0]
-      audio.play().catch(() => setMicStatus('toque no PTT uma vez para liberar áudio'))
+      audio.play().catch(() => setMicStatus('toque em Entrar para liberar áudio'))
     }
     if (streamRef.current) addLocalTracks(peer, streamRef.current)
 
@@ -206,62 +196,39 @@ export default function App() {
     streamRef.current.getAudioTracks().forEach((track) => { track.enabled = value })
   }
 
-  function joinRoom() {
-    setJoined(true)
-    setMuted(false)
-    setMicStatus('entrando na sala privada')
-  }
-
-  function leaveRoom() {
-    setMicLive(false)
-    setTx(false)
-    setJoined(false)
-    setSpeaker('ninguém falando')
-    setMicStatus('fora da sala')
-    closeAllPeers()
-  }
-
-  async function startTalk() {
-    if (!joined) return joinRoom()
-    if (muted) return
+  async function enterCall() {
     try {
-      const stream = await ensureMic()
-      for (const peer of peersRef.current.values()) addLocalTracks(peer, stream)
-      setMicLive(true)
-      setTx(true)
-      setSpeaker('você')
-      setMicStatus('você está falando')
-      if (realtimeRef.current) await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, name, live: true, roomCode, at: Date.now() } })
-      if ('vibrate' in navigator) navigator.vibrate(25)
+      setMicStatus('entrando na ligação...')
+      await ensureMic(!muted)
+      setJoined(true)
     } catch {
       setMicStatus('microfone bloqueado')
-      setTx(false)
     }
   }
 
-  async function stopTalk() {
+  function leaveCall() {
+    setJoined(false)
     setMicLive(false)
-    setTx(false)
-    setSpeaker('ninguém falando')
-    if (realtimeRef.current) await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, name, live: false, roomCode, at: Date.now() } })
-    if (joined) setMicStatus('ouvindo sala privada')
+    setMicStatus('fora da ligação')
+    closeAllPeers()
   }
 
   function toggleMute() {
     const next = !muted
     setMuted(next)
-    audiosRef.current.forEach((audio) => { audio.muted = next })
+    setMicLive(!next)
+    setMicStatus(next ? 'na ligação, microfone mudo' : 'na ligação, microfone aberto')
   }
 
   return (
     <main className="app voice-app">
-      <section className={`phone-radio ${tx ? 'talking' : ''} ${muted ? 'muted' : ''} ${!joined ? 'left' : ''}`}>
+      <section className={`phone-radio ${joined && !muted ? 'talking' : ''} ${muted ? 'muted' : ''} ${!joined ? 'left' : ''}`}>
         <header className="top-panel">
           <div>
             <span className="eyebrow">{APP_NAME}</span>
-            <h1>Privada</h1>
+            <h1>Ligação</h1>
           </div>
-          <button className="mini-button" onClick={joined ? leaveRoom : joinRoom}>{joined ? 'Sair' : 'Entrar'}</button>
+          <button className="mini-button" onClick={joined ? leaveCall : enterCall}>{joined ? 'Sair' : 'Entrar'}</button>
         </header>
 
         <div className="profile-card">
@@ -272,23 +239,23 @@ export default function App() {
         <div className="display-card">
           <div className="status-dot" />
           <p>{status}</p>
-          <strong>{peopleInChannel} {peopleInChannel === 1 ? 'pessoa' : 'pessoas'} na sala</strong>
-          <small>{joined ? micStatus : 'entre para escutar'}</small>
+          <strong>{peopleOnline} {peopleOnline === 1 ? 'pessoa' : 'pessoas'} na ligação</strong>
+          <small>{micStatus}</small>
         </div>
 
         <label className="channel-box">
           <span>Código da sala privada</span>
-          <input value={roomCode} onChange={(event) => setRoomCode(event.target.value.replace(/\D/g, '').slice(0, 20))} />
+          <input value={roomCode} onChange={(event) => setRoomCode(event.target.value.replace(/\D/g, '').slice(0, 20))} disabled={joined} />
         </label>
 
-        <div className="speaker-now">Falando agora: <strong>{speaker}</strong></div>
+        <div className="speaker-now">Ligação privada: <strong>{roomCode || '00001'}</strong></div>
 
         <div className="meter">
-          {Array.from({ length: 18 }).map((_, index) => <span key={index} className={tx && index < 15 ? 'active' : ''} />)}
+          {Array.from({ length: 18 }).map((_, index) => <span key={index} className={joined && !muted && index < 15 ? 'active' : ''} />)}
         </div>
 
-        <button className="ptt-voice" onPointerDown={startTalk} onPointerUp={stopTalk} onPointerLeave={stopTalk}>
-          <span>{!joined ? 'ENTRAR' : muted ? 'MUDO' : tx ? 'FALANDO...' : 'SEGURE PARA FALAR'}</span>
+        <button className="ptt-voice" onClick={joined ? toggleMute : enterCall}>
+          <span>{!joined ? 'ENTRAR NA LIGAÇÃO' : muted ? 'ATIVAR MICROFONE' : 'MICROFONE LIGADO'}</span>
         </button>
 
         <div className="people-row">
@@ -298,13 +265,13 @@ export default function App() {
         </div>
 
         <div className="action-row">
-          <button onClick={toggleMute} disabled={!joined}>{muted ? 'Ouvir' : 'Mute'}</button>
-          <button onClick={joined ? leaveRoom : joinRoom}>{joined ? 'Sair da sala' : 'Entrar na sala'}</button>
+          <button onClick={toggleMute} disabled={!joined}>{muted ? 'Ativar mic' : 'Mutar mic'}</button>
+          <button onClick={joined ? leaveCall : enterCall}>{joined ? 'Encerrar' : 'Entrar'}</button>
         </div>
 
         <footer className="radio-footer">
-          <span>{hasSupabase ? 'sala privada' : 'configure Supabase'}</span>
-          <span>código {roomCode || '00001'}</span>
+          <span>{hasSupabase ? 'ligação ao vivo' : 'configure Supabase'}</span>
+          <span>sala {roomCode || '00001'}</span>
         </footer>
       </section>
     </main>
