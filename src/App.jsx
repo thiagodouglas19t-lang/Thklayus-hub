@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const STORAGE_KEY = 'thklayus-radio-log'
-const CHANNELS = ['GLOBAL', 'EQUIPE', 'BASE', 'EMERGÊNCIA']
+const CHANNEL_NAME = 'GLOBAL'
+const BASE_USERS = 7
 
 export default function App() {
-  const [channelIndex, setChannelIndex] = useState(0)
-  const [users, setUsers] = useState(4)
+  const [joined, setJoined] = useState(() => localStorage.getItem('radio-joined') !== 'false')
+  const [muted, setMuted] = useState(() => localStorage.getItem('radio-muted') === 'true')
   const [tx, setTx] = useState(false)
   const [message, setMessage] = useState('')
   const [log, setLog] = useState(() => {
@@ -17,19 +18,22 @@ export default function App() {
   })
   const audioRef = useRef(null)
 
-  const channel = CHANNELS[channelIndex]
-  const clock = useMemo(() => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), [log, tx])
+  const peopleInChannel = joined ? BASE_USERS + 1 : BASE_USERS
+
+  useEffect(() => {
+    localStorage.setItem('radio-joined', String(joined))
+  }, [joined])
+
+  useEffect(() => {
+    localStorage.setItem('radio-muted', String(muted))
+  }, [muted])
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(log.slice(-30)))
   }, [log])
 
-  useEffect(() => {
-    const id = setInterval(() => setUsers((n) => (n >= 9 ? 4 : n + 1)), 6000)
-    return () => clearInterval(id)
-  }, [])
-
   function beep(freq = 720, duration = 120) {
+    if (muted || !joined) return
     const AudioContext = window.AudioContext || window.webkitAudioContext
     if (!AudioContext) return
     const ctx = audioRef.current || new AudioContext()
@@ -45,63 +49,82 @@ export default function App() {
     setTimeout(() => oscillator.stop(), duration)
   }
 
-  function nextChannel() {
-    beep(520, 80)
-    setChannelIndex((current) => (current + 1) % CHANNELS.length)
+  function addSystem(text) {
+    setLog((current) => [...current, { id: crypto.randomUUID(), type: 'system', text, at: new Date().toISOString() }])
+  }
+
+  function joinChannel() {
+    setJoined(true)
+    setMuted(false)
+    addSystem('Você entrou no canal GLOBAL.')
+    setTimeout(() => beep(640, 90), 50)
+  }
+
+  function leaveChannel() {
+    setJoined(false)
+    setTx(false)
+    addSystem('Você saiu do canal. O rádio ficou em silêncio.')
+  }
+
+  function toggleMute() {
+    const next = !muted
+    setMuted(next)
+    addSystem(next ? 'Você silenciou o canal.' : 'Você voltou a escutar o canal.')
+    if (!next) setTimeout(() => beep(760, 90), 50)
   }
 
   function transmit() {
+    if (!joined) return joinChannel()
     const text = message.trim() || 'Sinal enviado pelo rádio.'
     beep(880, 140)
     setTx(true)
-    setLog((current) => [...current, { id: crypto.randomUUID(), channel, text, at: new Date().toISOString() }])
+    setLog((current) => [...current, { id: crypto.randomUUID(), type: 'message', text, at: new Date().toISOString() }])
     setMessage('')
     setTimeout(() => setTx(false), 900)
   }
 
   return (
     <main className="app">
-      <section className="station">
-        <p className="online">receiver able to hide yt • Online Users={users}</p>
-        <div className={`radio ${tx ? 'is-tx' : ''}`}>
-          <div className="antenna" />
-          <div className="knob" />
-          <button className="power" onClick={() => beep(440, 120)}>⏻</button>
-          <button className="sos" onClick={() => setMessage('SOS: preciso de comunicação agora.')}>SOS</button>
+      <section className="station mobile-station">
+        <p className="online">CANAL {CHANNEL_NAME} • {peopleInChannel} pessoas no canal</p>
 
-          <div className="brand">{channel}</div>
+        <div className={`radio mobile-radio ${tx ? 'is-tx' : ''} ${!joined ? 'is-off' : ''} ${muted ? 'is-muted' : ''}`}>
+          <div className="antenna" />
+          <div className="phone-notch" />
+          <button className="power" onClick={joined ? leaveChannel : joinChannel}>{joined ? '⏻' : '▶'}</button>
+          <button className="sos" onClick={toggleMute}>{muted ? 'ON' : 'MUTE'}</button>
+
+          <div className="brand">{joined ? CHANNEL_NAME : 'FORA'}</div>
 
           <div className="screen">
-            <div className="mini">{clock}</div>
-            <div className="channel">{String(channelIndex + 7).padStart(2, '0')}</div>
+            <div className="mini">{joined ? (muted ? 'MUDO' : 'ESCUTANDO') : 'DESCONECTADO'}</div>
+            <div className="channel">01</div>
             <div className="bars"><i /><i /><i /><i /></div>
           </div>
 
-          <div className="controls">
-            <button onClick={nextChannel}>▲</button>
-            <button onClick={() => beep()}>M</button>
-            <button onClick={nextChannel}>▼</button>
+          <div className="status-card">
+            <strong>{joined ? 'Você está no canal' : 'Você saiu do canal'}</strong>
+            <span>{joined ? `${peopleInChannel} pessoas conectadas` : 'Toque em ENTRAR para escutar'}</span>
           </div>
 
-          <div className="scan-row">
-            <button onClick={nextChannel}>UP</button>
-            <button className="scan" onClick={nextChannel}>SCAN</button>
-            <button onClick={nextChannel}>DN</button>
+          <div className="controls channel-actions">
+            <button onClick={toggleMute} disabled={!joined}>{muted ? 'OUVIR' : 'MUTE'}</button>
+            <button onClick={joined ? leaveChannel : joinChannel}>{joined ? 'SAIR' : 'ENTRAR'}</button>
           </div>
 
           <div className="speaker">
             {Array.from({ length: 21 }).map((_, index) => <span key={index} />)}
-            <b>PTT</b>
+            <b>{muted || !joined ? 'OFF' : 'PTT'}</b>
           </div>
         </div>
 
         <div className="console">
-          <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Digite uma mensagem..." maxLength={120} />
-          <button className="ptt" onClick={transmit}>{tx ? 'TRANSMITINDO' : 'SEGURAR PTT'}</button>
+          <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder={joined ? 'Mensagem rápida...' : 'Entre no canal para transmitir'} maxLength={120} disabled={!joined} />
+          <button className="ptt" onClick={transmit}>{!joined ? 'ENTRAR NO CANAL' : tx ? 'TRANSMITINDO' : 'SEGURAR PTT'}</button>
           <div className="log">
-            {log.length === 0 ? <p>Nenhuma transmissão ainda.</p> : log.slice().reverse().map((item) => (
-              <article key={item.id}>
-                <strong>{item.channel}</strong>
+            {log.length === 0 ? <p>Nenhuma atividade no canal.</p> : log.slice().reverse().map((item) => (
+              <article key={item.id} className={item.type === 'system' ? 'system-log' : ''}>
+                <strong>{item.type === 'system' ? 'SISTEMA' : CHANNEL_NAME}</strong>
                 <span>{new Date(item.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                 <p>{item.text}</p>
               </article>
