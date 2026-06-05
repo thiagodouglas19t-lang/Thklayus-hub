@@ -33,6 +33,8 @@ export default function App() {
   const streamRef = useRef(null)
   const realtimeRef = useRef(null)
   const peersRef = useRef(new Map())
+  const audiosRef = useRef(new Map())
+  const makingOfferRef = useRef(new Set())
   const profileIdRef = useRef(getProfileId())
 
   useEffect(() => {
@@ -73,7 +75,7 @@ export default function App() {
       setParticipants(list)
       setPeopleOnline(ids.length || 1)
       for (const id of ids) {
-        if (id !== profileIdRef.current && profileIdRef.current > id) await makeOffer(id)
+        if (id !== profileIdRef.current) await getPeer(id)
       }
     })
 
@@ -101,6 +103,8 @@ export default function App() {
       realtimeRef.current = null
       peersRef.current.forEach((peer) => peer.close())
       peersRef.current.clear()
+      audiosRef.current.forEach((audio) => audio.remove())
+      audiosRef.current.clear()
     }
   }, [joined, channelCode, name])
 
@@ -115,7 +119,7 @@ export default function App() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
       stream.getAudioTracks().forEach((track) => { track.enabled = false })
       streamRef.current = stream
-      peersRef.current.forEach((peer) => stream.getTracks().forEach((track) => peer.addTrack(track, stream)))
+      for (const peer of peersRef.current.values()) addLocalTracks(peer, stream)
       setMicStatus('microfone pronto')
       return stream
     } catch {
@@ -124,41 +128,74 @@ export default function App() {
     }
   }
 
-  function getPeer(peerId) {
+  function addLocalTracks(peer, stream) {
+    const senders = peer.getSenders()
+    stream.getTracks().forEach((track) => {
+      if (!senders.some((sender) => sender.track?.id === track.id)) peer.addTrack(track, stream)
+    })
+  }
+
+  async function sendSignal(to, payload) {
+    if (!realtimeRef.current) return
+    await realtimeRef.current.send({ type: 'broadcast', event: 'rtc', payload: { from: profileIdRef.current, to, ...payload } })
+  }
+
+  async function getPeer(peerId) {
     if (peersRef.current.has(peerId)) return peersRef.current.get(peerId)
     const peer = new RTCPeerConnection(RTC_CONFIG)
+    peersRef.current.set(peerId, peer)
+
     peer.onicecandidate = (event) => {
-      if (event.candidate && realtimeRef.current) realtimeRef.current.send({ type: 'broadcast', event: 'rtc', payload: { from: profileIdRef.current, to: peerId, type: 'ice', candidate: event.candidate } })
+      if (event.candidate) sendSignal(peerId, { type: 'ice', candidate: event.candidate })
     }
+
     peer.ontrack = (event) => {
-      if (muted) return
-      const audio = new Audio()
-      audio.srcObject = event.streams[0]
+      const stream = event.streams[0]
+      let audio = audiosRef.current.get(peerId)
+      if (!audio) {
+        audio = new Audio()
+        audio.autoplay = true
+        audio.playsInline = true
+        audio.controls = false
+        audio.style.display = 'none'
+        document.body.appendChild(audio)
+        audiosRef.current.set(peerId, audio)
+      }
+      audio.muted = muted
+      audio.srcObject = stream
       audio.play().catch(() => setMicStatus('toque na tela para liberar áudio'))
     }
-    if (streamRef.current) streamRef.current.getTracks().forEach((track) => peer.addTrack(track, streamRef.current))
-    peersRef.current.set(peerId, peer)
+
+    if (streamRef.current) addLocalTracks(peer, streamRef.current)
+
+    peer.onnegotiationneeded = async () => {
+      if (makingOfferRef.current.has(peerId)) return
+      makingOfferRef.current.add(peerId)
+      try {
+        const offer = await peer.createOffer()
+        await peer.setLocalDescription(offer)
+        await sendSignal(peerId, { type: 'offer', description: peer.localDescription })
+      } finally {
+        makingOfferRef.current.delete(peerId)
+      }
+    }
+
     return peer
   }
 
-  async function makeOffer(peerId) {
-    if (!realtimeRef.current) return
-    const peer = getPeer(peerId)
-    const offer = await peer.createOffer()
-    await peer.setLocalDescription(offer)
-    await realtimeRef.current.send({ type: 'broadcast', event: 'rtc', payload: { from: profileIdRef.current, to: peerId, type: 'offer', description: offer } })
-  }
-
   async function handleSignal(payload) {
-    const peer = getPeer(payload.from)
+    const peer = await getPeer(payload.from)
     if (payload.type === 'offer') {
+      if (streamRef.current) addLocalTracks(peer, streamRef.current)
       await peer.setRemoteDescription(payload.description)
       const answer = await peer.createAnswer()
       await peer.setLocalDescription(answer)
-      await realtimeRef.current.send({ type: 'broadcast', event: 'rtc', payload: { from: profileIdRef.current, to: payload.from, type: 'answer', description: answer } })
+      await sendSignal(payload.from, { type: 'answer', description: peer.localDescription })
     }
     if (payload.type === 'answer') await peer.setRemoteDescription(payload.description)
-    if (payload.type === 'ice') await peer.addIceCandidate(payload.candidate)
+    if (payload.type === 'ice') {
+      try { await peer.addIceCandidate(payload.candidate) } catch {}
+    }
   }
 
   function setMicLive(value) {
@@ -183,7 +220,8 @@ export default function App() {
     if (!joined) return joinChannel()
     if (muted) return
     try {
-      await ensureMic()
+      const stream = await ensureMic()
+      for (const peer of peersRef.current.values()) addLocalTracks(peer, stream)
       setMicLive(true)
       setTx(true)
       setSpeaker('você')
@@ -201,6 +239,12 @@ export default function App() {
     setSpeaker('ninguém falando')
     if (realtimeRef.current) await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, name, live: false, channel: channelCode, at: Date.now() } })
     if (joined) setMicStatus('ouvindo canal')
+  }
+
+  function toggleMute() {
+    const next = !muted
+    setMuted(next)
+    audiosRef.current.forEach((audio) => { audio.muted = next })
   }
 
   return (
@@ -248,7 +292,7 @@ export default function App() {
         </div>
 
         <div className="action-row">
-          <button onClick={() => setMuted((value) => !value)} disabled={!joined}>{muted ? 'Ouvir' : 'Mute'}</button>
+          <button onClick={toggleMute} disabled={!joined}>{muted ? 'Ouvir' : 'Mute'}</button>
           <button onClick={joined ? leaveChannel : joinChannel}>{joined ? 'Sair do canal' : 'Entrar no canal'}</button>
         </div>
 
