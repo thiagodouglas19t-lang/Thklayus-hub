@@ -8,6 +8,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const hasSupabase = Boolean(supabaseUrl && supabaseAnonKey)
 const supabase = hasSupabase ? createClient(supabaseUrl, supabaseAnonKey) : null
 const PROFILE_KEY = 'walktok-profile-id'
+const NAME_KEY = 'walktok-name'
 const RTC_CONFIG = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
 
 function getProfileId() {
@@ -25,7 +26,10 @@ export default function App() {
   const [tx, setTx] = useState(false)
   const [micStatus, setMicStatus] = useState('toque no PTT para abrir o microfone ao vivo')
   const [channelCode, setChannelCode] = useState(() => localStorage.getItem('walktok-channel') || '00001')
+  const [name, setName] = useState(() => localStorage.getItem(NAME_KEY) || `Tok ${Math.floor(100 + Math.random() * 900)}`)
   const [peopleOnline, setPeopleOnline] = useState(1)
+  const [participants, setParticipants] = useState([])
+  const [speaker, setSpeaker] = useState('ninguém falando')
   const streamRef = useRef(null)
   const realtimeRef = useRef(null)
   const peersRef = useRef(new Map())
@@ -38,6 +42,7 @@ export default function App() {
   useEffect(() => localStorage.setItem('walktok-joined', String(joined)), [joined])
   useEffect(() => localStorage.setItem('walktok-muted', String(muted)), [muted])
   useEffect(() => localStorage.setItem('walktok-channel', channelCode), [channelCode])
+  useEffect(() => localStorage.setItem(NAME_KEY, name), [name])
 
   useEffect(() => {
     let lock
@@ -53,6 +58,7 @@ export default function App() {
   useEffect(() => {
     if (!joined || !supabase) {
       setPeopleOnline(joined ? 1 : 0)
+      setParticipants(joined ? [{ id: profileIdRef.current, name, self: true }] : [])
       return
     }
 
@@ -63,6 +69,8 @@ export default function App() {
     channel.on('presence', { event: 'sync' }, async () => {
       const state = channel.presenceState()
       const ids = Object.keys(state)
+      const list = ids.map((id) => ({ id, name: state[id]?.[0]?.name || 'Tok', self: id === profileIdRef.current }))
+      setParticipants(list)
       setPeopleOnline(ids.length || 1)
       for (const id of ids) {
         if (id !== profileIdRef.current && profileIdRef.current > id) await makeOffer(id)
@@ -71,7 +79,8 @@ export default function App() {
 
     channel.on('broadcast', { event: 'ptt' }, ({ payload }) => {
       if (!payload || payload.from === profileIdRef.current) return
-      setMicStatus(payload.live ? 'alguém está falando no WalkTok' : 'escutando no WalkTok')
+      setSpeaker(payload.live ? payload.name || 'alguém' : 'ninguém falando')
+      setMicStatus(payload.live ? `${payload.name || 'alguém'} está falando` : 'ouvindo canal')
     })
 
     channel.on('broadcast', { event: 'rtc' }, async ({ payload }) => {
@@ -81,7 +90,7 @@ export default function App() {
 
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
-        await channel.track({ id: profileIdRef.current, channel: channelCode, onlineAt: Date.now() })
+        await channel.track({ id: profileIdRef.current, name, channel: channelCode, onlineAt: Date.now() })
         setMicStatus('WalkTok conectado ao canal')
       }
     })
@@ -93,10 +102,11 @@ export default function App() {
       peersRef.current.forEach((peer) => peer.close())
       peersRef.current.clear()
     }
-  }, [joined, channelCode])
+  }, [joined, channelCode, name])
 
   const peopleInChannel = hasSupabase ? peopleOnline : joined ? 1 : 0
   const status = !joined ? 'FORA' : muted ? 'MUDO' : tx ? 'AO VIVO' : 'OUVINDO'
+  const initials = name.trim().slice(0, 2).toUpperCase() || 'TK'
 
   async function ensureMic() {
     if (streamRef.current) return streamRef.current
@@ -176,8 +186,9 @@ export default function App() {
       await ensureMic()
       setMicLive(true)
       setTx(true)
+      setSpeaker('você')
       setMicStatus('você está falando')
-      if (realtimeRef.current) await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, live: true, channel: channelCode, at: Date.now() } })
+      if (realtimeRef.current) await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, name, live: true, channel: channelCode, at: Date.now() } })
       if ('vibrate' in navigator) navigator.vibrate(25)
     } catch {
       setTx(false)
@@ -187,7 +198,8 @@ export default function App() {
   async function stopTalk() {
     setMicLive(false)
     setTx(false)
-    if (realtimeRef.current) await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, live: false, channel: channelCode, at: Date.now() } })
+    setSpeaker('ninguém falando')
+    if (realtimeRef.current) await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, name, live: false, channel: channelCode, at: Date.now() } })
     if (joined) setMicStatus('ouvindo canal')
   }
 
@@ -202,6 +214,11 @@ export default function App() {
           <button className="mini-button" onClick={joined ? leaveChannel : joinChannel}>{joined ? 'Sair' : 'Entrar'}</button>
         </header>
 
+        <div className="profile-card">
+          <div className="avatar">{initials}</div>
+          <input value={name} onChange={(event) => setName(event.target.value.slice(0, 18))} />
+        </div>
+
         <div className="display-card">
           <div className="status-dot" />
           <p>{status}</p>
@@ -214,6 +231,8 @@ export default function App() {
           <input value={channelCode} onChange={(event) => setChannelCode(event.target.value.replace(/\D/g, '').slice(0, 20))} />
         </label>
 
+        <div className="speaker-now">Falando agora: <strong>{speaker}</strong></div>
+
         <div className="meter">
           {Array.from({ length: 18 }).map((_, index) => <span key={index} className={tx && index < 15 ? 'active' : ''} />)}
         </div>
@@ -221,6 +240,12 @@ export default function App() {
         <button className="ptt-voice" onPointerDown={startTalk} onPointerUp={stopTalk} onPointerLeave={stopTalk}>
           <span>{!joined ? 'ENTRAR' : muted ? 'MUDO' : tx ? 'FALANDO...' : 'SEGURE PARA FALAR'}</span>
         </button>
+
+        <div className="people-row">
+          {(participants.length ? participants : [{ id: 'self', name, self: true }]).slice(0, 5).map((person) => (
+            <span key={person.id} title={person.name}>{person.self ? 'Você' : person.name}</span>
+          ))}
+        </div>
 
         <div className="action-row">
           <button onClick={() => setMuted((value) => !value)} disabled={!joined}>{muted ? 'Ouvir' : 'Mute'}</button>
