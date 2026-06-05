@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const CHANNEL_NAME = 'GLOBAL'
 const BASE_USERS = 7
@@ -7,7 +7,9 @@ export default function App() {
   const [joined, setJoined] = useState(() => localStorage.getItem('radio-joined') !== 'false')
   const [muted, setMuted] = useState(() => localStorage.getItem('radio-muted') === 'true')
   const [tx, setTx] = useState(false)
+  const [micStatus, setMicStatus] = useState('toque no PTT para liberar o microfone')
   const [channelCode, setChannelCode] = useState(() => localStorage.getItem('radio-channel') || '00001')
+  const streamRef = useRef(null)
 
   useEffect(() => localStorage.setItem('radio-joined', String(joined)), [joined])
   useEffect(() => localStorage.setItem('radio-muted', String(muted)), [muted])
@@ -15,6 +17,20 @@ export default function App() {
 
   const peopleInChannel = joined ? BASE_USERS + 1 : BASE_USERS
   const status = !joined ? 'FORA DO CANAL' : muted ? 'MUDO' : tx ? 'FALANDO' : 'ESCUTANDO'
+
+  async function ensureMic() {
+    if (streamRef.current) return streamRef.current
+    try {
+      setMicStatus('pedindo permissão do microfone...')
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      streamRef.current = stream
+      setMicStatus('microfone liberado')
+      return stream
+    } catch {
+      setMicStatus('microfone bloqueado no navegador')
+      throw new Error('microfone bloqueado')
+    }
+  }
 
   function joinChannel() {
     setJoined(true)
@@ -26,14 +42,21 @@ export default function App() {
     setJoined(false)
   }
 
-  function startTalk() {
+  async function startTalk() {
     if (!joined) return joinChannel()
     if (muted) return
-    setTx(true)
-    if ('vibrate' in navigator) navigator.vibrate(25)
+    try {
+      await ensureMic()
+      setTx(true)
+      setMicStatus('capturando sua voz...')
+      if ('vibrate' in navigator) navigator.vibrate(25)
+    } catch {
+      setTx(false)
+    }
   }
 
   function stopTalk() {
+    if (tx) setMicStatus('voz capturada')
     setTx(false)
   }
 
@@ -52,7 +75,7 @@ export default function App() {
           <div className="status-dot" />
           <p>{status}</p>
           <strong>{peopleInChannel} pessoas no canal</strong>
-          <small>{joined ? 'Segure PTT para falar' : 'Entre para escutar o canal'}</small>
+          <small>{joined ? micStatus : 'Entre para escutar o canal'}</small>
         </div>
 
         <label className="channel-box">
