@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-const STORAGE_KEY = 'thklayus-radio-log'
 const CHANNEL_NAME = 'GLOBAL'
 const BASE_USERS = 7
 
@@ -8,129 +7,76 @@ export default function App() {
   const [joined, setJoined] = useState(() => localStorage.getItem('radio-joined') !== 'false')
   const [muted, setMuted] = useState(() => localStorage.getItem('radio-muted') === 'true')
   const [tx, setTx] = useState(false)
-  const [message, setMessage] = useState('')
-  const [log, setLog] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
-    } catch {
-      return []
-    }
-  })
-  const audioRef = useRef(null)
+  const [channelCode, setChannelCode] = useState(() => localStorage.getItem('radio-channel') || '00001')
+
+  useEffect(() => localStorage.setItem('radio-joined', String(joined)), [joined])
+  useEffect(() => localStorage.setItem('radio-muted', String(muted)), [muted])
+  useEffect(() => localStorage.setItem('radio-channel', channelCode), [channelCode])
 
   const peopleInChannel = joined ? BASE_USERS + 1 : BASE_USERS
-
-  useEffect(() => {
-    localStorage.setItem('radio-joined', String(joined))
-  }, [joined])
-
-  useEffect(() => {
-    localStorage.setItem('radio-muted', String(muted))
-  }, [muted])
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(log.slice(-30)))
-  }, [log])
-
-  function beep(freq = 720, duration = 120) {
-    if (muted || !joined) return
-    const AudioContext = window.AudioContext || window.webkitAudioContext
-    if (!AudioContext) return
-    const ctx = audioRef.current || new AudioContext()
-    audioRef.current = ctx
-    const oscillator = ctx.createOscillator()
-    const gain = ctx.createGain()
-    oscillator.type = 'square'
-    oscillator.frequency.value = freq
-    gain.gain.value = 0.035
-    oscillator.connect(gain)
-    gain.connect(ctx.destination)
-    oscillator.start()
-    setTimeout(() => oscillator.stop(), duration)
-  }
-
-  function addSystem(text) {
-    setLog((current) => [...current, { id: crypto.randomUUID(), type: 'system', text, at: new Date().toISOString() }])
-  }
+  const status = !joined ? 'FORA DO CANAL' : muted ? 'MUDO' : tx ? 'FALANDO' : 'ESCUTANDO'
 
   function joinChannel() {
     setJoined(true)
     setMuted(false)
-    addSystem('Você entrou no canal GLOBAL.')
-    setTimeout(() => beep(640, 90), 50)
   }
 
   function leaveChannel() {
-    setJoined(false)
     setTx(false)
-    addSystem('Você saiu do canal. O rádio ficou em silêncio.')
+    setJoined(false)
   }
 
-  function toggleMute() {
-    const next = !muted
-    setMuted(next)
-    addSystem(next ? 'Você silenciou o canal.' : 'Você voltou a escutar o canal.')
-    if (!next) setTimeout(() => beep(760, 90), 50)
-  }
-
-  function transmit() {
+  function startTalk() {
     if (!joined) return joinChannel()
-    const text = message.trim() || 'Sinal enviado pelo rádio.'
-    beep(880, 140)
+    if (muted) return
     setTx(true)
-    setLog((current) => [...current, { id: crypto.randomUUID(), type: 'message', text, at: new Date().toISOString() }])
-    setMessage('')
-    setTimeout(() => setTx(false), 900)
+    if ('vibrate' in navigator) navigator.vibrate(25)
+  }
+
+  function stopTalk() {
+    setTx(false)
   }
 
   return (
-    <main className="app">
-      <section className="station mobile-station">
-        <p className="online">CANAL {CHANNEL_NAME} • {peopleInChannel} pessoas no canal</p>
-
-        <div className={`radio mobile-radio ${tx ? 'is-tx' : ''} ${!joined ? 'is-off' : ''} ${muted ? 'is-muted' : ''}`}>
-          <div className="antenna" />
-          <div className="phone-notch" />
-          <button className="power" onClick={joined ? leaveChannel : joinChannel}>{joined ? '⏻' : '▶'}</button>
-          <button className="sos" onClick={toggleMute}>{muted ? 'ON' : 'MUTE'}</button>
-
-          <div className="brand">{joined ? CHANNEL_NAME : 'FORA'}</div>
-
-          <div className="screen">
-            <div className="mini">{joined ? (muted ? 'MUDO' : 'ESCUTANDO') : 'DESCONECTADO'}</div>
-            <div className="channel">01</div>
-            <div className="bars"><i /><i /><i /><i /></div>
+    <main className="app voice-app">
+      <section className={`phone-radio ${tx ? 'talking' : ''} ${muted ? 'muted' : ''} ${!joined ? 'left' : ''}`}>
+        <header className="top-panel">
+          <div>
+            <span className="eyebrow">WALKIE TALKIE</span>
+            <h1>{CHANNEL_NAME}</h1>
           </div>
+          <button className="mini-button" onClick={joined ? leaveChannel : joinChannel}>{joined ? 'Sair' : 'Entrar'}</button>
+        </header>
 
-          <div className="status-card">
-            <strong>{joined ? 'Você está no canal' : 'Você saiu do canal'}</strong>
-            <span>{joined ? `${peopleInChannel} pessoas conectadas` : 'Toque em ENTRAR para escutar'}</span>
-          </div>
-
-          <div className="controls channel-actions">
-            <button onClick={toggleMute} disabled={!joined}>{muted ? 'OUVIR' : 'MUTE'}</button>
-            <button onClick={joined ? leaveChannel : joinChannel}>{joined ? 'SAIR' : 'ENTRAR'}</button>
-          </div>
-
-          <div className="speaker">
-            {Array.from({ length: 21 }).map((_, index) => <span key={index} />)}
-            <b>{muted || !joined ? 'OFF' : 'PTT'}</b>
-          </div>
+        <div className="display-card">
+          <div className="status-dot" />
+          <p>{status}</p>
+          <strong>{peopleInChannel} pessoas no canal</strong>
+          <small>{joined ? 'Segure PTT para falar' : 'Entre para escutar o canal'}</small>
         </div>
 
-        <div className="console">
-          <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder={joined ? 'Mensagem rápida...' : 'Entre no canal para transmitir'} maxLength={120} disabled={!joined} />
-          <button className="ptt" onClick={transmit}>{!joined ? 'ENTRAR NO CANAL' : tx ? 'TRANSMITINDO' : 'SEGURAR PTT'}</button>
-          <div className="log">
-            {log.length === 0 ? <p>Nenhuma atividade no canal.</p> : log.slice().reverse().map((item) => (
-              <article key={item.id} className={item.type === 'system' ? 'system-log' : ''}>
-                <strong>{item.type === 'system' ? 'SISTEMA' : CHANNEL_NAME}</strong>
-                <span>{new Date(item.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                <p>{item.text}</p>
-              </article>
-            ))}
-          </div>
+        <label className="channel-box">
+          <span>Código do canal</span>
+          <input value={channelCode} onChange={(event) => setChannelCode(event.target.value.replace(/\D/g, '').slice(0, 20))} />
+        </label>
+
+        <div className="meter">
+          {Array.from({ length: 18 }).map((_, index) => <span key={index} className={tx && index < 15 ? 'active' : ''} />)}
         </div>
+
+        <button className="ptt-voice" onPointerDown={startTalk} onPointerUp={stopTalk} onPointerLeave={stopTalk}>
+          <span>{!joined ? 'ENTRAR' : muted ? 'MUDO' : tx ? 'FALANDO...' : 'SEGURE PARA FALAR'}</span>
+        </button>
+
+        <div className="action-row">
+          <button onClick={() => setMuted((value) => !value)} disabled={!joined}>{muted ? 'Ativar som' : 'Mute'}</button>
+          <button onClick={joined ? leaveChannel : joinChannel}>{joined ? 'Sair do canal' : 'Entrar no canal'}</button>
+        </div>
+
+        <footer className="radio-footer">
+          <span>Sem conta</span>
+          <span>Canal {channelCode || '00001'}</span>
+        </footer>
       </section>
     </main>
   )
