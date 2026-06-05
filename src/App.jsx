@@ -1,7 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
 
 const CHANNEL_NAME = 'GLOBAL'
-const BASE_USERS = 7
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const hasSupabase = Boolean(supabaseUrl && supabaseAnonKey)
+const supabase = hasSupabase ? createClient(supabaseUrl, supabaseAnonKey) : null
+const PROFILE_KEY = 'radio-profile-id'
+
+function getProfileId() {
+  let id = localStorage.getItem(PROFILE_KEY)
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem(PROFILE_KEY, id)
+  }
+  return id
+}
 
 export default function App() {
   const [joined, setJoined] = useState(() => localStorage.getItem('radio-joined') !== 'false')
@@ -9,13 +23,50 @@ export default function App() {
   const [tx, setTx] = useState(false)
   const [micStatus, setMicStatus] = useState('toque no PTT para abrir o microfone ao vivo')
   const [channelCode, setChannelCode] = useState(() => localStorage.getItem('radio-channel') || '00001')
+  const [peopleOnline, setPeopleOnline] = useState(1)
   const streamRef = useRef(null)
+  const realtimeRef = useRef(null)
+  const profileIdRef = useRef(getProfileId())
 
   useEffect(() => localStorage.setItem('radio-joined', String(joined)), [joined])
   useEffect(() => localStorage.setItem('radio-muted', String(muted)), [muted])
   useEffect(() => localStorage.setItem('radio-channel', channelCode), [channelCode])
 
-  const peopleInChannel = joined ? BASE_USERS + 1 : BASE_USERS
+  useEffect(() => {
+    if (!joined || !supabase) {
+      setPeopleOnline(joined ? 1 : 0)
+      return
+    }
+
+    const room = `radio-${channelCode || '00001'}`
+    const channel = supabase.channel(room, { config: { presence: { key: profileIdRef.current } } })
+    realtimeRef.current = channel
+
+    channel.on('presence', { event: 'sync' }, () => {
+      const state = channel.presenceState()
+      setPeopleOnline(Object.keys(state).length || 1)
+    })
+
+    channel.on('broadcast', { event: 'ptt' }, ({ payload }) => {
+      if (!payload || payload.from === profileIdRef.current) return
+      setMicStatus(payload.live ? 'alguém está falando ao vivo' : 'escutando em tempo real')
+    })
+
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.track({ id: profileIdRef.current, channel: channelCode, onlineAt: Date.now() })
+        setMicStatus('conectado ao canal em tempo real')
+      }
+    })
+
+    return () => {
+      channel.untrack()
+      supabase.removeChannel(channel)
+      realtimeRef.current = null
+    }
+  }, [joined, channelCode])
+
+  const peopleInChannel = hasSupabase ? peopleOnline : joined ? 1 : 0
   const status = !joined ? 'FORA DO CANAL' : muted ? 'MUDO' : tx ? 'AO VIVO' : 'ESCUTANDO'
 
   async function ensureMic() {
@@ -41,7 +92,7 @@ export default function App() {
   function joinChannel() {
     setJoined(true)
     setMuted(false)
-    setMicStatus('canal aberto; segure PTT para falar ao vivo')
+    setMicStatus('entrando no canal ao vivo')
   }
 
   function leaveChannel() {
@@ -59,15 +110,21 @@ export default function App() {
       setMicLive(true)
       setTx(true)
       setMicStatus('transmitindo ao vivo')
+      if (realtimeRef.current) {
+        await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, live: true, channel: channelCode, at: Date.now() } })
+      }
       if ('vibrate' in navigator) navigator.vibrate(25)
     } catch {
       setTx(false)
     }
   }
 
-  function stopTalk() {
+  async function stopTalk() {
     setMicLive(false)
     setTx(false)
+    if (realtimeRef.current) {
+      await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, live: false, channel: channelCode, at: Date.now() } })
+    }
     if (joined) setMicStatus('escutando em tempo real')
   }
 
@@ -108,7 +165,7 @@ export default function App() {
         </div>
 
         <footer className="radio-footer">
-          <span>WebRTC pronto</span>
+          <span>{hasSupabase ? 'Supabase ativo' : 'configure Supabase'}</span>
           <span>Canal {channelCode || '00001'}</span>
         </footer>
       </section>
