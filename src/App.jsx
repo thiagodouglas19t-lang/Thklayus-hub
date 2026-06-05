@@ -7,6 +7,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const hasSupabase = Boolean(supabaseUrl && supabaseAnonKey)
 const supabase = hasSupabase ? createClient(supabaseUrl, supabaseAnonKey) : null
 const PROFILE_KEY = 'radio-profile-id'
+const RTC_CONFIG = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
 
 function getProfileId() {
   let id = localStorage.getItem(PROFILE_KEY)
@@ -26,6 +27,7 @@ export default function App() {
   const [peopleOnline, setPeopleOnline] = useState(1)
   const streamRef = useRef(null)
   const realtimeRef = useRef(null)
+  const peersRef = useRef(new Map())
   const profileIdRef = useRef(getProfileId())
 
   useEffect(() => localStorage.setItem('radio-joined', String(joined)), [joined])
@@ -42,14 +44,23 @@ export default function App() {
     const channel = supabase.channel(room, { config: { presence: { key: profileIdRef.current } } })
     realtimeRef.current = channel
 
-    channel.on('presence', { event: 'sync' }, () => {
+    channel.on('presence', { event: 'sync' }, async () => {
       const state = channel.presenceState()
-      setPeopleOnline(Object.keys(state).length || 1)
+      const ids = Object.keys(state)
+      setPeopleOnline(ids.length || 1)
+      for (const id of ids) {
+        if (id !== profileIdRef.current && profileIdRef.current > id) await makeOffer(id)
+      }
     })
 
     channel.on('broadcast', { event: 'ptt' }, ({ payload }) => {
       if (!payload || payload.from === profileIdRef.current) return
       setMicStatus(payload.live ? 'alguém está falando ao vivo' : 'escutando em tempo real')
+    })
+
+    channel.on('broadcast', { event: 'rtc' }, async ({ payload }) => {
+      if (!payload || payload.to !== profileIdRef.current || payload.from === profileIdRef.current) return
+      await handleSignal(payload)
     })
 
     channel.subscribe(async (status) => {
@@ -63,6 +74,8 @@ export default function App() {
       channel.untrack()
       supabase.removeChannel(channel)
       realtimeRef.current = null
+      peersRef.current.forEach((peer) => peer.close())
+      peersRef.current.clear()
     }
   }, [joined, channelCode])
 
@@ -76,12 +89,52 @@ export default function App() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
       stream.getAudioTracks().forEach((track) => { track.enabled = false })
       streamRef.current = stream
+      peersRef.current.forEach((peer) => stream.getTracks().forEach((track) => peer.addTrack(track, stream)))
       setMicStatus('microfone pronto para tempo real')
       return stream
     } catch {
       setMicStatus('microfone bloqueado no navegador')
       throw new Error('microfone bloqueado')
     }
+  }
+
+  function getPeer(peerId) {
+    if (peersRef.current.has(peerId)) return peersRef.current.get(peerId)
+    const peer = new RTCPeerConnection(RTC_CONFIG)
+    peer.onicecandidate = (event) => {
+      if (event.candidate && realtimeRef.current) {
+        realtimeRef.current.send({ type: 'broadcast', event: 'rtc', payload: { from: profileIdRef.current, to: peerId, type: 'ice', candidate: event.candidate } })
+      }
+    }
+    peer.ontrack = (event) => {
+      if (muted) return
+      const audio = new Audio()
+      audio.srcObject = event.streams[0]
+      audio.play().catch(() => setMicStatus('toque na tela para liberar áudio'))
+    }
+    if (streamRef.current) streamRef.current.getTracks().forEach((track) => peer.addTrack(track, streamRef.current))
+    peersRef.current.set(peerId, peer)
+    return peer
+  }
+
+  async function makeOffer(peerId) {
+    if (!realtimeRef.current) return
+    const peer = getPeer(peerId)
+    const offer = await peer.createOffer()
+    await peer.setLocalDescription(offer)
+    await realtimeRef.current.send({ type: 'broadcast', event: 'rtc', payload: { from: profileIdRef.current, to: peerId, type: 'offer', description: offer } })
+  }
+
+  async function handleSignal(payload) {
+    const peer = getPeer(payload.from)
+    if (payload.type === 'offer') {
+      await peer.setRemoteDescription(payload.description)
+      const answer = await peer.createAnswer()
+      await peer.setLocalDescription(answer)
+      await realtimeRef.current.send({ type: 'broadcast', event: 'rtc', payload: { from: profileIdRef.current, to: payload.from, type: 'answer', description: answer } })
+    }
+    if (payload.type === 'answer') await peer.setRemoteDescription(payload.description)
+    if (payload.type === 'ice') await peer.addIceCandidate(payload.candidate)
   }
 
   function setMicLive(value) {
@@ -165,7 +218,7 @@ export default function App() {
         </div>
 
         <footer className="radio-footer">
-          <span>{hasSupabase ? 'Supabase ativo' : 'configure Supabase'}</span>
+          <span>{hasSupabase ? 'WebRTC ativo' : 'configure Supabase'}</span>
           <span>Canal {channelCode || '00001'}</span>
         </footer>
       </section>
