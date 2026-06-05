@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
+const APP_NAME = 'WalkTok'
 const CHANNEL_NAME = 'GLOBAL'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const hasSupabase = Boolean(supabaseUrl && supabaseAnonKey)
 const supabase = hasSupabase ? createClient(supabaseUrl, supabaseAnonKey) : null
-const PROFILE_KEY = 'radio-profile-id'
+const PROFILE_KEY = 'walktok-profile-id'
 const RTC_CONFIG = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
 
 function getProfileId() {
@@ -19,20 +20,35 @@ function getProfileId() {
 }
 
 export default function App() {
-  const [joined, setJoined] = useState(() => localStorage.getItem('radio-joined') !== 'false')
-  const [muted, setMuted] = useState(() => localStorage.getItem('radio-muted') === 'true')
+  const [joined, setJoined] = useState(() => localStorage.getItem('walktok-joined') !== 'false')
+  const [muted, setMuted] = useState(() => localStorage.getItem('walktok-muted') === 'true')
   const [tx, setTx] = useState(false)
   const [micStatus, setMicStatus] = useState('toque no PTT para abrir o microfone ao vivo')
-  const [channelCode, setChannelCode] = useState(() => localStorage.getItem('radio-channel') || '00001')
+  const [channelCode, setChannelCode] = useState(() => localStorage.getItem('walktok-channel') || '00001')
   const [peopleOnline, setPeopleOnline] = useState(1)
   const streamRef = useRef(null)
   const realtimeRef = useRef(null)
   const peersRef = useRef(new Map())
   const profileIdRef = useRef(getProfileId())
 
-  useEffect(() => localStorage.setItem('radio-joined', String(joined)), [joined])
-  useEffect(() => localStorage.setItem('radio-muted', String(muted)), [muted])
-  useEffect(() => localStorage.setItem('radio-channel', channelCode), [channelCode])
+  useEffect(() => {
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {})
+  }, [])
+
+  useEffect(() => localStorage.setItem('walktok-joined', String(joined)), [joined])
+  useEffect(() => localStorage.setItem('walktok-muted', String(muted)), [muted])
+  useEffect(() => localStorage.setItem('walktok-channel', channelCode), [channelCode])
+
+  useEffect(() => {
+    let lock
+    async function keepAwake() {
+      try {
+        if (joined && 'wakeLock' in navigator) lock = await navigator.wakeLock.request('screen')
+      } catch {}
+    }
+    keepAwake()
+    return () => lock?.release?.()
+  }, [joined])
 
   useEffect(() => {
     if (!joined || !supabase) {
@@ -40,7 +56,7 @@ export default function App() {
       return
     }
 
-    const room = `radio-${channelCode || '00001'}`
+    const room = `walktok-${channelCode || '00001'}`
     const channel = supabase.channel(room, { config: { presence: { key: profileIdRef.current } } })
     realtimeRef.current = channel
 
@@ -55,7 +71,7 @@ export default function App() {
 
     channel.on('broadcast', { event: 'ptt' }, ({ payload }) => {
       if (!payload || payload.from === profileIdRef.current) return
-      setMicStatus(payload.live ? 'alguém está falando ao vivo' : 'escutando em tempo real')
+      setMicStatus(payload.live ? 'alguém está falando no WalkTok' : 'escutando no WalkTok')
     })
 
     channel.on('broadcast', { event: 'rtc' }, async ({ payload }) => {
@@ -66,7 +82,7 @@ export default function App() {
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
         await channel.track({ id: profileIdRef.current, channel: channelCode, onlineAt: Date.now() })
-        setMicStatus('conectado ao canal em tempo real')
+        setMicStatus('WalkTok conectado ao canal')
       }
     })
 
@@ -80,20 +96,20 @@ export default function App() {
   }, [joined, channelCode])
 
   const peopleInChannel = hasSupabase ? peopleOnline : joined ? 1 : 0
-  const status = !joined ? 'FORA DO CANAL' : muted ? 'MUDO' : tx ? 'AO VIVO' : 'ESCUTANDO'
+  const status = !joined ? 'FORA' : muted ? 'MUDO' : tx ? 'AO VIVO' : 'OUVINDO'
 
   async function ensureMic() {
     if (streamRef.current) return streamRef.current
     try {
-      setMicStatus('pedindo permissão do microfone...')
+      setMicStatus('liberando microfone...')
       const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
       stream.getAudioTracks().forEach((track) => { track.enabled = false })
       streamRef.current = stream
       peersRef.current.forEach((peer) => stream.getTracks().forEach((track) => peer.addTrack(track, stream)))
-      setMicStatus('microfone pronto para tempo real')
+      setMicStatus('microfone pronto')
       return stream
     } catch {
-      setMicStatus('microfone bloqueado no navegador')
+      setMicStatus('microfone bloqueado')
       throw new Error('microfone bloqueado')
     }
   }
@@ -102,9 +118,7 @@ export default function App() {
     if (peersRef.current.has(peerId)) return peersRef.current.get(peerId)
     const peer = new RTCPeerConnection(RTC_CONFIG)
     peer.onicecandidate = (event) => {
-      if (event.candidate && realtimeRef.current) {
-        realtimeRef.current.send({ type: 'broadcast', event: 'rtc', payload: { from: profileIdRef.current, to: peerId, type: 'ice', candidate: event.candidate } })
-      }
+      if (event.candidate && realtimeRef.current) realtimeRef.current.send({ type: 'broadcast', event: 'rtc', payload: { from: profileIdRef.current, to: peerId, type: 'ice', candidate: event.candidate } })
     }
     peer.ontrack = (event) => {
       if (muted) return
@@ -145,7 +159,7 @@ export default function App() {
   function joinChannel() {
     setJoined(true)
     setMuted(false)
-    setMicStatus('entrando no canal ao vivo')
+    setMicStatus('entrando no WalkTok')
   }
 
   function leaveChannel() {
@@ -162,10 +176,8 @@ export default function App() {
       await ensureMic()
       setMicLive(true)
       setTx(true)
-      setMicStatus('transmitindo ao vivo')
-      if (realtimeRef.current) {
-        await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, live: true, channel: channelCode, at: Date.now() } })
-      }
+      setMicStatus('você está falando')
+      if (realtimeRef.current) await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, live: true, channel: channelCode, at: Date.now() } })
       if ('vibrate' in navigator) navigator.vibrate(25)
     } catch {
       setTx(false)
@@ -175,10 +187,8 @@ export default function App() {
   async function stopTalk() {
     setMicLive(false)
     setTx(false)
-    if (realtimeRef.current) {
-      await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, live: false, channel: channelCode, at: Date.now() } })
-    }
-    if (joined) setMicStatus('escutando em tempo real')
+    if (realtimeRef.current) await realtimeRef.current.send({ type: 'broadcast', event: 'ptt', payload: { from: profileIdRef.current, live: false, channel: channelCode, at: Date.now() } })
+    if (joined) setMicStatus('ouvindo canal')
   }
 
   return (
@@ -186,7 +196,7 @@ export default function App() {
       <section className={`phone-radio ${tx ? 'talking' : ''} ${muted ? 'muted' : ''} ${!joined ? 'left' : ''}`}>
         <header className="top-panel">
           <div>
-            <span className="eyebrow">WALKIE TALKIE LIVE</span>
+            <span className="eyebrow">{APP_NAME}</span>
             <h1>{CHANNEL_NAME}</h1>
           </div>
           <button className="mini-button" onClick={joined ? leaveChannel : joinChannel}>{joined ? 'Sair' : 'Entrar'}</button>
@@ -195,8 +205,8 @@ export default function App() {
         <div className="display-card">
           <div className="status-dot" />
           <p>{status}</p>
-          <strong>{peopleInChannel} pessoas no canal</strong>
-          <small>{joined ? micStatus : 'Entre para escutar o canal'}</small>
+          <strong>{peopleInChannel} {peopleInChannel === 1 ? 'pessoa' : 'pessoas'} no canal</strong>
+          <small>{joined ? micStatus : 'entre para escutar'}</small>
         </div>
 
         <label className="channel-box">
@@ -209,17 +219,17 @@ export default function App() {
         </div>
 
         <button className="ptt-voice" onPointerDown={startTalk} onPointerUp={stopTalk} onPointerLeave={stopTalk}>
-          <span>{!joined ? 'ENTRAR' : muted ? 'MUDO' : tx ? 'AO VIVO...' : 'SEGURE PARA FALAR'}</span>
+          <span>{!joined ? 'ENTRAR' : muted ? 'MUDO' : tx ? 'FALANDO...' : 'SEGURE PARA FALAR'}</span>
         </button>
 
         <div className="action-row">
-          <button onClick={() => setMuted((value) => !value)} disabled={!joined}>{muted ? 'Ativar som' : 'Mute'}</button>
+          <button onClick={() => setMuted((value) => !value)} disabled={!joined}>{muted ? 'Ouvir' : 'Mute'}</button>
           <button onClick={joined ? leaveChannel : joinChannel}>{joined ? 'Sair do canal' : 'Entrar no canal'}</button>
         </div>
 
         <footer className="radio-footer">
-          <span>{hasSupabase ? 'WebRTC ativo' : 'configure Supabase'}</span>
-          <span>Canal {channelCode || '00001'}</span>
+          <span>{hasSupabase ? 'live ligado' : 'configure Supabase'}</span>
+          <span>canal {channelCode || '00001'}</span>
         </footer>
       </section>
     </main>
