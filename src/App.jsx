@@ -7,7 +7,7 @@ export default function App() {
   const [joined, setJoined] = useState(() => localStorage.getItem('radio-joined') !== 'false')
   const [muted, setMuted] = useState(() => localStorage.getItem('radio-muted') === 'true')
   const [tx, setTx] = useState(false)
-  const [micStatus, setMicStatus] = useState('toque no PTT para liberar o microfone')
+  const [micStatus, setMicStatus] = useState('toque no PTT para abrir o microfone ao vivo')
   const [channelCode, setChannelCode] = useState(() => localStorage.getItem('radio-channel') || '00001')
   const streamRef = useRef(null)
 
@@ -16,15 +16,16 @@ export default function App() {
   useEffect(() => localStorage.setItem('radio-channel', channelCode), [channelCode])
 
   const peopleInChannel = joined ? BASE_USERS + 1 : BASE_USERS
-  const status = !joined ? 'FORA DO CANAL' : muted ? 'MUDO' : tx ? 'FALANDO' : 'ESCUTANDO'
+  const status = !joined ? 'FORA DO CANAL' : muted ? 'MUDO' : tx ? 'AO VIVO' : 'ESCUTANDO'
 
   async function ensureMic() {
     if (streamRef.current) return streamRef.current
     try {
       setMicStatus('pedindo permissão do microfone...')
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
+      stream.getAudioTracks().forEach((track) => { track.enabled = false })
       streamRef.current = stream
-      setMicStatus('microfone liberado')
+      setMicStatus('microfone pronto para tempo real')
       return stream
     } catch {
       setMicStatus('microfone bloqueado no navegador')
@@ -32,14 +33,22 @@ export default function App() {
     }
   }
 
+  function setMicLive(value) {
+    if (!streamRef.current) return
+    streamRef.current.getAudioTracks().forEach((track) => { track.enabled = value })
+  }
+
   function joinChannel() {
     setJoined(true)
     setMuted(false)
+    setMicStatus('canal aberto; segure PTT para falar ao vivo')
   }
 
   function leaveChannel() {
+    setMicLive(false)
     setTx(false)
     setJoined(false)
+    setMicStatus('fora do canal')
   }
 
   async function startTalk() {
@@ -47,8 +56,9 @@ export default function App() {
     if (muted) return
     try {
       await ensureMic()
+      setMicLive(true)
       setTx(true)
-      setMicStatus('capturando sua voz...')
+      setMicStatus('transmitindo ao vivo')
       if ('vibrate' in navigator) navigator.vibrate(25)
     } catch {
       setTx(false)
@@ -56,8 +66,9 @@ export default function App() {
   }
 
   function stopTalk() {
-    if (tx) setMicStatus('voz capturada')
+    setMicLive(false)
     setTx(false)
+    if (joined) setMicStatus('escutando em tempo real')
   }
 
   return (
@@ -65,7 +76,7 @@ export default function App() {
       <section className={`phone-radio ${tx ? 'talking' : ''} ${muted ? 'muted' : ''} ${!joined ? 'left' : ''}`}>
         <header className="top-panel">
           <div>
-            <span className="eyebrow">WALKIE TALKIE</span>
+            <span className="eyebrow">WALKIE TALKIE LIVE</span>
             <h1>{CHANNEL_NAME}</h1>
           </div>
           <button className="mini-button" onClick={joined ? leaveChannel : joinChannel}>{joined ? 'Sair' : 'Entrar'}</button>
@@ -88,7 +99,7 @@ export default function App() {
         </div>
 
         <button className="ptt-voice" onPointerDown={startTalk} onPointerUp={stopTalk} onPointerLeave={stopTalk}>
-          <span>{!joined ? 'ENTRAR' : muted ? 'MUDO' : tx ? 'FALANDO...' : 'SEGURE PARA FALAR'}</span>
+          <span>{!joined ? 'ENTRAR' : muted ? 'MUDO' : tx ? 'AO VIVO...' : 'SEGURE PARA FALAR'}</span>
         </button>
 
         <div className="action-row">
@@ -97,7 +108,7 @@ export default function App() {
         </div>
 
         <footer className="radio-footer">
-          <span>Sem conta</span>
+          <span>WebRTC pronto</span>
           <span>Canal {channelCode || '00001'}</span>
         </footer>
       </section>
