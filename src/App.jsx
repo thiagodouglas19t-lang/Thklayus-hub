@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
-const APP_NAME = 'WalkTok'
+const APP_NAME = 'WhatsApp Dois'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const hasSupabase = Boolean(supabaseUrl && supabaseAnonKey)
 const supabase = hasSupabase ? createClient(supabaseUrl, supabaseAnonKey) : null
-const PROFILE_KEY = 'walktok-profile-id'
-const NAME_KEY = 'walktok-name'
-const ROOM_KEY = 'walktok-private-room'
+const PROFILE_KEY = 'zapdois-profile-id'
+const NAME_KEY = 'zapdois-name'
+const ROOM_KEY = 'zapdois-private-call'
 const RTC_CONFIG = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
 
 function getProfileId() {
@@ -21,15 +21,15 @@ function getProfileId() {
 }
 
 function roomTopic(code) {
-  return `walktok-call-${String(code || '00001').replace(/\D/g, '').slice(0, 20) || '00001'}`
+  return `zapdois-call-${String(code || '00001').replace(/\D/g, '').slice(0, 20) || '00001'}`
 }
 
 export default function App() {
   const [joined, setJoined] = useState(false)
-  const [muted, setMuted] = useState(() => localStorage.getItem('walktok-muted') === 'true')
-  const [micStatus, setMicStatus] = useState('entre na sala para iniciar a ligação')
+  const [muted, setMuted] = useState(() => localStorage.getItem('zapdois-muted') === 'true')
+  const [micStatus, setMicStatus] = useState('crie ou entre em uma ligação privada')
   const [roomCode, setRoomCode] = useState(() => localStorage.getItem(ROOM_KEY) || '00001')
-  const [name, setName] = useState(() => localStorage.getItem(NAME_KEY) || `Tok ${Math.floor(100 + Math.random() * 900)}`)
+  const [name, setName] = useState(() => localStorage.getItem(NAME_KEY) || `Contato ${Math.floor(100 + Math.random() * 900)}`)
   const [peopleOnline, setPeopleOnline] = useState(0)
   const [participants, setParticipants] = useState([])
   const streamRef = useRef(null)
@@ -41,7 +41,7 @@ export default function App() {
   const makingOfferRef = useRef(false)
 
   useEffect(() => { if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {}) }, [])
-  useEffect(() => localStorage.setItem('walktok-muted', String(muted)), [muted])
+  useEffect(() => localStorage.setItem('zapdois-muted', String(muted)), [muted])
   useEffect(() => localStorage.setItem(ROOM_KEY, roomCode), [roomCode])
   useEffect(() => localStorage.setItem(NAME_KEY, name), [name])
 
@@ -68,7 +68,7 @@ export default function App() {
       const state = channel.presenceState()
       const ids = Object.keys(state)
       setPeopleOnline(ids.length || 1)
-      setParticipants(ids.map((id) => ({ id, name: state[id]?.[0]?.name || 'Tok', self: id === profileIdRef.current })))
+      setParticipants(ids.map((id) => ({ id, name: state[id]?.[0]?.name || 'Contato', self: id === profileIdRef.current })))
       for (const id of ids) {
         if (id !== profileIdRef.current) {
           politeRef.current.set(id, profileIdRef.current > id)
@@ -85,7 +85,7 @@ export default function App() {
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
         await channel.track({ id: profileIdRef.current, name, roomCode, onlineAt: Date.now() })
-        setMicStatus(muted ? 'na ligação, microfone mudo' : 'na ligação, microfone aberto')
+        setMicStatus(muted ? 'na ligação, microfone desligado' : 'na ligação, microfone ligado')
       }
     })
 
@@ -97,8 +97,8 @@ export default function App() {
     }
   }, [joined, roomCode, name, muted])
 
-  const status = !joined ? 'FORA' : muted ? 'MUDO' : 'EM LIGAÇÃO'
-  const initials = name.trim().slice(0, 2).toUpperCase() || 'TK'
+  const status = !joined ? 'CHAMADA PRIVADA' : muted ? 'MICROFONE OFF' : 'EM LIGAÇÃO'
+  const initials = name.trim().slice(0, 2).toUpperCase() || 'CT'
 
   function closeAllPeers() {
     peersRef.current.forEach((peer) => peer.close())
@@ -118,7 +118,7 @@ export default function App() {
     streamRef.current = stream
     stream.getAudioTracks().forEach((track) => { track.enabled = open })
     peersRef.current.forEach((peer) => addLocalTracks(peer, stream))
-    setMicStatus(open ? 'na ligação, microfone aberto' : 'na ligação, microfone mudo')
+    setMicStatus(open ? 'na ligação, microfone ligado' : 'na ligação, microfone desligado')
     return stream
   }
 
@@ -141,8 +141,8 @@ export default function App() {
 
     peer.onicecandidate = (event) => { if (event.candidate) sendSignal(peerId, { type: 'ice', candidate: event.candidate }) }
     peer.onconnectionstatechange = () => {
-      if (peer.connectionState === 'connected') setMicStatus(muted ? 'na ligação, microfone mudo' : 'na ligação, microfone aberto')
-      if (['failed', 'disconnected'].includes(peer.connectionState)) setMicStatus('reconectando ligação...')
+      if (peer.connectionState === 'connected') setMicStatus(muted ? 'na ligação, microfone desligado' : 'na ligação, microfone ligado')
+      if (['failed', 'disconnected'].includes(peer.connectionState)) setMicStatus('reconectando chamada...')
     }
     peer.ontrack = (event) => {
       let audio = audiosRef.current.get(peerId)
@@ -198,7 +198,7 @@ export default function App() {
 
   async function enterCall() {
     try {
-      setMicStatus('entrando na ligação...')
+      setMicStatus('entrando na chamada...')
       await ensureMic(!muted)
       setJoined(true)
     } catch {
@@ -209,7 +209,7 @@ export default function App() {
   function leaveCall() {
     setJoined(false)
     setMicLive(false)
-    setMicStatus('fora da ligação')
+    setMicStatus('fora da chamada')
     closeAllPeers()
   }
 
@@ -217,7 +217,7 @@ export default function App() {
     const next = !muted
     setMuted(next)
     setMicLive(!next)
-    setMicStatus(next ? 'na ligação, microfone mudo' : 'na ligação, microfone aberto')
+    setMicStatus(next ? 'na ligação, microfone desligado' : 'na ligação, microfone ligado')
   }
 
   return (
@@ -226,7 +226,7 @@ export default function App() {
         <header className="top-panel">
           <div>
             <span className="eyebrow">{APP_NAME}</span>
-            <h1>Ligação</h1>
+            <h1>Chamadas</h1>
           </div>
           <button className="mini-button" onClick={joined ? leaveCall : enterCall}>{joined ? 'Sair' : 'Entrar'}</button>
         </header>
@@ -239,23 +239,23 @@ export default function App() {
         <div className="display-card">
           <div className="status-dot" />
           <p>{status}</p>
-          <strong>{peopleOnline} {peopleOnline === 1 ? 'pessoa' : 'pessoas'} na ligação</strong>
+          <strong>{peopleOnline} {peopleOnline === 1 ? 'pessoa' : 'pessoas'} na chamada</strong>
           <small>{micStatus}</small>
         </div>
 
         <label className="channel-box">
-          <span>Código da sala privada</span>
+          <span>Código da chamada privada</span>
           <input value={roomCode} onChange={(event) => setRoomCode(event.target.value.replace(/\D/g, '').slice(0, 20))} disabled={joined} />
         </label>
 
-        <div className="speaker-now">Ligação privada: <strong>{roomCode || '00001'}</strong></div>
+        <div className="speaker-now">Chamada privada: <strong>{roomCode || '00001'}</strong></div>
 
         <div className="meter">
           {Array.from({ length: 18 }).map((_, index) => <span key={index} className={joined && !muted && index < 15 ? 'active' : ''} />)}
         </div>
 
         <button className="ptt-voice" onClick={joined ? toggleMute : enterCall}>
-          <span>{!joined ? 'ENTRAR NA LIGAÇÃO' : muted ? 'ATIVAR MICROFONE' : 'MICROFONE LIGADO'}</span>
+          <span>{!joined ? 'ENTRAR NA CHAMADA' : muted ? 'LIGAR MICROFONE' : 'MICROFONE LIGADO'}</span>
         </button>
 
         <div className="people-row">
@@ -265,13 +265,13 @@ export default function App() {
         </div>
 
         <div className="action-row">
-          <button onClick={toggleMute} disabled={!joined}>{muted ? 'Ativar mic' : 'Mutar mic'}</button>
+          <button onClick={toggleMute} disabled={!joined}>{muted ? 'Ligar mic' : 'Desligar mic'}</button>
           <button onClick={joined ? leaveCall : enterCall}>{joined ? 'Encerrar' : 'Entrar'}</button>
         </div>
 
         <footer className="radio-footer">
-          <span>{hasSupabase ? 'ligação ao vivo' : 'configure Supabase'}</span>
-          <span>sala {roomCode || '00001'}</span>
+          <span>{hasSupabase ? 'chamada ao vivo' : 'configure Supabase'}</span>
+          <span>código {roomCode || '00001'}</span>
         </footer>
       </section>
     </main>
