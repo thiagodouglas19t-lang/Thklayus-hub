@@ -9,7 +9,9 @@ const supabase = hasSupabase ? createClient(supabaseUrl, supabaseAnonKey) : null
 const PROFILE_KEY = 'zapdois-profile-id'
 const NAME_KEY = 'zapdois-name'
 const ROOM_KEY = 'zapdois-private-call'
+const COLOR_KEY = 'zapdois-color'
 const RTC_CONFIG = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
+const COLORS = ['#1D9E75', '#7F77DD', '#EF9F27', '#D85A30', '#D4537E', '#378ADD']
 
 function getProfileId() {
   let id = localStorage.getItem(PROFILE_KEY)
@@ -18,6 +20,10 @@ function getProfileId() {
     localStorage.setItem(PROFILE_KEY, id)
   }
   return id
+}
+
+function initialsFrom(name) {
+  return name.trim().split(' ').map((word) => word[0]).join('').toUpperCase().slice(0, 2) || 'CT'
 }
 
 function roomTopic(code) {
@@ -30,6 +36,7 @@ export default function App() {
   const [micStatus, setMicStatus] = useState('crie ou entre em uma ligação privada')
   const [roomCode, setRoomCode] = useState(() => localStorage.getItem(ROOM_KEY) || '00001')
   const [name, setName] = useState(() => localStorage.getItem(NAME_KEY) || `Contato ${Math.floor(100 + Math.random() * 900)}`)
+  const [profileColor, setProfileColor] = useState(() => localStorage.getItem(COLOR_KEY) || COLORS[0])
   const [peopleOnline, setPeopleOnline] = useState(0)
   const [participants, setParticipants] = useState([])
   const streamRef = useRef(null)
@@ -44,6 +51,7 @@ export default function App() {
   useEffect(() => localStorage.setItem('zapdois-muted', String(muted)), [muted])
   useEffect(() => localStorage.setItem(ROOM_KEY, roomCode), [roomCode])
   useEffect(() => localStorage.setItem(NAME_KEY, name), [name])
+  useEffect(() => localStorage.setItem(COLOR_KEY, profileColor), [profileColor])
 
   useEffect(() => {
     let lock
@@ -57,7 +65,7 @@ export default function App() {
   useEffect(() => {
     if (!joined || !supabase) {
       setPeopleOnline(joined ? 1 : 0)
-      setParticipants(joined ? [{ id: profileIdRef.current, name, self: true }] : [])
+      setParticipants(joined ? [{ id: profileIdRef.current, name, color: profileColor, self: true }] : [])
       return
     }
 
@@ -68,7 +76,7 @@ export default function App() {
       const state = channel.presenceState()
       const ids = Object.keys(state)
       setPeopleOnline(ids.length || 1)
-      setParticipants(ids.map((id) => ({ id, name: state[id]?.[0]?.name || 'Contato', self: id === profileIdRef.current })))
+      setParticipants(ids.map((id) => ({ id, name: state[id]?.[0]?.name || 'Contato', color: state[id]?.[0]?.color || COLORS[0], self: id === profileIdRef.current })))
       for (const id of ids) {
         if (id !== profileIdRef.current) {
           politeRef.current.set(id, profileIdRef.current > id)
@@ -84,7 +92,7 @@ export default function App() {
 
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
-        await channel.track({ id: profileIdRef.current, name, roomCode, onlineAt: Date.now() })
+        await channel.track({ id: profileIdRef.current, name, color: profileColor, roomCode, onlineAt: Date.now() })
         setMicStatus(muted ? 'na ligação, microfone desligado' : 'na ligação, microfone ligado')
       }
     })
@@ -95,10 +103,10 @@ export default function App() {
       realtimeRef.current = null
       closeAllPeers()
     }
-  }, [joined, roomCode, name, muted])
+  }, [joined, roomCode, name, muted, profileColor])
 
   const status = !joined ? 'CHAMADA PRIVADA' : muted ? 'MICROFONE OFF' : 'EM LIGAÇÃO'
-  const initials = name.trim().slice(0, 2).toUpperCase() || 'CT'
+  const initials = initialsFrom(name)
 
   function closeAllPeers() {
     peersRef.current.forEach((peer) => peer.close())
@@ -232,8 +240,12 @@ export default function App() {
         </header>
 
         <div className="profile-card">
-          <div className="avatar">{initials}</div>
+          <div className="avatar" style={{ background: profileColor }}>{initials}</div>
           <input value={name} onChange={(event) => setName(event.target.value.slice(0, 18))} />
+        </div>
+
+        <div className="color-row">
+          {COLORS.map((item) => <button key={item} className={profileColor === item ? 'selected' : ''} style={{ background: item }} onClick={() => setProfileColor(item)} />)}
         </div>
 
         <div className="display-card">
@@ -259,7 +271,7 @@ export default function App() {
         </button>
 
         <div className="people-row">
-          {(participants.length ? participants : [{ id: 'self', name, self: true }]).slice(0, 5).map((person) => (
+          {(participants.length ? participants : [{ id: 'self', name, color: profileColor, self: true }]).slice(0, 5).map((person) => (
             <span key={person.id} title={person.name}>{person.self ? 'Você' : person.name}</span>
           ))}
         </div>
